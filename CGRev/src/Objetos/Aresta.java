@@ -18,7 +18,7 @@ public class Aresta {
   public Aresta() {
     i = new Ponto();
     f = new Ponto();
-  }
+  }  
 
   /**
    * Construtor com parametros
@@ -26,10 +26,10 @@ public class Aresta {
    * @param F Ponto final da aresta
    */
   public Aresta(Ponto I, Ponto F) {
-    I = i;
-    F = f;
+    i = I;
+    f = F;
   }
-
+  
   /**
    * Retorna aresta no formato {p1; p2}
    * @return String com o conteudo do retorno

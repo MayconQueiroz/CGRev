@@ -1,5 +1,20 @@
 package Telas;
 
+import Objetos.*;
+import java.util.ArrayList;
+import java.awt.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import static java.lang.System.in;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.*;
+
 /**
  * Janela onde se pode gerar perfis que serao rotacionados
  * @author Maycon
@@ -10,17 +25,66 @@ public class Perfil extends javax.swing.JFrame {
    * Variaveis publicas
    */
   public Principal P;
+  public ArrayList<Ponto> arrPonto;
+  public Graphics D; //de Desenho
+  public ArrayList<Aresta> arrAresta;
+  public int iniY = 1023;
+  JFileChooser fc = new JFileChooser();
+  byte cabecalho;
   
   /**
    * Creates new form Perfil
    */
   private Perfil() {
     initComponents();
+    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+    setResizable(false); //Nao deixa redimensionar a janela
+    arrPonto = new ArrayList();
+    arrAresta = new ArrayList();
+    D = pnlRevI.getGraphics();
   }
   
   public Perfil(Principal P){
     this();
     this.P = P;
+  }
+  
+  /**
+   * Desenha as linhas do perfil escolhido
+   */
+  public void DesenhaPerfil(){  
+    for (Aresta a : arrAresta){
+      D.drawLine((int)a.i.x, (int)a.i.y, (int)a.f.x, (int)a.f.y);
+    }
+    //pnlRevI.
+  }
+  
+  /**
+   * Reinica Tudo
+   */
+  public void LimpaTudo(){
+    arrPonto.clear();
+    arrAresta.clear();
+    D.clearRect(0,0,400,300);
+    lblInfo.setText("");
+    iniY = 1023;
+  }
+  
+  /**
+   * Constroi arestas com base nos pontos ja existentes (De leitura por exemplo)
+   */
+  public void ConstroiArestas(){
+    Ponto Au = null;
+    for (Ponto p : arrPonto){
+      System.out.println("---");
+      if(p == arrPonto.get(0)){
+        Au = p;
+        continue;
+      }
+      arrAresta.add(new Aresta(Au, p));
+      Au = p;
+    }
   }
 
   /**
@@ -38,35 +102,53 @@ public class Perfil extends javax.swing.JFrame {
     pnlRev = new javax.swing.JPanel();
     pnlRevI = new javax.swing.JPanel();
     jButton1 = new javax.swing.JButton();
-    jButton2 = new javax.swing.JButton();
+    btnFecha = new javax.swing.JButton();
+    btnIniciaEixo = new javax.swing.JButton();
+    btnFechaEixo = new javax.swing.JButton();
+    lblInfo = new javax.swing.JLabel();
+    btnReiniciar = new javax.swing.JButton();
+    btnDesfazer = new javax.swing.JButton();
     jMenuBar1 = new javax.swing.JMenuBar();
     jMenu1 = new javax.swing.JMenu();
-    jMenuItem2 = new javax.swing.JMenuItem();
-    jMenuItem1 = new javax.swing.JMenuItem();
-    jMenuItem3 = new javax.swing.JMenuItem();
+    itemNovo = new javax.swing.JMenuItem();
+    itemAbrir = new javax.swing.JMenuItem();
+    itemSalvar = new javax.swing.JMenuItem();
     jSeparator2 = new javax.swing.JPopupMenu.Separator();
-    jMenuItem4 = new javax.swing.JMenuItem();
+    itemCarregarModelos = new javax.swing.JMenuItem();
     jMenu2 = new javax.swing.JMenu();
-    jMenuItem8 = new javax.swing.JMenuItem();
+    itemAjuda = new javax.swing.JMenuItem();
     jMenuItem5 = new javax.swing.JMenuItem();
 
     jMenuItem6.setText("jMenuItem6");
 
     jMenuItem7.setText("jMenuItem7");
 
-    setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+    addWindowListener(new java.awt.event.WindowAdapter() {
+      public void windowClosed(java.awt.event.WindowEvent evt) {
+        formWindowClosed(evt);
+      }
+    });
 
     pnlRev.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Perfil a ser revolucionado"));
+
+    pnlRevI.setMaximumSize(new java.awt.Dimension(400, 300));
+    pnlRevI.setPreferredSize(new java.awt.Dimension(400, 300));
+    pnlRevI.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mouseClicked(java.awt.event.MouseEvent evt) {
+        pnlRevIMouseClicked(evt);
+      }
+    });
 
     javax.swing.GroupLayout pnlRevILayout = new javax.swing.GroupLayout(pnlRevI);
     pnlRevI.setLayout(pnlRevILayout);
     pnlRevILayout.setHorizontalGroup(
       pnlRevILayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 429, Short.MAX_VALUE)
+      .addGap(0, 400, Short.MAX_VALUE)
     );
     pnlRevILayout.setVerticalGroup(
       pnlRevILayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 409, Short.MAX_VALUE)
+      .addGap(0, 300, Short.MAX_VALUE)
     );
 
     javax.swing.GroupLayout pnlRevLayout = new javax.swing.GroupLayout(pnlRev);
@@ -77,37 +159,82 @@ public class Perfil extends javax.swing.JFrame {
     );
     pnlRevLayout.setVerticalGroup(
       pnlRevLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(pnlRevI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addComponent(pnlRevI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
     );
 
     jButton1.setText("Rotacionar");
 
-    jButton2.setText("Cancelar");
+    btnFecha.setText("Fechar Forma");
+    btnFecha.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnFechaActionPerformed(evt);
+      }
+    });
+
+    btnIniciaEixo.setText("Inicia eixo");
+    btnIniciaEixo.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnIniciaEixoActionPerformed(evt);
+      }
+    });
+
+    btnFechaEixo.setText("Fecha eixo");
+    btnFechaEixo.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnFechaEixoActionPerformed(evt);
+      }
+    });
+
+    lblInfo.setVerticalAlignment(javax.swing.SwingConstants.BOTTOM);
+
+    btnReiniciar.setText("Reiniciar");
+    btnReiniciar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnReiniciarActionPerformed(evt);
+      }
+    });
+
+    btnDesfazer.setText("Desfazer");
+    btnDesfazer.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnDesfazerActionPerformed(evt);
+      }
+    });
 
     jMenu1.setText("Arquivo");
 
-    jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
-    jMenuItem2.setText("Novo");
-    jMenu1.add(jMenuItem2);
+    itemNovo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+    itemNovo.setText("Novo");
+    jMenu1.add(itemNovo);
 
-    jMenuItem1.setText("Abrir");
-    jMenu1.add(jMenuItem1);
+    itemAbrir.setText("Abrir");
+    itemAbrir.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        itemAbrirActionPerformed(evt);
+      }
+    });
+    jMenu1.add(itemAbrir);
 
-    jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
-    jMenuItem3.setText("Salvar");
-    jMenu1.add(jMenuItem3);
+    itemSalvar.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+    itemSalvar.setText("Salvar");
+    itemSalvar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        itemSalvarActionPerformed(evt);
+      }
+    });
+    jMenu1.add(itemSalvar);
     jMenu1.add(jSeparator2);
 
-    jMenuItem4.setText("Carregar modelos");
-    jMenu1.add(jMenuItem4);
+    itemCarregarModelos.setText("Carregar modelos");
+    jMenu1.add(itemCarregarModelos);
 
     jMenuBar1.add(jMenu1);
 
     jMenu2.setText("Ajuda");
 
-    jMenuItem8.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
-    jMenuItem8.setText("Tópicos de Ajuda");
-    jMenu2.add(jMenuItem8);
+    itemAjuda.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
+    itemAjuda.setText("Tópicos de Ajuda");
+    jMenu2.add(itemAjuda);
 
     jMenuItem5.setText("Opção não selecionável");
     jMenu2.add(jMenuItem5);
@@ -123,28 +250,159 @@ public class Perfil extends javax.swing.JFrame {
       .addGroup(layout.createSequentialGroup()
         .addContainerGap()
         .addComponent(pnlRev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-          .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(layout.createSequentialGroup()
+            .addGap(8, 8, 8)
+            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
+          .addGroup(layout.createSequentialGroup()
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+              .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+              .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+              .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+              .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+              .addComponent(btnReiniciar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+              .addComponent(btnDesfazer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(layout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(pnlRev, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(pnlRev, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addGroup(layout.createSequentialGroup()
+            .addComponent(jButton1)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(btnFecha)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(btnIniciaEixo)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(btnFechaEixo)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(btnReiniciar)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(btnDesfazer)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
         .addContainerGap())
-      .addGroup(layout.createSequentialGroup()
-        .addGap(19, 19, 19)
-        .addComponent(jButton1)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(jButton2)
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
 
     pack();
   }// </editor-fold>//GEN-END:initComponents
+
+  private void pnlRevIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseClicked
+    Ponto p = new Ponto();
+    p.x = evt.getX() & iniY; //*0.25 0~100
+    iniY = 1023;
+    p.y = evt.getY(); //*0.25 0~75
+    System.out.println("X = " + p.x + " - Y = " + p.y);
+    arrPonto.add(p);
+    if (arrPonto.size() > 1){
+      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size()-1), arrPonto.get(arrPonto.size()-2)));
+      DesenhaPerfil();
+    }
+    lblInfo.setText("");
+  }//GEN-LAST:event_pnlRevIMouseClicked
+
+  private void btnFechaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFechaActionPerformed
+    if (arrPonto.size() < 3){
+      JOptionPane.showMessageDialog(this, "Devem existir pelo o menos duas arestas para fechar o objeto", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else {
+      arrPonto.add(arrPonto.get(0));
+      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size()-1), arrPonto.get(arrPonto.size()-2)));
+      DesenhaPerfil();
+    }
+  }//GEN-LAST:event_btnFechaActionPerformed
+
+  private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
+    P.setEnabled(true);
+    P.requestFocus(); //Traz o foco para tela anterior
+  }//GEN-LAST:event_formWindowClosed
+
+  private void itemAbrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAbrirActionPerformed
+    fc = new JFileChooser();
+    int returnVal = fc.showOpenDialog(this);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File file = fc.getSelectedFile();
+      String s = file.toString();
+      if(!file.canRead()){
+        JOptionPane.showMessageDialog(this, "Nao foi possivel ler o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      try {
+        DataInputStream entr = new DataInputStream(new FileInputStream(s));
+        cabecalho = entr.readByte();
+        Aresta a = new Aresta();
+        LimpaTudo();
+        while(entr.available()>0){ //Le
+          arrPonto.add(new Ponto(entr.readDouble(), entr.readDouble(), 0.0));
+        }
+        ConstroiArestas();
+        DesenhaPerfil();
+      } catch (FileNotFoundException ex) {
+        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+        JOptionPane.showMessageDialog(this, "Nao foi possivel ler o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+      } catch (IOException ex) {
+        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+        JOptionPane.showMessageDialog(this, "Erro generico de leitura", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+    }
+  }//GEN-LAST:event_itemAbrirActionPerformed
+
+  private void itemSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemSalvarActionPerformed
+    fc = new JFileChooser();
+    int returnVal = fc.showSaveDialog(this);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File file = fc.getSelectedFile();
+      String s = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
+      //System.out.println("Saida = " + s);
+      cabecalho = 0;
+      try {
+        try (DataOutputStream said = new DataOutputStream(new FileOutputStream(s))) {
+          said.writeByte(cabecalho);
+          for (Ponto p : arrPonto){
+            said.writeDouble(p.x);
+            said.writeDouble(p.y);
+          }
+        }
+      } catch (FileNotFoundException ex) {
+        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+      } catch (IOException ex) {
+        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+      }
+    }
+  }//GEN-LAST:event_itemSalvarActionPerformed
+
+  private void btnIniciaEixoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciaEixoActionPerformed
+    lblInfo.setText("<html>Escolha a altura<br/>de inicio usando<br/>o painel</html>");
+    iniY = 0;
+  }//GEN-LAST:event_btnIniciaEixoActionPerformed
+
+  private void btnFechaEixoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFechaEixoActionPerformed
+    if (arrPonto.size() < 2){
+      JOptionPane.showMessageDialog(this, "Devem existir pelo o menos uma aresta para fechar o objeto", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else {
+      arrPonto.add(new Ponto(0.0, arrPonto.get(arrPonto.size()-1).y, 0.0));
+      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size()-1), arrPonto.get(arrPonto.size()-2)));
+      DesenhaPerfil();
+    }
+  }//GEN-LAST:event_btnFechaEixoActionPerformed
+
+  private void btnReiniciarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReiniciarActionPerformed
+    LimpaTudo();
+  }//GEN-LAST:event_btnReiniciarActionPerformed
+
+  private void btnDesfazerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDesfazerActionPerformed
+    Aresta a = arrAresta.get(arrAresta.size()-1);
+    D.setColor(pnlRevI.getBackground());
+    D.drawLine((int)a.i.x, (int)a.i.y, (int)a.f.x, (int)a.f.y);
+    arrPonto.remove(arrPonto.size()-1);
+    arrAresta.remove(arrAresta.size()-1);
+    D.setColor(Color.BLACK);
+  }//GEN-LAST:event_btnDesfazerActionPerformed
 
   /**
    * @param args the command line arguments
@@ -182,21 +440,26 @@ public class Perfil extends javax.swing.JFrame {
   }
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JButton btnDesfazer;
+  private javax.swing.JButton btnFecha;
+  private javax.swing.JButton btnFechaEixo;
+  private javax.swing.JButton btnIniciaEixo;
+  private javax.swing.JButton btnReiniciar;
+  private javax.swing.JMenuItem itemAbrir;
+  private javax.swing.JMenuItem itemAjuda;
+  private javax.swing.JMenuItem itemCarregarModelos;
+  private javax.swing.JMenuItem itemNovo;
+  private javax.swing.JMenuItem itemSalvar;
   private javax.swing.JButton jButton1;
-  private javax.swing.JButton jButton2;
   private javax.swing.JMenu jMenu1;
   private javax.swing.JMenu jMenu2;
   private javax.swing.JMenuBar jMenuBar1;
-  private javax.swing.JMenuItem jMenuItem1;
-  private javax.swing.JMenuItem jMenuItem2;
-  private javax.swing.JMenuItem jMenuItem3;
-  private javax.swing.JMenuItem jMenuItem4;
   private javax.swing.JMenuItem jMenuItem5;
   private javax.swing.JMenuItem jMenuItem6;
   private javax.swing.JMenuItem jMenuItem7;
-  private javax.swing.JMenuItem jMenuItem8;
   private javax.swing.JSeparator jSeparator1;
   private javax.swing.JPopupMenu.Separator jSeparator2;
+  private javax.swing.JLabel lblInfo;
   private javax.swing.JPanel pnlRev;
   private javax.swing.JPanel pnlRevI;
   // End of variables declaration//GEN-END:variables
