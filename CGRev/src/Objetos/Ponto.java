@@ -38,6 +38,15 @@ public class Ponto {
   }  
 
   /**
+   * Construtor de pontos para perfil (que nao tem z)
+   * @param X coordenada x
+   * @param Y coordenada y
+   */
+  public Ponto(double X, double Y) {
+    this(X, Y, 0.0);
+  }
+
+  /**
    * Retorna o ponto no formato (x; y; z)
    * @return String com o conteudo do retorno
    */

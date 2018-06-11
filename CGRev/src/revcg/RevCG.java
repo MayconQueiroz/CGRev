@@ -6,6 +6,7 @@
 package revcg;
 
 import Telas.*;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -13,11 +14,18 @@ import Telas.*;
  */
 public class RevCG {
   
+  public static Principal P;
+  
   /**
    * @param args the command line arguments
    */
   public static void main(String[] args) {
-    new Principal().setVisible(true);
+    P = new Principal();
+    P.setVisible(true);
   }
   
+  public static void ErroPadrao(){
+    JOptionPane.showMessageDialog(P, "I'm sorry Dave, I'm afraid I can't do that", "HAL 9000 says", JOptionPane.ERROR_MESSAGE);
+    System.exit(-1);
+  }
 }

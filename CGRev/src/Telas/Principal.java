@@ -5,8 +5,14 @@
  */
 package Telas;
 
+import Objetos.Aresta;
+import Objetos.Objeto;
+import Objetos.Ponto;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Toolkit;
+import java.util.ArrayList;
+import javax.swing.UIManager;
 
 /**
  *
@@ -15,15 +21,77 @@ import java.awt.Toolkit;
 public class Principal extends javax.swing.JFrame {
 
   /**
+   * Variáveis globais
+   */
+  public ArrayList<Objeto> Obj; //objetos em cena
+  public Graphics DT; //Topo
+  public Graphics DF; //Frente
+  public Graphics DL; //Lado
+  public Graphics DP; //Pers
+  public int mx = 170; //Meio em x
+  public int my = 127; //Meio em y
+  
+  /**
    * Creates new form Principal
    */
   public Principal() {
+    try {
+      UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"); 
+    } catch (Exception ex) { 
+      ex.printStackTrace(); 
+    }   
     initComponents();
     //Seta janela para o meio da tela, independente da resolução.
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+    //this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
     setResizable(false); //Nao deixa redimensionar a janela
+    DT = pnlTopoI.getGraphics();
+    DF = pnlFrenteI.getGraphics();
+    DL = pnlLadoI.getGraphics();
+    DP = pnlPerspectivaI.getGraphics();
+    Obj = new ArrayList<>();
   }
+  
+  public void PintaTudo(){
+    PintaLado();
+    PintaTopo();
+    PintaFrente();
+    PintaPerspectiva();
+  }
+  
+  /**
+   * Pinta o painel Lado
+   */
+  public void PintaLado(){
+    
+  }
+  
+  /**
+   * Pinta o painel Topo
+   */
+  public void PintaTopo(){
+    for(Objeto o : Obj){
+      for (Aresta a : o.arrAresta){
+        DT.drawLine((int)a.i.x+mx, (int)a.i.z+my, (int)a.f.x+mx, (int)a.f.z+my);
+      }
+    }
+  }
+  
+  /**
+   * Pinta o painel Frente
+   */
+  public void PintaFrente(){
+    
+  }
+  
+  /**
+   * Pinta o painel de perspectiva
+   */
+  public void PintaPerspectiva(){
+    
+  }
+  
+  //////////////////////////////////////////////////////////////////////////////
 
   /**
    * This method is called from within the constructor to initialize the form.
@@ -328,14 +396,14 @@ public class Principal extends javax.swing.JFrame {
    * @param args the command line arguments
    */
   public static void main(String args[]) {
-    /* Set the Nimbus look and feel */
+    /* Set the Windows look and feel */
     //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
-    try {
+    /*try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-        if ("Nimbus".equals(info.getName())) {
+        if ("Windows".equals(info.getName())) {
           javax.swing.UIManager.setLookAndFeel(info.getClassName());
           break;
         }
@@ -348,7 +416,7 @@ public class Principal extends javax.swing.JFrame {
       java.util.logging.Logger.getLogger(Principal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
     } catch (javax.swing.UnsupportedLookAndFeelException ex) {
       java.util.logging.Logger.getLogger(Principal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-    }
+    }*/
     //</editor-fold>
 
     /* Create and display the form */

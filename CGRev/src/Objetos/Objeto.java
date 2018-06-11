@@ -1,6 +1,7 @@
 package Objetos;
 
 import java.util.ArrayList;
+import javafx.scene.paint.Color;
 
 /**
  * Classe de estrutura e manipulacao de objetos (em geral)
@@ -11,7 +12,14 @@ public class Objeto {
   /**
    * Variaveis publicas
    */
-  public ArrayList<Aresta> a; //Arestas no objeto
+  public ArrayList<Aresta> arrAresta; //Arestas no objeto
+  public Color AC = Color.BLACK; //Arestas (Cor)
+  public boolean Fechado;
+
+  public Objeto() {
+    arrAresta = new ArrayList<>();
+    Fechado = false;
+  }
   
   
 }

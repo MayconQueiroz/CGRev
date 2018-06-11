@@ -11,6 +11,15 @@ public class Face {
   /**
    * Variaveis Publicas
    */
-  public ArrayList<Aresta> a;
+  public ArrayList<Aresta> arrArestas;
+
+  /**
+   * Construtor padrao, setar as arestas manualmente
+   */
+  public Face() {
+    arrArestas = new ArrayList<>();
+  }
+  
+  
   
 }

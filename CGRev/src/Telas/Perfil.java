@@ -10,13 +10,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import static java.lang.System.in;
+import static java.lang.Math.round;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import static revcg.RevCG.ErroPadrao;
 
 /**
  * Janela onde se pode gerar perfis que serao rotacionados
+ *
  * @author Maycon
  */
 public class Perfil extends javax.swing.JFrame {
@@ -31,59 +33,122 @@ public class Perfil extends javax.swing.JFrame {
   public int iniY = 1023;
   JFileChooser fc = new JFileChooser();
   byte cabecalho;
-  
+  public Objeto obj;
+
   /**
    * Creates new form Perfil
    */
   private Perfil() {
     initComponents();
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+    //this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
     setResizable(false); //Nao deixa redimensionar a janela
     arrPonto = new ArrayList();
     arrAresta = new ArrayList();
     D = pnlRevI.getGraphics();
   }
-  
-  public Perfil(Principal P){
+
+  public Perfil(Principal P) {
     this();
     this.P = P;
   }
-  
+
   /**
    * Desenha as linhas do perfil escolhido
    */
-  public void DesenhaPerfil(){  
-    for (Aresta a : arrAresta){
-      D.drawLine((int)a.i.x, (int)a.i.y, (int)a.f.x, (int)a.f.y);
+  public void DesenhaPerfil() {
+    for (Aresta a : arrAresta) {
+      D.drawLine((int) a.i.x, (int) a.i.y, (int) a.f.x, (int) a.f.y);
     }
-    //pnlRevI.
   }
-  
+
   /**
    * Reinica Tudo
    */
-  public void LimpaTudo(){
+  public void LimpaTudo() {
     arrPonto.clear();
     arrAresta.clear();
-    D.clearRect(0,0,400,300);
+    D.clearRect(0, 0, 400, 300);
     lblInfo.setText("");
     iniY = 1023;
   }
-  
+
   /**
    * Constroi arestas com base nos pontos ja existentes (De leitura por exemplo)
    */
-  public void ConstroiArestas(){
+  public void ConstroiArestas() {
     Ponto Au = null;
-    for (Ponto p : arrPonto){
-      System.out.println("---");
-      if(p == arrPonto.get(0)){
+    for (Ponto p : arrPonto) {
+      if (p == arrPonto.get(0)) {
         Au = p;
         continue;
       }
       arrAresta.add(new Aresta(Au, p));
       Au = p;
+    }
+  }
+
+  /**
+   * Onde a magica acontece
+   *
+   * @param Num Numero de segmentos
+   * @param op Operacao (0 e 1 fechados, 2 abertos)
+   */
+  public void CriaObjeto(int Num, int op) {
+    double teta = 6.24 / Num;
+    double ccos = Math.cos(teta);
+    double csin = Math.sin(teta);
+    System.out.println("001");
+    obj = new Objeto();
+    if (op == 0) { //Inicia e encerra no eixo - fechado
+      System.out.println("002");
+      for (Aresta a : arrAresta) {
+        obj.Fechado = true;
+        obj.arrAresta.add(a);
+      }
+      obj.Fechado = true;
+      for (int i = 0; i < Num - 1; i++) {
+        for (Ponto p : arrPonto.subList(1, arrPonto.size() - 1)) {
+          p.x = (p.x * ccos) + (p.x * csin);
+          p.z = (p.x * (-csin)) + (p.x * ccos);
+        }
+        ConstroiArestas();
+        int j = i * arrAresta.size();
+        for (Aresta a : arrAresta.subList(0, arrAresta.size() - 1)) {
+          obj.arrAresta.add(a);
+          obj.arrAresta.add(new Aresta(obj.arrAresta.get(j).f, a.f));
+          j += 1;
+        }
+        obj.arrAresta.add(arrAresta.get(arrAresta.size() - 1));
+      }
+      int k = Num * arrAresta.size();
+      for (int i = 0; i < arrAresta.size(); i++) {
+        obj.arrAresta.add(new Aresta(obj.arrAresta.get(k).f, obj.arrAresta.get(i).f));
+        k += 1;
+      }
+    } else if (op == 1) { //Inicia e encerra no mesmo ponto - fechado
+      for (Aresta a : arrAresta) {
+        obj.Fechado = true;
+        obj.arrAresta.add(a);
+      }
+      obj.Fechado = true;
+      for (int i = 0; i < Num; i++) {
+        for (Ponto p : arrPonto.subList(0, arrPonto.size() - 1)) {
+
+        }
+      }
+    } else if (op == 2) { //Encerra em ponto diferente que inicia - aberto
+      for (Aresta a : arrAresta) {
+        obj.arrAresta.add(a);
+      }
+      obj.Fechado = true;
+      for (int i = 0; i < Num; i++) {
+        for (Ponto p : arrPonto) {
+
+        }
+      }
+    } else {
+      ErroPadrao();
     }
   }
 
@@ -101,12 +166,11 @@ public class Perfil extends javax.swing.JFrame {
     jMenuItem7 = new javax.swing.JMenuItem();
     pnlRev = new javax.swing.JPanel();
     pnlRevI = new javax.swing.JPanel();
-    jButton1 = new javax.swing.JButton();
+    btnRotacionar = new javax.swing.JButton();
     btnFecha = new javax.swing.JButton();
     btnIniciaEixo = new javax.swing.JButton();
     btnFechaEixo = new javax.swing.JButton();
     lblInfo = new javax.swing.JLabel();
-    btnReiniciar = new javax.swing.JButton();
     btnDesfazer = new javax.swing.JButton();
     jMenuBar1 = new javax.swing.JMenuBar();
     jMenu1 = new javax.swing.JMenu();
@@ -134,6 +198,11 @@ public class Perfil extends javax.swing.JFrame {
 
     pnlRevI.setMaximumSize(new java.awt.Dimension(400, 300));
     pnlRevI.setPreferredSize(new java.awt.Dimension(400, 300));
+    pnlRevI.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseMoved(java.awt.event.MouseEvent evt) {
+        pnlRevIMouseMoved(evt);
+      }
+    });
     pnlRevI.addMouseListener(new java.awt.event.MouseAdapter() {
       public void mouseClicked(java.awt.event.MouseEvent evt) {
         pnlRevIMouseClicked(evt);
@@ -148,7 +217,7 @@ public class Perfil extends javax.swing.JFrame {
     );
     pnlRevILayout.setVerticalGroup(
       pnlRevILayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 300, Short.MAX_VALUE)
+      .addGap(0, 0, Short.MAX_VALUE)
     );
 
     javax.swing.GroupLayout pnlRevLayout = new javax.swing.GroupLayout(pnlRev);
@@ -159,10 +228,15 @@ public class Perfil extends javax.swing.JFrame {
     );
     pnlRevLayout.setVerticalGroup(
       pnlRevLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(pnlRevI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+      .addComponent(pnlRevI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
 
-    jButton1.setText("Rotacionar");
+    btnRotacionar.setText("Rotacionar");
+    btnRotacionar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnRotacionarActionPerformed(evt);
+      }
+    });
 
     btnFecha.setText("Fechar Forma");
     btnFecha.addActionListener(new java.awt.event.ActionListener() {
@@ -187,13 +261,6 @@ public class Perfil extends javax.swing.JFrame {
 
     lblInfo.setVerticalAlignment(javax.swing.SwingConstants.BOTTOM);
 
-    btnReiniciar.setText("Reiniciar");
-    btnReiniciar.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnReiniciarActionPerformed(evt);
-      }
-    });
-
     btnDesfazer.setText("Desfazer");
     btnDesfazer.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -205,6 +272,11 @@ public class Perfil extends javax.swing.JFrame {
 
     itemNovo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
     itemNovo.setText("Novo");
+    itemNovo.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        itemNovoActionPerformed(evt);
+      }
+    });
     jMenu1.add(itemNovo);
 
     itemAbrir.setText("Abrir");
@@ -226,6 +298,11 @@ public class Perfil extends javax.swing.JFrame {
     jMenu1.add(jSeparator2);
 
     itemCarregarModelos.setText("Carregar modelos");
+    itemCarregarModelos.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        itemCarregarModelosActionPerformed(evt);
+      }
+    });
     jMenu1.add(itemCarregarModelos);
 
     jMenuBar1.add(jMenu1);
@@ -257,11 +334,10 @@ public class Perfil extends javax.swing.JFrame {
           .addGroup(layout.createSequentialGroup()
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-              .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+              .addComponent(btnRotacionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
               .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
               .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
               .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-              .addComponent(btnReiniciar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
               .addComponent(btnDesfazer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
@@ -272,7 +348,7 @@ public class Perfil extends javax.swing.JFrame {
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addComponent(pnlRev, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addGroup(layout.createSequentialGroup()
-            .addComponent(jButton1)
+            .addComponent(btnRotacionar)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addComponent(btnFecha)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -280,10 +356,8 @@ public class Perfil extends javax.swing.JFrame {
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addComponent(btnFechaEixo)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(btnReiniciar)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addComponent(btnDesfazer)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 91, Short.MAX_VALUE)
             .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
         .addContainerGap())
     );
@@ -291,26 +365,13 @@ public class Perfil extends javax.swing.JFrame {
     pack();
   }// </editor-fold>//GEN-END:initComponents
 
-  private void pnlRevIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseClicked
-    Ponto p = new Ponto();
-    p.x = evt.getX() & iniY; //*0.25 0~100
-    iniY = 1023;
-    p.y = evt.getY(); //*0.25 0~75
-    System.out.println("X = " + p.x + " - Y = " + p.y);
-    arrPonto.add(p);
-    if (arrPonto.size() > 1){
-      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size()-1), arrPonto.get(arrPonto.size()-2)));
-      DesenhaPerfil();
-    }
-    lblInfo.setText("");
-  }//GEN-LAST:event_pnlRevIMouseClicked
-
   private void btnFechaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFechaActionPerformed
-    if (arrPonto.size() < 3){
+    if (arrPonto.size() < 3) {
       JOptionPane.showMessageDialog(this, "Devem existir pelo o menos duas arestas para fechar o objeto", "Erro", JOptionPane.ERROR_MESSAGE);
+      iniY = 2047;
     } else {
       arrPonto.add(arrPonto.get(0));
-      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size()-1), arrPonto.get(arrPonto.size()-2)));
+      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
       DesenhaPerfil();
     }
   }//GEN-LAST:event_btnFechaActionPerformed
@@ -318,6 +379,7 @@ public class Perfil extends javax.swing.JFrame {
   private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
     P.setEnabled(true);
     P.requestFocus(); //Traz o foco para tela anterior
+    P.PintaTudo();
   }//GEN-LAST:event_formWindowClosed
 
   private void itemAbrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAbrirActionPerformed
@@ -326,7 +388,7 @@ public class Perfil extends javax.swing.JFrame {
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File file = fc.getSelectedFile();
       String s = file.toString();
-      if(!file.canRead()){
+      if (!file.canRead()) {
         JOptionPane.showMessageDialog(this, "Nao foi possivel ler o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
         return;
       }
@@ -335,7 +397,7 @@ public class Perfil extends javax.swing.JFrame {
         cabecalho = entr.readByte();
         Aresta a = new Aresta();
         LimpaTudo();
-        while(entr.available()>0){ //Le
+        while (entr.available() > 0) { //Le
           arrPonto.add(new Ponto(entr.readDouble(), entr.readDouble(), 0.0));
         }
         ConstroiArestas();
@@ -350,6 +412,8 @@ public class Perfil extends javax.swing.JFrame {
         return;
       }
     }
+    DesenhaPerfil();
+    iniY = 2047;
   }//GEN-LAST:event_itemAbrirActionPerformed
 
   private void itemSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemSalvarActionPerformed
@@ -363,7 +427,7 @@ public class Perfil extends javax.swing.JFrame {
       try {
         try (DataOutputStream said = new DataOutputStream(new FileOutputStream(s))) {
           said.writeByte(cabecalho);
-          for (Ponto p : arrPonto){
+          for (Ponto p : arrPonto) {
             said.writeDouble(p.x);
             said.writeDouble(p.y);
           }
@@ -382,40 +446,122 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_btnIniciaEixoActionPerformed
 
   private void btnFechaEixoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFechaEixoActionPerformed
-    if (arrPonto.size() < 2){
+    if (arrPonto.size() < 2) {
       JOptionPane.showMessageDialog(this, "Devem existir pelo o menos uma aresta para fechar o objeto", "Erro", JOptionPane.ERROR_MESSAGE);
+      iniY = 2047;
     } else {
-      arrPonto.add(new Ponto(0.0, arrPonto.get(arrPonto.size()-1).y, 0.0));
-      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size()-1), arrPonto.get(arrPonto.size()-2)));
+      arrPonto.add(new Ponto(0.0, arrPonto.get(arrPonto.size() - 1).y, 0.0));
+      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
       DesenhaPerfil();
     }
   }//GEN-LAST:event_btnFechaEixoActionPerformed
 
-  private void btnReiniciarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReiniciarActionPerformed
-    LimpaTudo();
-  }//GEN-LAST:event_btnReiniciarActionPerformed
-
   private void btnDesfazerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDesfazerActionPerformed
-    Aresta a = arrAresta.get(arrAresta.size()-1);
+    if (arrAresta.size() < 1) {
+      iniY = 2047;
+      return;
+    }
+    Aresta a = arrAresta.get(arrAresta.size() - 1);
     D.setColor(pnlRevI.getBackground());
-    D.drawLine((int)a.i.x, (int)a.i.y, (int)a.f.x, (int)a.f.y);
-    arrPonto.remove(arrPonto.size()-1);
-    arrAresta.remove(arrAresta.size()-1);
+    D.drawLine((int) a.i.x, (int) a.i.y, (int) a.f.x, (int) a.f.y);
+    arrPonto.remove(arrPonto.size() - 1);
+    arrAresta.remove(arrAresta.size() - 1);
     D.setColor(Color.BLACK);
+    iniY = 2047;
   }//GEN-LAST:event_btnDesfazerActionPerformed
+
+  private void pnlRevIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseMoved
+    DesenhaPerfil();
+  }//GEN-LAST:event_pnlRevIMouseMoved
+
+  private void pnlRevIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseClicked
+    Ponto p = new Ponto();
+    p.x = evt.getX() & iniY; //*0.25 0~100
+    iniY = 1023;
+    p.y = evt.getY(); //*0.25 0~75
+    System.out.println("X = " + p.x + " - Y = " + p.y);
+    arrPonto.add(p);
+    if (arrPonto.size() > 1) {
+      if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(arrPonto.size() - 2).x == 0) {
+        JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
+        arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
+        btnDesfazerActionPerformed(null);
+      } else {
+        arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
+        DesenhaPerfil();
+      }
+    }
+    lblInfo.setText("");
+  }//GEN-LAST:event_pnlRevIMouseClicked
+
+  private void itemCarregarModelosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemCarregarModelosActionPerformed
+    this.setEnabled(false);
+    new Modelos(this).setVisible(true);
+  }//GEN-LAST:event_itemCarregarModelosActionPerformed
+
+  private void itemNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemNovoActionPerformed
+    if (!arrAresta.isEmpty()) {
+      int result = JOptionPane.showConfirmDialog(this, "Há arestas não salvas, deseja salvá-las?");
+      if (result == JOptionPane.NO_OPTION) {
+        LimpaTudo();
+      } else if (result == JOptionPane.YES_OPTION) {
+        itemSalvarActionPerformed(evt);
+        LimpaTudo();
+      }
+    }
+  }//GEN-LAST:event_itemNovoActionPerformed
+
+  private void btnRotacionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRotacionarActionPerformed
+    if (arrAresta.isEmpty()) {
+      JOptionPane.showMessageDialog(this, "Não há arestas a rotacionar", "Erro", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+    String input = JOptionPane.showInputDialog("Numero de segmentos da revolução completa:");
+    if (input.isEmpty()) {
+      JOptionPane.showMessageDialog(this, "Nenhum valor informado", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else {
+      int Num = 6;
+      try {
+        Num = Integer.parseInt(input);
+      } catch (NumberFormatException | NullPointerException e) {
+        JOptionPane.showMessageDialog(this, "Valor de segmentos informado não é inteiro - definido como 6", "Não pode ser...", JOptionPane.WARNING_MESSAGE);
+      }
+      if (Num < 2) {
+        JOptionPane.showMessageDialog(this, "Valor deve ser maior que 2 - definido como 6", "Erro", JOptionPane.ERROR_MESSAGE);
+        Num = 6;
+      } else if (Num > 100) {
+        JOptionPane.showMessageDialog(this, "Valor deve ser menor que 100 - definido como 6", "Erro", JOptionPane.ERROR_MESSAGE);
+        Num = 6;
+      }
+      int op;
+      if (arrPonto.get(0).x == 0 && arrPonto.get(arrPonto.size() - 1).x == 0) { // 0 nao roda
+        op = 0;
+      } else if (arrPonto.get(0).x == arrPonto.get(arrPonto.size() - 1).x) { //Inicial igual ao final
+        op = 1;
+      } else {
+        op = 2;
+      }
+      CriaObjeto(Num, op);
+    }
+    P.Obj.add(obj);
+    this.dispose();
+    P.setEnabled(true);
+    P.requestFocus(); //Traz o foco para tela anterior
+    P.PintaTudo();
+  }//GEN-LAST:event_btnRotacionarActionPerformed
 
   /**
    * @param args the command line arguments
    */
   public static void main(String args[]) {
-    /* Set the Nimbus look and feel */
+    /* Set the Windows look and feel */
     //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
     try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-        if ("Nimbus".equals(info.getName())) {
+        if ("Windows".equals(info.getName())) {
           javax.swing.UIManager.setLookAndFeel(info.getClassName());
           break;
         }
@@ -444,13 +590,12 @@ public class Perfil extends javax.swing.JFrame {
   private javax.swing.JButton btnFecha;
   private javax.swing.JButton btnFechaEixo;
   private javax.swing.JButton btnIniciaEixo;
-  private javax.swing.JButton btnReiniciar;
+  private javax.swing.JButton btnRotacionar;
   private javax.swing.JMenuItem itemAbrir;
   private javax.swing.JMenuItem itemAjuda;
   private javax.swing.JMenuItem itemCarregarModelos;
   private javax.swing.JMenuItem itemNovo;
   private javax.swing.JMenuItem itemSalvar;
-  private javax.swing.JButton jButton1;
   private javax.swing.JMenu jMenu1;
   private javax.swing.JMenu jMenu2;
   private javax.swing.JMenuBar jMenuBar1;
