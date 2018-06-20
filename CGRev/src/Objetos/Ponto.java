@@ -23,6 +23,18 @@ public class Ponto {
     z = 0;
     w = 1;
   }
+  
+  /**
+   * Construtor de Copia
+   * @param p Ponto a ser clonado
+   */
+  public Ponto(Ponto p) {
+    this();
+    x = p.x;
+    y = p.y;
+    z = p.z;
+    w = p.w;
+  }
 
   /**
    * Construtor "normalmente" usado (w e automaticamente 1)

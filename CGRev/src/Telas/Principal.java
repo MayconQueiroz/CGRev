@@ -8,11 +8,24 @@ package Telas;
 import Objetos.Aresta;
 import Objetos.Objeto;
 import Objetos.Ponto;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+import static revcg.RevCG.*;
 
 /**
  *
@@ -30,6 +43,13 @@ public class Principal extends javax.swing.JFrame {
   public Graphics DP; //Pers
   public int mx = 170; //Meio em x
   public int my = 127; //Meio em y
+  public Objeto objSelecionado;
+  
+  /**
+   * Variaveis Locais Globais
+   */
+  byte cabecalho;
+  JFileChooser fc = new JFileChooser();
   
   /**
    * Creates new form Principal
@@ -46,12 +66,43 @@ public class Principal extends javax.swing.JFrame {
     //this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
     setResizable(false); //Nao deixa redimensionar a janela
     DT = pnlTopoI.getGraphics();
+    //pnlTopoI.setBackground(Color.LIGHT_GRAY);
     DF = pnlFrenteI.getGraphics();
+    //pnlFrenteI.setBackground(Color.LIGHT_GRAY);
     DL = pnlLadoI.getGraphics();
+    //pnlLadoI.setBackground(Color.LIGHT_GRAY);
     DP = pnlPerspectivaI.getGraphics();
+    //pnlPerspectivaI.setBackground(Color.LIGHT_GRAY);
     Obj = new ArrayList<>();
+    LimpaPaineis();
+    objSelecionado = new Objeto();
   }
   
+  /**
+   * Limpa tudo, tudo mesmo
+   */
+  public void LimpaTudo(){
+    LimpaPaineis();
+    Obj.clear();
+  }
+  
+  /**
+   * Limpa os paineis
+   */
+  public void LimpaPaineis(){
+    DL.clearRect(0, 0, 255, 340);
+    DF.clearRect(0, 0, 255, 340);
+    DT.clearRect(0, 0, 255, 340);
+    DP.clearRect(0, 0, 255, 340);
+    DL.clearRect(0, 0, 255, 340);
+    DF.clearRect(0, 0, 255, 340);
+    DT.clearRect(0, 0, 255, 340);
+    DP.clearRect(0, 0, 255, 340);
+  }
+  
+  /**
+   * Pinta todos paineis
+   */
   public void PintaTudo(){
     PintaLado();
     PintaTopo();
@@ -63,7 +114,11 @@ public class Principal extends javax.swing.JFrame {
    * Pinta o painel Lado
    */
   public void PintaLado(){
-    
+    for(Objeto o : Obj){
+      for (Aresta a : o.arrAresta){
+        DL.drawLine((int)a.i.z+mx, (int)a.i.y, (int)a.f.z+mx, (int)a.f.y);
+      }
+    }
   }
   
   /**
@@ -81,7 +136,11 @@ public class Principal extends javax.swing.JFrame {
    * Pinta o painel Frente
    */
   public void PintaFrente(){
-    
+    for(Objeto o : Obj){
+      for (Aresta a : o.arrAresta){
+        DF.drawLine((int)a.i.x+mx, (int)a.i.y, (int)a.f.x+mx, (int)a.f.y);
+      }
+    }
   }
   
   /**
@@ -109,7 +168,8 @@ public class Principal extends javax.swing.JFrame {
     pnlObjetos = new javax.swing.JPanel();
     btnAdicionar = new javax.swing.JButton();
     pnlFerramentas = new javax.swing.JPanel();
-    jLabel1 = new javax.swing.JLabel();
+    btnSelecionar = new javax.swing.JToggleButton();
+    btnRedesenhar = new javax.swing.JButton();
     pnlAmbiente = new javax.swing.JPanel();
     jLabel2 = new javax.swing.JLabel();
     pnlFrente = new javax.swing.JPanel();
@@ -124,6 +184,7 @@ public class Principal extends javax.swing.JFrame {
     itemAbrir = new javax.swing.JMenuItem();
     itemSalvar = new javax.swing.JMenuItem();
     itemSalvarComo = new javax.swing.JMenuItem();
+    menuEditar = new javax.swing.JMenu();
     menuAjuda = new javax.swing.JMenu();
     itemAjuda = new javax.swing.JMenuItem();
     jSeparator1 = new javax.swing.JPopupMenu.Separator();
@@ -158,6 +219,12 @@ public class Principal extends javax.swing.JFrame {
       .addComponent(pnlTopoI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
 
+    pnlObjetos.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseMoved(java.awt.event.MouseEvent evt) {
+        pnlObjetosMouseMoved(evt);
+      }
+    });
+
     btnAdicionar.setText("Adicionar");
     btnAdicionar.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -184,7 +251,19 @@ public class Principal extends javax.swing.JFrame {
 
     pnlMenus.addTab("Objetos", pnlObjetos);
 
-    jLabel1.setText("jLabel1");
+    btnSelecionar.setText("Selecionar");
+    btnSelecionar.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mouseClicked(java.awt.event.MouseEvent evt) {
+        btnSelecionarMouseClicked(evt);
+      }
+    });
+
+    btnRedesenhar.setText("Redesenhar");
+    btnRedesenhar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnRedesenharActionPerformed(evt);
+      }
+    });
 
     javax.swing.GroupLayout pnlFerramentasLayout = new javax.swing.GroupLayout(pnlFerramentas);
     pnlFerramentas.setLayout(pnlFerramentasLayout);
@@ -192,22 +271,26 @@ public class Principal extends javax.swing.JFrame {
       pnlFerramentasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(pnlFerramentasLayout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(jLabel1)
-        .addContainerGap(130, Short.MAX_VALUE))
+        .addGroup(pnlFerramentasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(btnSelecionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnRedesenhar, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE))
+        .addContainerGap())
     );
     pnlFerramentasLayout.setVerticalGroup(
       pnlFerramentasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(pnlFerramentasLayout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(jLabel1)
-        .addContainerGap(490, Short.MAX_VALUE))
+        .addComponent(btnSelecionar)
+        .addGap(18, 18, 18)
+        .addComponent(btnRedesenhar)
+        .addContainerGap(440, Short.MAX_VALUE))
     );
 
     pnlMenus.addTab("Ferramentas", null, pnlFerramentas, "");
     pnlFerramentas.getAccessibleContext().setAccessibleName("");
     pnlFerramentas.getAccessibleContext().setAccessibleDescription("");
 
-    jLabel2.setText("jLabel2");
+    jLabel2.setText("Nothing to show");
 
     javax.swing.GroupLayout pnlAmbienteLayout = new javax.swing.GroupLayout(pnlAmbiente);
     pnlAmbiente.setLayout(pnlAmbienteLayout);
@@ -216,7 +299,7 @@ public class Principal extends javax.swing.JFrame {
       .addGroup(pnlAmbienteLayout.createSequentialGroup()
         .addContainerGap()
         .addComponent(jLabel2)
-        .addContainerGap(130, Short.MAX_VALUE))
+        .addContainerGap(86, Short.MAX_VALUE))
     );
     pnlAmbienteLayout.setVerticalGroup(
       pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -230,6 +313,12 @@ public class Principal extends javax.swing.JFrame {
 
     pnlFrente.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Frente"));
     pnlFrente.setPreferredSize(new java.awt.Dimension(350, 276));
+
+    pnlFrenteI.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mouseClicked(java.awt.event.MouseEvent evt) {
+        pnlFrenteIMouseClicked(evt);
+      }
+    });
 
     javax.swing.GroupLayout pnlFrenteILayout = new javax.swing.GroupLayout(pnlFrenteI);
     pnlFrenteI.setLayout(pnlFrenteILayout);
@@ -257,6 +346,11 @@ public class Principal extends javax.swing.JFrame {
     pnlLado.setPreferredSize(new java.awt.Dimension(350, 276));
 
     pnlLadoI.setPreferredSize(new java.awt.Dimension(340, 255));
+    pnlLadoI.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mouseClicked(java.awt.event.MouseEvent evt) {
+        pnlLadoIMouseClicked(evt);
+      }
+    });
 
     javax.swing.GroupLayout pnlLadoILayout = new javax.swing.GroupLayout(pnlLadoI);
     pnlLadoI.setLayout(pnlLadoILayout);
@@ -309,19 +403,37 @@ public class Principal extends javax.swing.JFrame {
 
     itemNovo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
     itemNovo.setText("Novo");
+    itemNovo.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        itemNovoActionPerformed(evt);
+      }
+    });
     menuArquivo.add(itemNovo);
 
     itemAbrir.setText("Abrir");
+    itemAbrir.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        itemAbrirActionPerformed(evt);
+      }
+    });
     menuArquivo.add(itemAbrir);
 
     itemSalvar.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
     itemSalvar.setText("Salvar");
+    itemSalvar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        itemSalvarActionPerformed(evt);
+      }
+    });
     menuArquivo.add(itemSalvar);
 
     itemSalvarComo.setText("Salvar Como");
     menuArquivo.add(itemSalvarComo);
 
     menuBar.add(menuArquivo);
+
+    menuEditar.setText("Editar");
+    menuBar.add(menuEditar);
 
     menuAjuda.setText("Ajuda");
 
@@ -392,6 +504,135 @@ public class Principal extends javax.swing.JFrame {
     new Perfil(this).setVisible(true);
   }//GEN-LAST:event_btnAdicionarActionPerformed
 
+  private void pnlObjetosMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlObjetosMouseMoved
+    PintaTudo();
+  }//GEN-LAST:event_pnlObjetosMouseMoved
+
+  private void itemNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemNovoActionPerformed
+    if(!Obj.isEmpty()){
+      
+    } else {
+      LimpaTudo();
+    }
+  }//GEN-LAST:event_itemNovoActionPerformed
+
+  private void itemAbrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAbrirActionPerformed
+    fc = new JFileChooser();
+    byte r;
+    double xi, yi, zi, xf, yf, zf;
+    int returnVal = fc.showOpenDialog(this);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File file = fc.getSelectedFile();
+      String s = file.toString();
+      if (!file.canRead()) {
+        JOptionPane.showMessageDialog(this, "Nao foi possivel ler o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      try {
+        DataInputStream entr = new DataInputStream(new FileInputStream(s));
+        cabecalho = entr.readByte();
+        LimpaTudo();
+        while (entr.available() > 0) { //Le
+          r = entr.readByte();
+          if (r == 0){ //Objeto
+            Obj.add(new Objeto());
+          } else if (r == 1){ //Ponto
+            Obj.get(Obj.size()-1).arrPonto.add(new Ponto(entr.readDouble(), entr.readDouble(), entr.readDouble()));
+          } else if (r == 2){ //Aresta
+            Obj.get(Obj.size()-1).arrAresta.add(new Aresta(new Ponto(entr.readDouble(), entr.readDouble(), entr.readDouble()), new Ponto(entr.readDouble(), entr.readDouble(), entr.readDouble())));
+          } else {
+            JOptionPane.showMessageDialog(this, "Identificador invalido", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+        }
+      } catch (FileNotFoundException ex) {
+        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+        JOptionPane.showMessageDialog(this, "Nao foi possivel ler o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+      } catch (IOException ex) {
+        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+        JOptionPane.showMessageDialog(this, "Erro generico de leitura", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+    }
+    LimpaPaineis();
+    PintaTudo();
+    LimpaPaineis();
+    PintaTudo();
+  }//GEN-LAST:event_itemAbrirActionPerformed
+
+  private void btnSelecionarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSelecionarMouseClicked
+    if(btnSelecionar.isSelected()){
+      //System.out.println("Prendi");
+    } else {
+      //System.out.println("Soltei");
+    }
+  }//GEN-LAST:event_btnSelecionarMouseClicked
+
+  private void pnlLadoIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMouseClicked
+    if(btnSelecionar.isSelected()){
+      //System.out.println("Policia");
+      Ponto p = new Ponto();
+      p.x = evt.getX(); //*0.25 0~340
+      p.y = evt.getY(); //*0.25 0~255
+      
+    } else {
+      //System.out.println("Juiz");
+    }
+  }//GEN-LAST:event_pnlLadoIMouseClicked
+
+  private void pnlFrenteIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMouseClicked
+    if(btnSelecionar.isSelected()){
+      //System.out.println("Policia");
+    } else {
+      //System.out.println("Juiz");
+    }
+  }//GEN-LAST:event_pnlFrenteIMouseClicked
+
+  private void itemSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemSalvarActionPerformed
+    fc = new JFileChooser();
+    int returnVal = fc.showSaveDialog(this);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File file = fc.getSelectedFile();
+      String s = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
+      //System.out.println("Saida = " + s);
+      cabecalho = (byte) (VERSAO << 6);
+      
+      try {
+        try (DataOutputStream said = new DataOutputStream(new FileOutputStream(s))) {
+          said.writeByte(cabecalho);
+          for (Objeto o : Obj) {
+            said.writeByte(0);
+            for (Ponto p : o.arrPonto) {
+              said.writeByte(1);
+              said.writeDouble(p.x);
+              said.writeDouble(p.y);
+              said.writeDouble(p.z);
+            }
+            for (Aresta a : o.arrAresta) {
+              said.writeByte(2);
+              said.writeDouble(a.i.x);
+              said.writeDouble(a.i.y);
+              said.writeDouble(a.i.z);
+              said.writeDouble(a.f.x);
+              said.writeDouble(a.f.y);
+              said.writeDouble(a.f.z);
+            }
+          }
+        }
+      } catch (FileNotFoundException ex) {
+        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+      } catch (IOException ex) {
+        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+      }
+    }
+  }//GEN-LAST:event_itemSalvarActionPerformed
+
+  private void btnRedesenharActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRedesenharActionPerformed
+    LimpaPaineis();
+    PintaTudo();
+  }//GEN-LAST:event_btnRedesenharActionPerformed
+
   /**
    * @param args the command line arguments
    */
@@ -429,19 +670,21 @@ public class Principal extends javax.swing.JFrame {
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton btnAdicionar;
+  private javax.swing.JButton btnRedesenhar;
+  private javax.swing.JToggleButton btnSelecionar;
   private javax.swing.JMenuItem itemAbrir;
   private javax.swing.JMenuItem itemAjuda;
   private javax.swing.JMenuItem itemNovo;
   private javax.swing.JMenuItem itemSalvar;
   private javax.swing.JMenuItem itemSalvarComo;
   private javax.swing.JMenuItem itemSobre;
-  private javax.swing.JLabel jLabel1;
   private javax.swing.JLabel jLabel2;
   private javax.swing.JMenuItem jMenuItem2;
   private javax.swing.JPopupMenu.Separator jSeparator1;
   private javax.swing.JMenu menuAjuda;
   private javax.swing.JMenu menuArquivo;
   private javax.swing.JMenuBar menuBar;
+  private javax.swing.JMenu menuEditar;
   private javax.swing.JPanel pnlAmbiente;
   private javax.swing.JPanel pnlFerramentas;
   private javax.swing.JPanel pnlFrente;

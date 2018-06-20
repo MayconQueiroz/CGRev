@@ -13,11 +13,13 @@ public class Objeto {
    * Variaveis publicas
    */
   public ArrayList<Aresta> arrAresta; //Arestas no objeto
+  public ArrayList<Ponto> arrPonto; //Pontos do objeto
   public Color AC = Color.BLACK; //Arestas (Cor)
   public boolean Fechado;
 
   public Objeto() {
     arrAresta = new ArrayList<>();
+    arrPonto = new ArrayList<>();
     Fechado = false;
   }
   

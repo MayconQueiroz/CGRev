@@ -10,11 +10,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import static java.lang.Math.round;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
-import static revcg.RevCG.ErroPadrao;
+import static revcg.RevCG.*;
 
 /**
  * Janela onde se pode gerar perfis que serao rotacionados
@@ -28,6 +28,7 @@ public class Perfil extends javax.swing.JFrame {
    */
   public Principal P;
   public ArrayList<Ponto> arrPonto;
+  public ArrayList<Ponto> arrPontoNil;
   public Graphics D; //de Desenho
   public ArrayList<Aresta> arrAresta;
   public int iniY = 1023;
@@ -45,6 +46,8 @@ public class Perfil extends javax.swing.JFrame {
     setResizable(false); //Nao deixa redimensionar a janela
     arrPonto = new ArrayList();
     arrAresta = new ArrayList();
+    arrPontoNil = new ArrayList();
+    //pnlRevI.setBackground(Color.LIGHT_GRAY);
     D = pnlRevI.getGraphics();
   }
 
@@ -78,6 +81,7 @@ public class Perfil extends javax.swing.JFrame {
    */
   public void ConstroiArestas() {
     Ponto Au = null;
+    arrAresta.clear();
     for (Ponto p : arrPonto) {
       if (p == arrPonto.get(0)) {
         Au = p;
@@ -89,67 +93,244 @@ public class Perfil extends javax.swing.JFrame {
   }
 
   /**
+   * Imprime os pontos (Debug mode)
+   */
+  public void PrintPontos() {
+    int i = 0;
+    for (Ponto p : arrPonto) {
+      System.out.println("P" + i + " = " + p.toString());
+      i++;
+    }
+    i = 0;
+    for (Ponto p : arrPontoNil) {
+      System.out.println("PN" + i + " = " + p.toString());
+      i++;
+    }
+  }
+
+  /**
+   * Imprime as arestas do objeto (Debug mode)
+   */
+  public void PrintListaArestas() {
+    int i = 0;
+    for (Aresta a : obj.arrAresta) {
+      System.out.println("A" + i + " = " + a.toString());
+      i++;
+    }
+  }
+
+  /**
+   * Imprime as arestas (Debug mode)
+   */
+  public void PrintListaArestasIn() {
+    int i = 0;
+    for (Aresta a : arrAresta) {
+      System.out.println("-IN-A" + i + " = " + a.toString());
+      i++;
+    }
+  }
+
+  /**
    * Onde a magica acontece
    *
    * @param Num Numero de segmentos
    * @param op Operacao (0 e 1 fechados, 2 abertos)
    */
   public void CriaObjeto(int Num, int op) {
-    double teta = 6.24 / Num;
+    double teta = 6.283185 / Num;
     double ccos = Math.cos(teta);
     double csin = Math.sin(teta);
-    System.out.println("001");
+    double xold, zold;
+    int l;
+    Ponto plinha = new Ponto();
+    Aresta arAux;
+    //System.out.println("001");
     obj = new Objeto();
+    //PrintPontos();
     if (op == 0) { //Inicia e encerra no eixo - fechado
-      System.out.println("002");
-      for (Aresta a : arrAresta) {
-        obj.Fechado = true;
-        obj.arrAresta.add(a);
-      }
+      //System.out.println("Fechado OP0");
+      //System.out.println("002 - Num = " + Num);
       obj.Fechado = true;
-      for (int i = 0; i < Num - 1; i++) {
-        for (Ponto p : arrPonto.subList(1, arrPonto.size() - 1)) {
-          p.x = (p.x * ccos) + (p.x * csin);
-          p.z = (p.x * (-csin)) + (p.x * ccos);
-        }
-        ConstroiArestas();
-        int j = i * arrAresta.size();
-        for (Aresta a : arrAresta.subList(0, arrAresta.size() - 1)) {
-          obj.arrAresta.add(a);
-          obj.arrAresta.add(new Aresta(obj.arrAresta.get(j).f, a.f));
-          j += 1;
-        }
-        obj.arrAresta.add(arrAresta.get(arrAresta.size() - 1));
+      for (Aresta a : arrAresta) {
+        obj.arrAresta.add(new Aresta(a));
+        //System.out.println("ADD = " + a.toString());
       }
-      int k = Num * arrAresta.size();
-      for (int i = 0; i < arrAresta.size(); i++) {
-        obj.arrAresta.add(new Aresta(obj.arrAresta.get(k).f, obj.arrAresta.get(i).f));
-        k += 1;
+      for (Ponto p : arrPonto) {
+        arrPontoNil.add(new Ponto(p));
       }
+      //PrintListaArestas();PrintPontos();
+      for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
+        //System.out.println("()()()()()()()()()()()()()()()()()");
+        for (int y = 1; y < arrPonto.size(); y++) {
+          plinha = arrPonto.get(y);
+          //System.out.println("Plinha = " + plinha.toString());
+          //System.out.println("+.+.+.+.+");
+          //PrintListaArestas();
+          //PrintListaArestasIn();
+          if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
+            //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
+            //System.out.println("ccos = " + ccos + " - csin = " + csin);
+            xold = plinha.x;
+            zold = plinha.z;
+            plinha.x = (plinha.x * ccos) + (plinha.z * csin);
+            plinha.z = (xold * (-csin)) + (plinha.z * ccos);
+            arrPontoNil.add(new Ponto(plinha));
+            arrPonto.get(y).x = plinha.x;
+            arrPonto.get(y).z = plinha.z;
+            if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
+              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
+              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
+            } else {
+              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
+              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
+            }
+            obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
+            //System.out.println("x = " + p.x + " - z = " + p.z);
+            //System.out.println("....");
+            //PrintPontos();
+          } else {
+            arAux = new Aresta(arrPontoNil.get(y), arrPontoNil.get(arrPontoNil.size() - 1));
+            obj.arrAresta.add(new Aresta(arAux));
+          }
+        }
+        //System.out.println("Saí para construir arestas, já volto");
+        //ConstroiArestas(); //Constroi arestas baseadas nos pontos
+        //PrintListaArestasIn();
+        //PrintListaArestas();
+      }
+      for (int u = 0; u < arrPonto.size(); u++) {
+        if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
+          obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
+        }
+      }
+      //PrintListaArestas();
     } else if (op == 1) { //Inicia e encerra no mesmo ponto - fechado
-      for (Aresta a : arrAresta) {
-        obj.Fechado = true;
-        obj.arrAresta.add(a);
-      }
+      //System.out.println("Fechado OP1");
+      ////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////
       obj.Fechado = true;
-      for (int i = 0; i < Num; i++) {
-        for (Ponto p : arrPonto.subList(0, arrPonto.size() - 1)) {
-
+      for (Aresta a : arrAresta) {
+        obj.arrAresta.add(new Aresta(a));
+        //System.out.println("ADD = " + a.toString());
+      }
+      for (Ponto p : arrPonto) {
+        arrPontoNil.add(new Ponto(p));
+      }
+      //PrintListaArestas();PrintPontos();
+      //System.out.println("Num = " + Num);
+      for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
+        //System.out.println("()()()()()()()()()()()()()()()()()");
+        for (int y = 0; y < arrPonto.size(); y++) {
+          plinha = arrPonto.get(y);
+          //System.out.println("Plinha = " + plinha.toString());
+          //System.out.println("+.+.+.+.+ y = " + y);
+          //PrintListaArestas();
+          //PrintListaArestasIn();
+          if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
+            //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
+            //System.out.println("ccos = " + ccos + " - csin = " + csin);
+            xold = plinha.x;
+            zold = plinha.z;
+            plinha.x = (plinha.x * ccos) + (plinha.z * csin);
+            plinha.z = (xold * (-csin)) + (plinha.z * ccos);
+            arrPontoNil.add(new Ponto(plinha));
+            arrPonto.get(y).x = plinha.x;
+            arrPonto.get(y).z = plinha.z;
+            if (y != 0) { //Para nao calcular pro primeiro
+              if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
+                obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
+                //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
+              } else {
+                obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
+                //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
+              }
+            }
+            obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
+            //System.out.println("x = " + p.x + " - z = " + p.z);
+            //System.out.println("....");
+            //PrintPontos();
+          } else {
+            arAux = new Aresta(arrPontoNil.get(y), arrPontoNil.get(arrPontoNil.size() - 1));
+            obj.arrAresta.add(new Aresta(arAux));
+          }
+        }
+        obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(arrPonto.get(0))));
+        //System.out.println("Saí para construir arestas, já volto");
+        //ConstroiArestas(); //Constroi arestas baseadas nos pontos
+        //PrintListaArestasIn();
+        //--PrintListaArestas();
+      }
+      for (int u = 0; u < arrPonto.size(); u++) {
+        if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
+          obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
         }
       }
+      //PrintListaArestas();
     } else if (op == 2) { //Encerra em ponto diferente que inicia - aberto
+      System.out.println("Aberto OP2");
+      ////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////
+      obj.Fechado = false;
       for (Aresta a : arrAresta) {
-        obj.arrAresta.add(a);
+        obj.arrAresta.add(new Aresta(a));
+        //System.out.println("ADD = " + a.toString());
       }
-      obj.Fechado = true;
-      for (int i = 0; i < Num; i++) {
-        for (Ponto p : arrPonto) {
-
+      for (Ponto p : arrPonto) {
+        arrPontoNil.add(new Ponto(p));
+      }
+      PrintListaArestas();//PrintPontos();
+      for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
+        //System.out.println("()()()()()()()()()()()()()()()()()");
+        for (int y = 0; y < arrPonto.size(); y++) {
+          plinha = arrPonto.get(y);
+          //System.out.println("Plinha = " + plinha.toString());
+          //System.out.println("+.+.+.+.+");
+          //PrintListaArestas();
+          //System.out.println("=*=*=*=*=");
+          //PrintListaArestasIn();
+          //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
+          //System.out.println("ccos = " + ccos + " - csin = " + csin);
+          xold = plinha.x;
+          zold = plinha.z;
+          plinha.x = (plinha.x * ccos) + (plinha.z * csin);
+          plinha.z = (xold * (-csin)) + (plinha.z * ccos);
+          arrPontoNil.add(new Ponto(plinha));
+          arrPonto.get(y).x = plinha.x;
+          arrPonto.get(y).z = plinha.z;
+          if (y != 0) { //Para nao calcular pro primeiro
+            if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
+              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
+              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
+            } else {
+              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
+              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
+            }
+          }
+          //System.out.println("P98 = " + new Ponto(xold, arrPonto.get(y).y, zold).toString());
+          //System.out.println("Novo= " + plinha);
+          obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
+          //System.out.println("x = " + p.x + " - z = " + p.z);
+          //System.out.println("....");
+          //PrintPontos();
+          //PrintListaArestas();
+        }
+        //System.out.println("Saí para construir arestas, já volto");
+        //ConstroiArestas(); //Constroi arestas baseadas nos pontos
+        //PrintListaArestasIn();
+        //PrintListaArestas();
+      }
+      for (int u = 0; u < arrPonto.size(); u++) {
+        if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
+          obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
         }
       }
+      PrintListaArestas();
     } else {
       ErroPadrao();
     }
+    obj.arrPonto = arrPontoNil;
   }
 
   /**
@@ -172,6 +353,8 @@ public class Perfil extends javax.swing.JFrame {
     btnFechaEixo = new javax.swing.JButton();
     lblInfo = new javax.swing.JLabel();
     btnDesfazer = new javax.swing.JButton();
+    ctrSegmentos = new javax.swing.JSpinner();
+    jLabel1 = new javax.swing.JLabel();
     jMenuBar1 = new javax.swing.JMenuBar();
     jMenu1 = new javax.swing.JMenu();
     itemNovo = new javax.swing.JMenuItem();
@@ -245,7 +428,7 @@ public class Perfil extends javax.swing.JFrame {
       }
     });
 
-    btnIniciaEixo.setText("Inicia eixo");
+    btnIniciaEixo.setText("Seleciona Eixo");
     btnIniciaEixo.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         btnIniciaEixoActionPerformed(evt);
@@ -267,6 +450,10 @@ public class Perfil extends javax.swing.JFrame {
         btnDesfazerActionPerformed(evt);
       }
     });
+
+    ctrSegmentos.setModel(new javax.swing.SpinnerNumberModel(3, 3, 100, 1));
+
+    jLabel1.setText("Segmentos Revolução");
 
     jMenu1.setText("Arquivo");
 
@@ -327,18 +514,18 @@ public class Perfil extends javax.swing.JFrame {
       .addGroup(layout.createSequentialGroup()
         .addContainerGap()
         .addComponent(pnlRev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addGroup(layout.createSequentialGroup()
-            .addGap(8, 8, 8)
-            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
-          .addGroup(layout.createSequentialGroup()
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-              .addComponent(btnRotacionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-              .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-              .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-              .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-              .addComponent(btnDesfazer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+          .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+            .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnDesfazer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+          .addComponent(jLabel1)
+          .addComponent(ctrSegmentos, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(btnRotacionar, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)))
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
     layout.setVerticalGroup(
@@ -348,8 +535,6 @@ public class Perfil extends javax.swing.JFrame {
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addComponent(pnlRev, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addGroup(layout.createSequentialGroup()
-            .addComponent(btnRotacionar)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addComponent(btnFecha)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addComponent(btnIniciaEixo)
@@ -357,8 +542,15 @@ public class Perfil extends javax.swing.JFrame {
             .addComponent(btnFechaEixo)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addComponent(btnDesfazer)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 91, Short.MAX_VALUE)
-            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
+            .addGap(18, 18, 18)
+            .addComponent(jLabel1)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(ctrSegmentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGap(18, 18, 18)
+            .addComponent(btnRotacionar)
+            .addGap(18, 18, 18)
+            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGap(0, 8, Short.MAX_VALUE)))
         .addContainerGap())
     );
 
@@ -370,9 +562,14 @@ public class Perfil extends javax.swing.JFrame {
       JOptionPane.showMessageDialog(this, "Devem existir pelo o menos duas arestas para fechar o objeto", "Erro", JOptionPane.ERROR_MESSAGE);
       iniY = 2047;
     } else {
-      arrPonto.add(arrPonto.get(0));
-      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
-      DesenhaPerfil();
+      if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(0).x == 0) {
+        JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
+        //arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
+        //btnDesfazerActionPerformed(null);
+      } else {
+        arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
+        DesenhaPerfil();
+      }
     }
   }//GEN-LAST:event_btnFechaActionPerformed
 
@@ -423,7 +620,8 @@ public class Perfil extends javax.swing.JFrame {
       File file = fc.getSelectedFile();
       String s = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
       //System.out.println("Saida = " + s);
-      cabecalho = 0;
+      cabecalho = (byte) (VERSAO << 6);
+      System.out.println("Versao = " + cabecalho);
       try {
         try (DataOutputStream said = new DataOutputStream(new FileOutputStream(s))) {
           said.writeByte(cabecalho);
@@ -441,7 +639,7 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_itemSalvarActionPerformed
 
   private void btnIniciaEixoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciaEixoActionPerformed
-    lblInfo.setText("<html>Escolha a altura<br/>de inicio usando<br/>o painel</html>");
+    lblInfo.setText("<html>Escolha a altura<br/>que o ponto deve <br/>ter no eixo <br/>usando o painel</html>");
     iniY = 0;
   }//GEN-LAST:event_btnIniciaEixoActionPerformed
 
@@ -458,6 +656,9 @@ public class Perfil extends javax.swing.JFrame {
 
   private void btnDesfazerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDesfazerActionPerformed
     if (arrAresta.size() < 1) {
+      if (arrPonto.size() > 0) {
+        arrPonto.clear();
+      }
       iniY = 2047;
       return;
     }
@@ -479,7 +680,7 @@ public class Perfil extends javax.swing.JFrame {
     p.x = evt.getX() & iniY; //*0.25 0~100
     iniY = 1023;
     p.y = evt.getY(); //*0.25 0~75
-    System.out.println("X = " + p.x + " - Y = " + p.y);
+    //System.out.println("X = " + p.x + " - Y = " + p.y);
     arrPonto.add(p);
     if (arrPonto.size() > 1) {
       if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(arrPonto.size() - 2).x == 0) {
@@ -487,7 +688,7 @@ public class Perfil extends javax.swing.JFrame {
         arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
         btnDesfazerActionPerformed(null);
       } else {
-        arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
+        arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 2), arrPonto.get(arrPonto.size() - 1)));
         DesenhaPerfil();
       }
     }
@@ -508,6 +709,8 @@ public class Perfil extends javax.swing.JFrame {
         itemSalvarActionPerformed(evt);
         LimpaTudo();
       }
+    } else {
+      LimpaTudo();
     }
   }//GEN-LAST:event_itemNovoActionPerformed
 
@@ -516,7 +719,7 @@ public class Perfil extends javax.swing.JFrame {
       JOptionPane.showMessageDialog(this, "Não há arestas a rotacionar", "Erro", JOptionPane.ERROR_MESSAGE);
       return;
     }
-    String input = JOptionPane.showInputDialog("Numero de segmentos da revolução completa:");
+    String input = ctrSegmentos.getValue().toString();
     if (input.isEmpty()) {
       JOptionPane.showMessageDialog(this, "Nenhum valor informado", "Erro", JOptionPane.ERROR_MESSAGE);
     } else {
@@ -526,17 +729,19 @@ public class Perfil extends javax.swing.JFrame {
       } catch (NumberFormatException | NullPointerException e) {
         JOptionPane.showMessageDialog(this, "Valor de segmentos informado não é inteiro - definido como 6", "Não pode ser...", JOptionPane.WARNING_MESSAGE);
       }
-      if (Num < 2) {
-        JOptionPane.showMessageDialog(this, "Valor deve ser maior que 2 - definido como 6", "Erro", JOptionPane.ERROR_MESSAGE);
-        Num = 6;
+      if (Num < 3) {
+        JOptionPane.showMessageDialog(this, "Valor deve ser maior que 3 - definido como 3", "Erro", JOptionPane.ERROR_MESSAGE);
+        Num = 3;
       } else if (Num > 100) {
-        JOptionPane.showMessageDialog(this, "Valor deve ser menor que 100 - definido como 6", "Erro", JOptionPane.ERROR_MESSAGE);
-        Num = 6;
+        JOptionPane.showMessageDialog(this, "Valor deve ser menor que 100 - definido como 100", "Erro", JOptionPane.ERROR_MESSAGE);
+        Num = 100;
       }
       int op;
-      if (arrPonto.get(0).x == 0 && arrPonto.get(arrPonto.size() - 1).x == 0) { // 0 nao roda
+      //System.out.println("Inicial = " + arrAresta.get(0).toString());
+      //System.out.println("Final   = " + arrAresta.get(arrAresta.size() - 1));
+      if (arrAresta.get(0).i.x == 0 && arrAresta.get(arrAresta.size() - 1).f.x == 0) { // 0 nao roda
         op = 0;
-      } else if (arrPonto.get(0).x == arrPonto.get(arrPonto.size() - 1).x) { //Inicial igual ao final
+      } else if (arrAresta.get(0).i.x == arrAresta.get(arrAresta.size() - 1).f.x) { //Inicial igual ao final
         op = 1;
       } else {
         op = 2;
@@ -591,11 +796,13 @@ public class Perfil extends javax.swing.JFrame {
   private javax.swing.JButton btnFechaEixo;
   private javax.swing.JButton btnIniciaEixo;
   private javax.swing.JButton btnRotacionar;
+  private javax.swing.JSpinner ctrSegmentos;
   private javax.swing.JMenuItem itemAbrir;
   private javax.swing.JMenuItem itemAjuda;
   private javax.swing.JMenuItem itemCarregarModelos;
   private javax.swing.JMenuItem itemNovo;
   private javax.swing.JMenuItem itemSalvar;
+  private javax.swing.JLabel jLabel1;
   private javax.swing.JMenu jMenu1;
   private javax.swing.JMenu jMenu2;
   private javax.swing.JMenuBar jMenuBar1;

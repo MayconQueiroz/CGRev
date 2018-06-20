@@ -31,6 +31,16 @@ public class Aresta {
   }
   
   /**
+   * Construtor de copia
+   * @param old Aresta a ser copiada
+   */
+  public Aresta(Aresta old){
+    this();
+    this.f = new Ponto(old.f.x, old.f.y, old.f.z);
+    this.i = new Ponto(old.i.x, old.i.y, old.i.z);
+  }
+  
+  /**
    * Retorna aresta no formato {p1; p2}
    * @return String com o conteudo do retorno
    */
