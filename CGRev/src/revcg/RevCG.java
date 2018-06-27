@@ -15,7 +15,7 @@ import javax.swing.JOptionPane;
 public class RevCG {
   
   public static Principal P;
-  public static byte VERSAO_PERFIL = 0;
+  public static byte VERSAO_PERFIL = 1;
   public static byte VERSAO_CENA = 0;
   
   /**
