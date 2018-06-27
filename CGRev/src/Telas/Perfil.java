@@ -32,11 +32,9 @@ public class Perfil extends javax.swing.JFrame {
   public Graphics D; //de Desenho
   public ArrayList<Aresta> arrAresta;
   public int iniY = 1023;
-  public JFileChooser fc = new JFileChooser();
-  public byte cabecalho;
+  JFileChooser fc = new JFileChooser();
+  byte cabecalho;
   public Objeto obj;
-  public boolean issaved;
-  public boolean fechado;
 
   /**
    * Creates new form Perfil
@@ -51,8 +49,6 @@ public class Perfil extends javax.swing.JFrame {
     arrPontoNil = new ArrayList();
     //pnlRevI.setBackground(Color.LIGHT_GRAY);
     D = pnlRevI.getGraphics();
-    issaved = true;
-    fechado = false;
   }
 
   public Perfil(Principal P) {
@@ -86,13 +82,13 @@ public class Perfil extends javax.swing.JFrame {
   public void ConstroiArestas() {
     Ponto Au = null;
     arrAresta.clear();
-    Au = arrPonto.get(0);
-    for (Ponto p : arrPonto.subList(1, arrPonto.size())) {
+    for (Ponto p : arrPonto) {
+      if (p == arrPonto.get(0)) {
+        Au = p;
+        continue;
+      }
       arrAresta.add(new Aresta(Au, p));
       Au = p;
-    }
-    if ((cabecalho & 8) != 0){ //Fechada
-      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size()-1), arrPonto.get(0)));
     }
   }
 
@@ -272,7 +268,7 @@ public class Perfil extends javax.swing.JFrame {
       }
       //PrintListaArestas();
     } else if (op == 2) { //Encerra em ponto diferente que inicia - aberto
-      //System.out.println("Aberto OP2");
+      System.out.println("Aberto OP2");
       ////////////////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////
@@ -375,7 +371,6 @@ public class Perfil extends javax.swing.JFrame {
     jMenuItem7.setText("jMenuItem7");
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-    setTitle("Desenhar Perfil");
     addWindowListener(new java.awt.event.WindowAdapter() {
       public void windowClosed(java.awt.event.WindowEvent evt) {
         formWindowClosed(evt);
@@ -503,11 +498,6 @@ public class Perfil extends javax.swing.JFrame {
 
     itemAjuda.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
     itemAjuda.setText("Tópicos de Ajuda");
-    itemAjuda.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        itemAjudaActionPerformed(evt);
-      }
-    });
     jMenu2.add(itemAjuda);
 
     jMenuItem5.setText("Opção não selecionável");
@@ -579,7 +569,6 @@ public class Perfil extends javax.swing.JFrame {
       } else {
         arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
         DesenhaPerfil();
-        fechado = true;
       }
     }
   }//GEN-LAST:event_btnFechaActionPerformed
@@ -591,7 +580,6 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_formWindowClosed
 
   private void itemAbrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAbrirActionPerformed
-    //Metodo e compativelcom versoes 0 e 1
     fc = new JFileChooser();
     int returnVal = fc.showOpenDialog(this);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -604,6 +592,7 @@ public class Perfil extends javax.swing.JFrame {
       try {
         DataInputStream entr = new DataInputStream(new FileInputStream(s));
         cabecalho = entr.readByte();
+        Aresta a = new Aresta();
         LimpaTudo();
         while (entr.available() > 0) { //Le
           arrPonto.add(new Ponto(entr.readDouble(), entr.readDouble(), 0.0));
@@ -619,7 +608,6 @@ public class Perfil extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "Erro generico de leitura", "Erro", JOptionPane.ERROR_MESSAGE);
         return;
       }
-      issaved = true;
     }
     DesenhaPerfil();
     iniY = 2047;
@@ -632,12 +620,8 @@ public class Perfil extends javax.swing.JFrame {
       File file = fc.getSelectedFile();
       String s = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
       //System.out.println("Saida = " + s);
-      cabecalho = (byte) (VERSAO_PERFIL << 4);
-      //System.out.println("i = " + arrAresta.get(arrAresta.size()-1).i.toString() + "f = " + arrAresta.get(arrAresta.size()-1).f.toString());
-      if (arrAresta.get(0).i.equals(arrAresta.get(arrAresta.size()-1).f)){ //Fechado
-        cabecalho += 8;
-      }
-      //System.out.println("Versao = " + cabecalho);
+      cabecalho = (byte) (VERSAO << 6);
+      System.out.println("Versao = " + cabecalho);
       try {
         try (DataOutputStream said = new DataOutputStream(new FileOutputStream(s))) {
           said.writeByte(cabecalho);
@@ -651,7 +635,6 @@ public class Perfil extends javax.swing.JFrame {
       } catch (IOException ex) {
         Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
       }
-      issaved = true;
     }
   }//GEN-LAST:event_itemSalvarActionPerformed
 
@@ -693,26 +676,23 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_pnlRevIMouseMoved
 
   private void pnlRevIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseClicked
-    if (!fechado) {
-      Ponto p = new Ponto();
-      p.x = evt.getX() & iniY; //*0.25 0~100
-      iniY = 1023;
-      p.y = evt.getY(); //*0.25 0~75
-      //System.out.println("X = " + p.x + " - Y = " + p.y);
-      arrPonto.add(p);
-      if (arrPonto.size() > 1) {
-        if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(arrPonto.size() - 2).x == 0) {
-          JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
-          arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
-          btnDesfazerActionPerformed(null);
-        } else {
-          arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 2), arrPonto.get(arrPonto.size() - 1)));
-          DesenhaPerfil();
-        }
+    Ponto p = new Ponto();
+    p.x = evt.getX() & iniY; //*0.25 0~100
+    iniY = 1023;
+    p.y = evt.getY(); //*0.25 0~75
+    //System.out.println("X = " + p.x + " - Y = " + p.y);
+    arrPonto.add(p);
+    if (arrPonto.size() > 1) {
+      if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(arrPonto.size() - 2).x == 0) {
+        JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
+        arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
+        btnDesfazerActionPerformed(null);
+      } else {
+        arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 2), arrPonto.get(arrPonto.size() - 1)));
+        DesenhaPerfil();
       }
-      lblInfo.setText("");
-      issaved = false;
     }
+    lblInfo.setText("");
   }//GEN-LAST:event_pnlRevIMouseClicked
 
   private void itemCarregarModelosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemCarregarModelosActionPerformed
@@ -721,7 +701,7 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_itemCarregarModelosActionPerformed
 
   private void itemNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemNovoActionPerformed
-    if (!issaved) {
+    if (!arrAresta.isEmpty()) {
       int result = JOptionPane.showConfirmDialog(this, "Há arestas não salvas, deseja salvá-las?");
       if (result == JOptionPane.NO_OPTION) {
         LimpaTudo();
@@ -731,7 +711,6 @@ public class Perfil extends javax.swing.JFrame {
       }
     } else {
       LimpaTudo();
-      issaved = true;
     }
   }//GEN-LAST:event_itemNovoActionPerformed
 
@@ -776,10 +755,6 @@ public class Perfil extends javax.swing.JFrame {
     P.PintaTudo();
   }//GEN-LAST:event_btnRotacionarActionPerformed
 
-  private void itemAjudaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAjudaActionPerformed
-    
-  }//GEN-LAST:event_itemAjudaActionPerformed
-  
   /**
    * @param args the command line arguments
    */

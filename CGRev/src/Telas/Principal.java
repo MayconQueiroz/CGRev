@@ -193,7 +193,6 @@ public class Principal extends javax.swing.JFrame {
     jMenuItem2.setText("jMenuItem2");
 
     setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-    setTitle("CGRev");
 
     pnlTopo.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Topo"));
     pnlTopo.setPreferredSize(new java.awt.Dimension(350, 276));
@@ -597,7 +596,8 @@ public class Principal extends javax.swing.JFrame {
       File file = fc.getSelectedFile();
       String s = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
       //System.out.println("Saida = " + s);
-      cabecalho = (byte) (VERSAO_CENA << 4);
+      cabecalho = (byte) (VERSAO << 6);
+      
       try {
         try (DataOutputStream said = new DataOutputStream(new FileOutputStream(s))) {
           said.writeByte(cabecalho);
