@@ -376,6 +376,7 @@ public class Modelos extends javax.swing.JFrame {
     jTextField1.setText("jTextField1");
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+    setTitle("Modelos pré-configurados");
     addWindowListener(new java.awt.event.WindowAdapter() {
       public void windowClosed(java.awt.event.WindowEvent evt) {
         formWindowClosed(evt);

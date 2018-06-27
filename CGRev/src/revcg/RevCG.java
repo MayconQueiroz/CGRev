@@ -15,7 +15,8 @@ import javax.swing.JOptionPane;
 public class RevCG {
   
   public static Principal P;
-  public static byte VERSAO = 0;
+  public static byte VERSAO_PERFIL = 0;
+  public static byte VERSAO_CENA = 0;
   
   /**
    * @param args the command line arguments
