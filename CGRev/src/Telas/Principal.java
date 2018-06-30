@@ -511,7 +511,8 @@ public class Principal extends javax.swing.JFrame {
 
   private void itemNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemNovoActionPerformed
     if(!Obj.isEmpty()){
-      
+      //TODO Confirmacao
+      LimpaTudo();
     } else {
       LimpaTudo();
     }

@@ -53,6 +53,9 @@ public class Perfil extends javax.swing.JFrame {
     D = pnlRevI.getGraphics();
     issaved = true;
     fechado = false;
+    lstEixos.setSelectedIndex(1);
+    txtBaixo.setEnabled(false);
+    txtLado.setEnabled(false);
   }
 
   public Perfil(Principal P) {
@@ -140,8 +143,8 @@ public class Perfil extends javax.swing.JFrame {
    * @param Num Numero de segmentos
    * @param op Operacao (0 e 1 fechados, 2 abertos)
    */
-  public void CriaObjeto(int Num, int op) {
-    double teta = 6.283185 / Num;
+  public void CriaObjeto(int Num, int op, double Ang) {
+    double teta = Ang / Num;
     double ccos = Math.cos(teta);
     double csin = Math.sin(teta);
     double xold, zold;
@@ -284,7 +287,7 @@ public class Perfil extends javax.swing.JFrame {
       for (Ponto p : arrPonto) {
         arrPontoNil.add(new Ponto(p));
       }
-      PrintListaArestas();//PrintPontos();
+      //PrintListaArestas();//PrintPontos();
       for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
         //System.out.println("()()()()()()()()()()()()()()()()()");
         for (int y = 0; y < arrPonto.size(); y++) {
@@ -330,7 +333,7 @@ public class Perfil extends javax.swing.JFrame {
           obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
         }
       }
-      PrintListaArestas();
+      //PrintListaArestas();
     } else {
       ErroPadrao();
     }
@@ -359,6 +362,16 @@ public class Perfil extends javax.swing.JFrame {
     btnDesfazer = new javax.swing.JButton();
     ctrSegmentos = new javax.swing.JSpinner();
     jLabel1 = new javax.swing.JLabel();
+    txtBaixo = new javax.swing.JTextField();
+    lblEixoBaixo = new javax.swing.JLabel();
+    lblEixoLado = new javax.swing.JLabel();
+    txtLado = new javax.swing.JTextField();
+    lstEixos = new javax.swing.JComboBox<>();
+    jLabel2 = new javax.swing.JLabel();
+    eixoBaixo = new javax.swing.JLabel();
+    eixoLado = new javax.swing.JLabel();
+    jLabel3 = new javax.swing.JLabel();
+    ctrAngulo = new javax.swing.JSpinner();
     jMenuBar1 = new javax.swing.JMenuBar();
     jMenu1 = new javax.swing.JMenu();
     itemNovo = new javax.swing.JMenuItem();
@@ -376,6 +389,13 @@ public class Perfil extends javax.swing.JFrame {
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     setTitle("Desenhar Perfil");
+    addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+      public void windowGainedFocus(java.awt.event.WindowEvent evt) {
+        formWindowGainedFocus(evt);
+      }
+      public void windowLostFocus(java.awt.event.WindowEvent evt) {
+      }
+    });
     addWindowListener(new java.awt.event.WindowAdapter() {
       public void windowClosed(java.awt.event.WindowEvent evt) {
         formWindowClosed(evt);
@@ -395,6 +415,9 @@ public class Perfil extends javax.swing.JFrame {
       public void mouseClicked(java.awt.event.MouseEvent evt) {
         pnlRevIMouseClicked(evt);
       }
+      public void mouseReleased(java.awt.event.MouseEvent evt) {
+        pnlRevIMouseReleased(evt);
+      }
     });
 
     javax.swing.GroupLayout pnlRevILayout = new javax.swing.GroupLayout(pnlRevI);
@@ -405,7 +428,7 @@ public class Perfil extends javax.swing.JFrame {
     );
     pnlRevILayout.setVerticalGroup(
       pnlRevILayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 0, Short.MAX_VALUE)
+      .addGap(0, 300, Short.MAX_VALUE)
     );
 
     javax.swing.GroupLayout pnlRevLayout = new javax.swing.GroupLayout(pnlRev);
@@ -416,7 +439,7 @@ public class Perfil extends javax.swing.JFrame {
     );
     pnlRevLayout.setVerticalGroup(
       pnlRevLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(pnlRevI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addComponent(pnlRevI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
     );
 
     btnRotacionar.setText("Rotacionar");
@@ -456,9 +479,30 @@ public class Perfil extends javax.swing.JFrame {
       }
     });
 
-    ctrSegmentos.setModel(new javax.swing.SpinnerNumberModel(3, 3, 100, 1));
+    ctrSegmentos.setModel(new javax.swing.SpinnerNumberModel(10, 3, 100, 1));
 
     jLabel1.setText("Segmentos Revolução");
+
+    lblEixoBaixo.setText("x");
+
+    lblEixoLado.setText("y");
+
+    lstEixos.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "x", "y", "z" }));
+    lstEixos.addItemListener(new java.awt.event.ItemListener() {
+      public void itemStateChanged(java.awt.event.ItemEvent evt) {
+        lstEixosItemStateChanged(evt);
+      }
+    });
+
+    jLabel2.setText("Eixo de rotação");
+
+    eixoBaixo.setText("x");
+
+    eixoLado.setText("y");
+
+    jLabel3.setText("Ângulo");
+
+    ctrAngulo.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(360.0f), Float.valueOf(0.01f), Float.valueOf(360.0f), Float.valueOf(1.0f)));
 
     jMenu1.setText("Arquivo");
 
@@ -523,19 +567,39 @@ public class Perfil extends javax.swing.JFrame {
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(layout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(pnlRev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addComponent(eixoLado)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-            .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(btnDesfazer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-          .addComponent(jLabel1)
-          .addComponent(ctrSegmentos, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addComponent(btnRotacionar, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)))
+          .addGroup(layout.createSequentialGroup()
+            .addComponent(pnlRev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                  .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                  .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                  .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                  .addComponent(btnDesfazer, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(ctrSegmentos, javax.swing.GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE)
+                .addComponent(eixoBaixo)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                  .addComponent(jLabel2)
+                  .addComponent(btnRotacionar, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                  .addComponent(jLabel3))
+                .addComponent(ctrAngulo))
+              .addComponent(lstEixos, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+              .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING)))
+          .addGroup(layout.createSequentialGroup()
+            .addGap(10, 10, 10)
+            .addComponent(lblEixoBaixo, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(txtBaixo, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(lblEixoLado, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(txtLado, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGap(18, 18, 18)
+            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 341, javax.swing.GroupLayout.PREFERRED_SIZE)))
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
     layout.setVerticalGroup(
@@ -543,25 +607,43 @@ public class Perfil extends javax.swing.JFrame {
       .addGroup(layout.createSequentialGroup()
         .addContainerGap()
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(pnlRev, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addGroup(layout.createSequentialGroup()
-            .addComponent(btnFecha)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(btnIniciaEixo)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(btnFechaEixo)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(btnDesfazer)
-            .addGap(18, 18, 18)
-            .addComponent(jLabel1)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(ctrSegmentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addGap(18, 18, 18)
-            .addComponent(btnRotacionar)
-            .addGap(18, 18, 18)
-            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addGap(0, 8, Short.MAX_VALUE)))
-        .addContainerGap())
+          .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+            .addComponent(pnlRev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+              .addComponent(btnFecha)
+              .addGap(12, 12, 12)
+              .addComponent(btnIniciaEixo)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+              .addComponent(btnFechaEixo)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+              .addComponent(btnDesfazer)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+              .addComponent(jLabel1)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+              .addComponent(ctrSegmentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+              .addComponent(btnRotacionar)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+              .addComponent(jLabel2)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+              .addComponent(lstEixos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+              .addComponent(jLabel3)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+              .addComponent(ctrAngulo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+              .addComponent(eixoBaixo)))
+          .addComponent(eixoLado))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+            .addComponent(txtBaixo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(lblEixoBaixo))
+          .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+            .addComponent(txtLado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(lblEixoLado))
+          .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 12, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
 
     pack();
@@ -656,7 +738,7 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_itemSalvarActionPerformed
 
   private void btnIniciaEixoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciaEixoActionPerformed
-    lblInfo.setText("<html>Escolha a altura<br/>que o ponto deve <br/>ter no eixo <br/>usando o painel</html>");
+    lblInfo.setText("Escolha a altura que o ponto deve ter no eixo usando o painel");
     iniY = 0;
   }//GEN-LAST:event_btnIniciaEixoActionPerformed
 
@@ -690,10 +772,13 @@ public class Perfil extends javax.swing.JFrame {
 
   private void pnlRevIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseMoved
     DesenhaPerfil();
+    txtBaixo.setText("" + evt.getX());
+    txtLado.setText("" + evt.getY());
   }//GEN-LAST:event_pnlRevIMouseMoved
 
   private void pnlRevIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseClicked
-    if (!fechado) {
+    ///Funcao Isolada, transferida para mouseReleased para garantir funcionalidade
+    /*if (!fechado) {
       Ponto p = new Ponto();
       p.x = evt.getX() & iniY; //*0.25 0~100
       iniY = 1023;
@@ -712,7 +797,7 @@ public class Perfil extends javax.swing.JFrame {
       }
       lblInfo.setText("");
       issaved = false;
-    }
+    }*/
   }//GEN-LAST:event_pnlRevIMouseClicked
 
   private void itemCarregarModelosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemCarregarModelosActionPerformed
@@ -742,7 +827,7 @@ public class Perfil extends javax.swing.JFrame {
     }
     String input = ctrSegmentos.getValue().toString();
     if (input.isEmpty()) {
-      JOptionPane.showMessageDialog(this, "Nenhum valor informado", "Erro", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, "Quantidade de sementos não informada", "Erro", JOptionPane.ERROR_MESSAGE);
     } else {
       int Num = 6;
       try {
@@ -767,7 +852,29 @@ public class Perfil extends javax.swing.JFrame {
       } else {
         op = 2;
       }
-      CriaObjeto(Num, op);
+      input = ctrAngulo.getValue().toString();
+      double Ang;
+      if (input.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Ângulo não informado", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+      } else {
+        try {
+          Ang = Double.parseDouble(input);
+        } catch (NumberFormatException | NullPointerException e) {
+          JOptionPane.showMessageDialog(this, "Valor de ângulo informado não é válido - definido como 360", "Não pode ser...", JOptionPane.WARNING_MESSAGE);
+          Ang = 360.0;
+        }
+        if (Ang < 0.01) {
+          JOptionPane.showMessageDialog(this, "Valor deve ser maior que 0.01 - definido como 0.01", "Erro", JOptionPane.ERROR_MESSAGE);
+          Ang = 0.01;
+        } else if (Ang > 360.0) {
+          JOptionPane.showMessageDialog(this, "Valor deve ser menor que 360 - definido como 360", "Erro", JOptionPane.ERROR_MESSAGE);
+          Ang = 360.0;
+        }
+      }
+      Ang = Ang * (Math.PI / 180); //Para pi rad
+      
+      CriaObjeto(Num, op, Ang);
     }
     P.Obj.add(obj);
     this.dispose();
@@ -779,6 +886,49 @@ public class Perfil extends javax.swing.JFrame {
   private void itemAjudaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAjudaActionPerformed
     
   }//GEN-LAST:event_itemAjudaActionPerformed
+
+  private void formWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowGainedFocus
+    DesenhaPerfil();
+  }//GEN-LAST:event_formWindowGainedFocus
+
+  private void pnlRevIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseReleased
+    if (!fechado) {
+      Ponto p = new Ponto();
+      p.x = evt.getX() & iniY; //*0.25 0~100
+      iniY = 1023;
+      p.y = evt.getY(); //*0.25 0~75
+      //System.out.println("X = " + p.x + " - Y = " + p.y);
+      arrPonto.add(p);
+      if (arrPonto.size() > 1) {
+        if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(arrPonto.size() - 2).x == 0) {
+          JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
+          arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
+          btnDesfazerActionPerformed(null);
+        } else {
+          arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 2), arrPonto.get(arrPonto.size() - 1)));
+          DesenhaPerfil();
+        }
+      }
+      lblInfo.setText("");
+      issaved = false;
+    }
+  }//GEN-LAST:event_pnlRevIMouseReleased
+
+  private void lstEixosItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_lstEixosItemStateChanged
+    if (lstEixos.getSelectedItem() == "x"){
+      eixoLado.setText("x");
+      eixoBaixo.setText("y");
+    } else if(lstEixos.getSelectedItem() == "y"){
+      eixoLado.setText("y");
+      eixoBaixo.setText("x");
+    } else if (lstEixos.getSelectedItem() == "z"){
+      eixoLado.setText("z");
+      eixoBaixo.setText("x");
+    } else {
+      ErroPadrao();
+    }
+    //System.out.println("I'm being called twice");
+  }//GEN-LAST:event_lstEixosItemStateChanged
   
   /**
    * @param args the command line arguments
@@ -821,13 +971,18 @@ public class Perfil extends javax.swing.JFrame {
   private javax.swing.JButton btnFechaEixo;
   private javax.swing.JButton btnIniciaEixo;
   private javax.swing.JButton btnRotacionar;
+  private javax.swing.JSpinner ctrAngulo;
   private javax.swing.JSpinner ctrSegmentos;
+  private javax.swing.JLabel eixoBaixo;
+  private javax.swing.JLabel eixoLado;
   private javax.swing.JMenuItem itemAbrir;
   private javax.swing.JMenuItem itemAjuda;
   private javax.swing.JMenuItem itemCarregarModelos;
   private javax.swing.JMenuItem itemNovo;
   private javax.swing.JMenuItem itemSalvar;
   private javax.swing.JLabel jLabel1;
+  private javax.swing.JLabel jLabel2;
+  private javax.swing.JLabel jLabel3;
   private javax.swing.JMenu jMenu1;
   private javax.swing.JMenu jMenu2;
   private javax.swing.JMenuBar jMenuBar1;
@@ -836,8 +991,13 @@ public class Perfil extends javax.swing.JFrame {
   private javax.swing.JMenuItem jMenuItem7;
   private javax.swing.JSeparator jSeparator1;
   private javax.swing.JPopupMenu.Separator jSeparator2;
+  private javax.swing.JLabel lblEixoBaixo;
+  private javax.swing.JLabel lblEixoLado;
   private javax.swing.JLabel lblInfo;
+  private javax.swing.JComboBox<String> lstEixos;
   private javax.swing.JPanel pnlRev;
   private javax.swing.JPanel pnlRevI;
+  private javax.swing.JTextField txtBaixo;
+  private javax.swing.JTextField txtLado;
   // End of variables declaration//GEN-END:variables
 }
