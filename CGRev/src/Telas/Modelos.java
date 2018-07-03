@@ -497,6 +497,7 @@ public class Modelos extends javax.swing.JFrame {
     P.LimpaTudo();
     P.arrPonto = arPonto;
     P.arrAresta = arAresta;
+    P.fechado = true;
     this.dispose();
     P.setEnabled(true);
     P.requestFocus(); //Traz o foco para tela anterior

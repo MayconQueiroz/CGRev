@@ -50,6 +50,7 @@ public class Principal extends javax.swing.JFrame {
    */
   byte cabecalho;
   JFileChooser fc = new JFileChooser();
+  double EL, ET, EP, EF;
   
   /**
    * Creates new form Principal
@@ -61,9 +62,9 @@ public class Principal extends javax.swing.JFrame {
       ex.printStackTrace(); 
     }   
     initComponents();
-    //Seta janela para o meio da tela, independente da resolução.
+    //Seta janela para o meio da tela, independente da resolucao.
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    //this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+    this.setLocation(dim.width/2-this.getSize().width/2, 0);
     setResizable(false); //Nao deixa redimensionar a janela
     DT = pnlTopoI.getGraphics();
     //pnlTopoI.setBackground(Color.LIGHT_GRAY);
@@ -90,20 +91,17 @@ public class Principal extends javax.swing.JFrame {
    * Limpa os paineis
    */
   public void LimpaPaineis(){
-    DL.clearRect(0, 0, 255, 340);
-    DF.clearRect(0, 0, 255, 340);
-    DT.clearRect(0, 0, 255, 340);
-    DP.clearRect(0, 0, 255, 340);
-    DL.clearRect(0, 0, 255, 340);
-    DF.clearRect(0, 0, 255, 340);
-    DT.clearRect(0, 0, 255, 340);
-    DP.clearRect(0, 0, 255, 340);
+    DL.clearRect(0, 0, 340, 255);
+    DF.clearRect(0, 0, 340, 255);
+    DT.clearRect(0, 0, 340, 255);
+    DP.clearRect(0, 0, 340, 255);
   }
   
   /**
    * Pinta todos paineis
    */
   public void PintaTudo(){
+    LimpaPaineis();
     PintaLado();
     PintaTopo();
     PintaFrente();
@@ -111,12 +109,19 @@ public class Principal extends javax.swing.JFrame {
   }
   
   /**
+   * Simplificacao adotada:
+   * escala(coordenada-centro)+centro
+   * Baseada na distributiva de:
+   * (Escala*coordenada)+((1-Escala)*Centro)
+   */
+  
+  /**
    * Pinta o painel Lado
    */
   public void PintaLado(){
     for(Objeto o : Obj){
       for (Aresta a : o.arrAresta){
-        DL.drawLine((int)a.i.z+mx, (int)a.i.y, (int)a.f.z+mx, (int)a.f.y);
+        DL.drawLine((int)(EL*((a.i.z)-o.C.z)+o.C.z)+mx, (int)(EL*((a.i.y)-o.C.y)+o.C.y), (int)(EL*((a.f.z)-o.C.z)+o.C.z)+mx, (int)(EL*((a.f.y)-o.C.y)+o.C.y));
       }
     }
   }
@@ -127,7 +132,7 @@ public class Principal extends javax.swing.JFrame {
   public void PintaTopo(){
     for(Objeto o : Obj){
       for (Aresta a : o.arrAresta){
-        DT.drawLine((int)a.i.x+mx, (int)a.i.z+my, (int)a.f.x+mx, (int)a.f.z+my);
+        DT.drawLine((int)(ET*((a.i.x)-o.C.x)+o.C.x)+mx, (int)(ET*((a.i.z)-o.C.z)+o.C.z)+my, (int)(ET*((a.f.x)-o.C.x)+o.C.x)+mx, (int)(ET*((a.f.z)-o.C.z)+o.C.z)+my);
       }
     }
   }
@@ -138,7 +143,7 @@ public class Principal extends javax.swing.JFrame {
   public void PintaFrente(){
     for(Objeto o : Obj){
       for (Aresta a : o.arrAresta){
-        DF.drawLine((int)a.i.x+mx, (int)a.i.y, (int)a.f.x+mx, (int)a.f.y);
+        DF.drawLine((int)(EF*((a.i.x)-o.C.x)+o.C.x)+mx, (int)(EF*((a.i.y)-o.C.y)+o.C.y), (int)(EF*((a.f.x)-o.C.x)+o.C.x)+mx, (int)(EF*((a.f.y)-o.C.y)+o.C.y));
       }
     }
   }
@@ -164,6 +169,9 @@ public class Principal extends javax.swing.JFrame {
     jMenuItem2 = new javax.swing.JMenuItem();
     pnlTopo = new javax.swing.JPanel();
     pnlTopoI = new javax.swing.JPanel();
+    btnAmpliarTopo = new javax.swing.JButton();
+    ctrEscTopo = new javax.swing.JSpinner();
+    jLabel5 = new javax.swing.JLabel();
     pnlMenus = new javax.swing.JTabbedPane();
     pnlObjetos = new javax.swing.JPanel();
     btnAdicionar = new javax.swing.JButton();
@@ -171,13 +179,22 @@ public class Principal extends javax.swing.JFrame {
     btnSelecionar = new javax.swing.JToggleButton();
     btnRedesenhar = new javax.swing.JButton();
     pnlAmbiente = new javax.swing.JPanel();
-    jLabel2 = new javax.swing.JLabel();
+    ckbPropEscala = new javax.swing.JCheckBox();
     pnlFrente = new javax.swing.JPanel();
     pnlFrenteI = new javax.swing.JPanel();
+    btnAmpliarFrente = new javax.swing.JButton();
+    ctrEscFrente = new javax.swing.JSpinner();
+    jLabel1 = new javax.swing.JLabel();
     pnlLado = new javax.swing.JPanel();
     pnlLadoI = new javax.swing.JPanel();
+    btnAmpliarLado = new javax.swing.JButton();
+    ctrEscLado = new javax.swing.JSpinner();
+    jLabel4 = new javax.swing.JLabel();
     pnlPerspectiva = new javax.swing.JPanel();
     pnlPerspectivaI = new javax.swing.JPanel();
+    btnAmpliarPerspectiva = new javax.swing.JButton();
+    ctrEscPerspectiva = new javax.swing.JSpinner();
+    jLabel3 = new javax.swing.JLabel();
     menuBar = new javax.swing.JMenuBar();
     menuArquivo = new javax.swing.JMenu();
     itemNovo = new javax.swing.JMenuItem();
@@ -209,15 +226,35 @@ public class Principal extends javax.swing.JFrame {
       .addGap(0, 255, Short.MAX_VALUE)
     );
 
+    btnAmpliarTopo.setText("+");
+
+    ctrEscTopo.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
+
+    jLabel5.setText("Escala");
+
     javax.swing.GroupLayout pnlTopoLayout = new javax.swing.GroupLayout(pnlTopo);
     pnlTopo.setLayout(pnlTopoLayout);
     pnlTopoLayout.setHorizontalGroup(
       pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addComponent(pnlTopoI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlTopoLayout.createSequentialGroup()
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(jLabel5)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(ctrEscTopo, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnAmpliarTopo)
+        .addContainerGap())
     );
     pnlTopoLayout.setVerticalGroup(
       pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(pnlTopoI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlTopoLayout.createSequentialGroup()
+        .addGroup(pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(btnAmpliarTopo)
+          .addComponent(ctrEscTopo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(jLabel5))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(pnlTopoI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
     );
 
     pnlObjetos.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
@@ -247,7 +284,7 @@ public class Principal extends javax.swing.JFrame {
       .addGroup(pnlObjetosLayout.createSequentialGroup()
         .addContainerGap()
         .addComponent(btnAdicionar)
-        .addContainerGap(481, Short.MAX_VALUE))
+        .addContainerGap(538, Short.MAX_VALUE))
     );
 
     pnlMenus.addTab("Objetos", pnlObjetos);
@@ -284,14 +321,15 @@ public class Principal extends javax.swing.JFrame {
         .addComponent(btnSelecionar)
         .addGap(18, 18, 18)
         .addComponent(btnRedesenhar)
-        .addContainerGap(440, Short.MAX_VALUE))
+        .addContainerGap(497, Short.MAX_VALUE))
     );
 
     pnlMenus.addTab("Ferramentas", null, pnlFerramentas, "");
     pnlFerramentas.getAccessibleContext().setAccessibleName("");
     pnlFerramentas.getAccessibleContext().setAccessibleDescription("");
 
-    jLabel2.setText("Nothing to show");
+    ckbPropEscala.setSelected(true);
+    ckbPropEscala.setText("Proporcionalidade (Escala)");
 
     javax.swing.GroupLayout pnlAmbienteLayout = new javax.swing.GroupLayout(pnlAmbiente);
     pnlAmbiente.setLayout(pnlAmbienteLayout);
@@ -299,15 +337,15 @@ public class Principal extends javax.swing.JFrame {
       pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(pnlAmbienteLayout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(jLabel2)
-        .addContainerGap(86, Short.MAX_VALUE))
+        .addComponent(ckbPropEscala)
+        .addContainerGap(17, Short.MAX_VALUE))
     );
     pnlAmbienteLayout.setVerticalGroup(
       pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(pnlAmbienteLayout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(jLabel2)
-        .addContainerGap(490, Short.MAX_VALUE))
+        .addComponent(ckbPropEscala)
+        .addContainerGap(542, Short.MAX_VALUE))
     );
 
     pnlMenus.addTab("Ambiente", pnlAmbiente);
@@ -329,18 +367,38 @@ public class Principal extends javax.swing.JFrame {
     );
     pnlFrenteILayout.setVerticalGroup(
       pnlFrenteILayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 255, Short.MAX_VALUE)
+      .addGap(0, 0, Short.MAX_VALUE)
     );
+
+    btnAmpliarFrente.setText("+");
+
+    ctrEscFrente.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
+
+    jLabel1.setText("Escala");
 
     javax.swing.GroupLayout pnlFrenteLayout = new javax.swing.GroupLayout(pnlFrente);
     pnlFrente.setLayout(pnlFrenteLayout);
     pnlFrenteLayout.setHorizontalGroup(
       pnlFrenteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addComponent(pnlFrenteI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlFrenteLayout.createSequentialGroup()
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(jLabel1)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(ctrEscFrente, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnAmpliarFrente)
+        .addContainerGap())
     );
     pnlFrenteLayout.setVerticalGroup(
       pnlFrenteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(pnlFrenteI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlFrenteLayout.createSequentialGroup()
+        .addGroup(pnlFrenteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(btnAmpliarFrente)
+          .addComponent(ctrEscFrente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(jLabel1))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(pnlFrenteI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
 
     pnlLado.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Lado"));
@@ -364,15 +422,40 @@ public class Principal extends javax.swing.JFrame {
       .addGap(0, 255, Short.MAX_VALUE)
     );
 
+    btnAmpliarLado.setText("+");
+
+    ctrEscLado.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
+    ctrEscLado.addChangeListener(new javax.swing.event.ChangeListener() {
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        ctrEscLadoStateChanged(evt);
+      }
+    });
+
+    jLabel4.setText("Escala");
+
     javax.swing.GroupLayout pnlLadoLayout = new javax.swing.GroupLayout(pnlLado);
     pnlLado.setLayout(pnlLadoLayout);
     pnlLadoLayout.setHorizontalGroup(
       pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addComponent(pnlLadoI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlLadoLayout.createSequentialGroup()
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(jLabel4)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(ctrEscLado, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnAmpliarLado)
+        .addContainerGap())
     );
     pnlLadoLayout.setVerticalGroup(
       pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(pnlLadoI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlLadoLayout.createSequentialGroup()
+        .addGroup(pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(btnAmpliarLado)
+          .addComponent(ctrEscLado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(jLabel4))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(pnlLadoI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
     );
 
     pnlPerspectiva.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Perspectiva"));
@@ -386,18 +469,38 @@ public class Principal extends javax.swing.JFrame {
     );
     pnlPerspectivaILayout.setVerticalGroup(
       pnlPerspectivaILayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 255, Short.MAX_VALUE)
+      .addGap(0, 0, Short.MAX_VALUE)
     );
+
+    btnAmpliarPerspectiva.setText("+");
+
+    ctrEscPerspectiva.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
+
+    jLabel3.setText("Escala");
 
     javax.swing.GroupLayout pnlPerspectivaLayout = new javax.swing.GroupLayout(pnlPerspectiva);
     pnlPerspectiva.setLayout(pnlPerspectivaLayout);
     pnlPerspectivaLayout.setHorizontalGroup(
       pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addComponent(pnlPerspectivaI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlPerspectivaLayout.createSequentialGroup()
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(jLabel3)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(ctrEscPerspectiva, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnAmpliarPerspectiva)
+        .addContainerGap())
     );
     pnlPerspectivaLayout.setVerticalGroup(
       pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(pnlPerspectivaI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlPerspectivaLayout.createSequentialGroup()
+        .addGroup(pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(btnAmpliarPerspectiva)
+          .addComponent(ctrEscPerspectiva, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(jLabel3))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(pnlPerspectivaI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
 
     menuArquivo.setText("Arquivo");
@@ -478,14 +581,13 @@ public class Principal extends javax.swing.JFrame {
         .addContainerGap()
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addGroup(layout.createSequentialGroup()
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(pnlFrente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-              .addComponent(pnlLado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+              .addComponent(pnlLado, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
+              .addComponent(pnlFrente, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(pnlTopo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-              .addComponent(pnlPerspectiva, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGap(0, 0, Short.MAX_VALUE))
+              .addComponent(pnlTopo, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
+              .addComponent(pnlPerspectiva, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)))
           .addComponent(pnlMenus))
         .addContainerGap())
     );
@@ -634,6 +736,30 @@ public class Principal extends javax.swing.JFrame {
     PintaTudo();
   }//GEN-LAST:event_btnRedesenharActionPerformed
 
+  private void ctrEscLadoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ctrEscLadoStateChanged
+    //z, y
+    String input = ctrEscLado.getValue().toString();
+    EL = 1;
+    if (input.isEmpty()) {
+      ctrEscLado.setValue(1);
+    } else {
+      try {
+        EL = Double.parseDouble(input);
+      } catch (NumberFormatException | NullPointerException e) {
+        ctrEscLado.setValue(1);
+      }
+    }
+    if(ckbPropEscala.isSelected()){
+      ET = EL;
+      EP = EL;
+      EF = EL;
+      ctrEscPerspectiva.setValue(EL);
+      ctrEscTopo.setValue(EL);
+      ctrEscFrente.setValue(EL);
+    }
+    PintaTudo();
+  }//GEN-LAST:event_ctrEscLadoStateChanged
+
   /**
    * @param args the command line arguments
    */
@@ -671,15 +797,27 @@ public class Principal extends javax.swing.JFrame {
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton btnAdicionar;
+  private javax.swing.JButton btnAmpliarFrente;
+  private javax.swing.JButton btnAmpliarLado;
+  private javax.swing.JButton btnAmpliarPerspectiva;
+  private javax.swing.JButton btnAmpliarTopo;
   private javax.swing.JButton btnRedesenhar;
   private javax.swing.JToggleButton btnSelecionar;
+  private javax.swing.JCheckBox ckbPropEscala;
+  private javax.swing.JSpinner ctrEscFrente;
+  private javax.swing.JSpinner ctrEscLado;
+  private javax.swing.JSpinner ctrEscPerspectiva;
+  private javax.swing.JSpinner ctrEscTopo;
   private javax.swing.JMenuItem itemAbrir;
   private javax.swing.JMenuItem itemAjuda;
   private javax.swing.JMenuItem itemNovo;
   private javax.swing.JMenuItem itemSalvar;
   private javax.swing.JMenuItem itemSalvarComo;
   private javax.swing.JMenuItem itemSobre;
-  private javax.swing.JLabel jLabel2;
+  private javax.swing.JLabel jLabel1;
+  private javax.swing.JLabel jLabel3;
+  private javax.swing.JLabel jLabel4;
+  private javax.swing.JLabel jLabel5;
   private javax.swing.JMenuItem jMenuItem2;
   private javax.swing.JPopupMenu.Separator jSeparator1;
   private javax.swing.JMenu menuAjuda;

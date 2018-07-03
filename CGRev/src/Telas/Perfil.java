@@ -44,7 +44,7 @@ public class Perfil extends javax.swing.JFrame {
   private Perfil() {
     initComponents();
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    //this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
     setResizable(false); //Nao deixa redimensionar a janela
     arrPonto = new ArrayList();
     arrAresta = new ArrayList();
@@ -143,103 +143,78 @@ public class Perfil extends javax.swing.JFrame {
    * @param Num Numero de segmentos
    * @param op Operacao (0 e 1 fechados, 2 abertos)
    */
-  public void CriaObjeto(int Num, int op, double Ang) {
+  public void CriaObjetoY(int Num, int op, double Ang) {
     double teta = Ang / Num;
     double ccos = Math.cos(teta);
     double csin = Math.sin(teta);
-    double xold, zold;
+    double xold = arrPonto.get(0).y, zold = arrPonto.get(0).y;
     int l;
     Ponto plinha = new Ponto();
     Aresta arAux;
     //System.out.println("001");
     obj = new Objeto();
+    for (Aresta a : arrAresta) {
+      obj.arrAresta.add(new Aresta(a));
+    }
+    for (Ponto p : arrPonto) {
+      arrPontoNil.add(new Ponto(p));
+      if (p.y < xold){
+        xold = p.y;
+      }
+      if (p.y > zold){
+        zold = p.y;
+      }
+    }
+    obj.C.x = 0;
+    obj.C.y = (xold + zold)/2;
+    obj.C.z = 0;
     //PrintPontos();
     if (op == 0) { //Inicia e encerra no eixo - fechado
-      //System.out.println("Fechado OP0");
-      //System.out.println("002 - Num = " + Num);
-      obj.Fechado = true;
-      for (Aresta a : arrAresta) {
-        obj.arrAresta.add(new Aresta(a));
-        //System.out.println("ADD = " + a.toString());
-      }
-      for (Ponto p : arrPonto) {
-        arrPontoNil.add(new Ponto(p));
-      }
-      //PrintListaArestas();PrintPontos();
+      obj.Fechado = true; //Marca objeto fechado
       for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
-        //System.out.println("()()()()()()()()()()()()()()()()()");
-        for (int y = 1; y < arrPonto.size(); y++) {
+        for (int y = 1; y < arrPonto.size(); y++) { //Para todos os pontos exceto o primeiro
           plinha = arrPonto.get(y);
-          //System.out.println("Plinha = " + plinha.toString());
-          //System.out.println("+.+.+.+.+");
-          //PrintListaArestas();
-          //PrintListaArestasIn();
           if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
-            //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
-            //System.out.println("ccos = " + ccos + " - csin = " + csin);
             xold = plinha.x;
             zold = plinha.z;
-            plinha.x = (plinha.x * ccos) + (plinha.z * csin);
+            plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotacao em teta graus
             plinha.z = (xold * (-csin)) + (plinha.z * ccos);
-            arrPontoNil.add(new Ponto(plinha));
+            arrPontoNil.add(new Ponto(plinha)); //Adiciona novo ponto a lista geral
             arrPonto.get(y).x = plinha.x;
             arrPonto.get(y).z = plinha.z;
             if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
               obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
-              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
             } else {
               obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
-              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
             }
             obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
-            //System.out.println("x = " + p.x + " - z = " + p.z);
-            //System.out.println("....");
-            //PrintPontos();
           } else {
             arAux = new Aresta(arrPontoNil.get(y), arrPontoNil.get(arrPontoNil.size() - 1));
             obj.arrAresta.add(new Aresta(arAux));
           }
         }
-        //System.out.println("Saí para construir arestas, já volto");
-        //ConstroiArestas(); //Constroi arestas baseadas nos pontos
-        //PrintListaArestasIn();
-        //PrintListaArestas();
       }
-      for (int u = 0; u < arrPonto.size(); u++) {
+      for (int u = 0; u < arrPonto.size(); u++) { //Ultima Conexao
         if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
           obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
         }
       }
-      //PrintListaArestas();
     } else if (op == 1) { //Inicia e encerra no mesmo ponto - fechado
-      //System.out.println("Fechado OP1");
-      ////////////////////////////////////////////////////////////////////////
-      ////////////////////////////////////////////////////////////////////////
-      ////////////////////////////////////////////////////////////////////////
-      obj.Fechado = true;
-      for (Aresta a : arrAresta) {
-        obj.arrAresta.add(new Aresta(a));
-        //System.out.println("ADD = " + a.toString());
-      }
-      for (Ponto p : arrPonto) {
-        arrPontoNil.add(new Ponto(p));
-      }
-      //PrintListaArestas();PrintPontos();
-      //System.out.println("Num = " + Num);
+      obj.Fechado = true; //Marca objeto como fechado
       for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
-        //System.out.println("()()()()()()()()()()()()()()()()()");
-        for (int y = 0; y < arrPonto.size(); y++) {
-          plinha = arrPonto.get(y);
+        for (int y = 0; y < arrPonto.size(); y++) { //Para todos os pontos (inclui o primeiro)
           //System.out.println("Plinha = " + plinha.toString());
-          //System.out.println("+.+.+.+.+ y = " + y);
+          //System.out.println("+.+.+.+.+");
           //PrintListaArestas();
+          //System.out.println("=*=*=*=*=");
           //PrintListaArestasIn();
+          //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
+          //System.out.println("ccos = " + ccos + " - csin = " + csin);
+          plinha = arrPonto.get(y);
           if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
-            //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
-            //System.out.println("ccos = " + ccos + " - csin = " + csin);
             xold = plinha.x;
             zold = plinha.z;
-            plinha.x = (plinha.x * ccos) + (plinha.z * csin);
+            plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotacao
             plinha.z = (xold * (-csin)) + (plinha.z * ccos);
             arrPontoNil.add(new Ponto(plinha));
             arrPonto.get(y).x = plinha.x;
@@ -247,10 +222,8 @@ public class Perfil extends javax.swing.JFrame {
             if (y != 0) { //Para nao calcular pro primeiro
               if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
                 obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
-                //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
               } else {
                 obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
-                //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
               }
             }
             obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
@@ -280,13 +253,6 @@ public class Perfil extends javax.swing.JFrame {
       ////////////////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////
       obj.Fechado = false;
-      for (Aresta a : arrAresta) {
-        obj.arrAresta.add(new Aresta(a));
-        //System.out.println("ADD = " + a.toString());
-      }
-      for (Ponto p : arrPonto) {
-        arrPontoNil.add(new Ponto(p));
-      }
       //PrintListaArestas();//PrintPontos();
       for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
         //System.out.println("()()()()()()()()()()()()()()()()()");
@@ -372,6 +338,7 @@ public class Perfil extends javax.swing.JFrame {
     eixoLado = new javax.swing.JLabel();
     jLabel3 = new javax.swing.JLabel();
     ctrAngulo = new javax.swing.JSpinner();
+    ckbFechado = new javax.swing.JCheckBox();
     jMenuBar1 = new javax.swing.JMenuBar();
     jMenu1 = new javax.swing.JMenu();
     itemNovo = new javax.swing.JMenuItem();
@@ -414,6 +381,9 @@ public class Perfil extends javax.swing.JFrame {
     pnlRevI.addMouseListener(new java.awt.event.MouseAdapter() {
       public void mouseClicked(java.awt.event.MouseEvent evt) {
         pnlRevIMouseClicked(evt);
+      }
+      public void mouseExited(java.awt.event.MouseEvent evt) {
+        pnlRevIMouseExited(evt);
       }
       public void mouseReleased(java.awt.event.MouseEvent evt) {
         pnlRevIMouseReleased(evt);
@@ -504,6 +474,8 @@ public class Perfil extends javax.swing.JFrame {
 
     ctrAngulo.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(360.0f), Float.valueOf(0.01f), Float.valueOf(360.0f), Float.valueOf(1.0f)));
 
+    ckbFechado.setText("Fecha");
+
     jMenu1.setText("Arquivo");
 
     itemNovo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
@@ -574,21 +546,25 @@ public class Perfil extends javax.swing.JFrame {
             .addComponent(pnlRev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addComponent(lstEixos, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
               .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                  .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                  .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                  .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                  .addComponent(btnDesfazer, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addComponent(ctrSegmentos, javax.swing.GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE)
+                .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(ctrSegmentos, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
                 .addComponent(eixoBaixo)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                  .addComponent(jLabel2)
-                  .addComponent(btnRotacionar, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                  .addComponent(jLabel3))
-                .addComponent(ctrAngulo))
-              .addComponent(lstEixos, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-              .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING)))
+                .addComponent(btnDesfazer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnRotacionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+              .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                  .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING)
+                  .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING)
+                  .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING)
+                  .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                    .addComponent(ckbFechado)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(ctrAngulo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
           .addGroup(layout.createSequentialGroup()
             .addGap(10, 10, 10)
             .addComponent(lblEixoBaixo, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -600,7 +576,7 @@ public class Perfil extends javax.swing.JFrame {
             .addComponent(txtLado, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addGap(18, 18, 18)
             .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 341, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        .addContainerGap())
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -623,27 +599,28 @@ public class Perfil extends javax.swing.JFrame {
               .addComponent(ctrSegmentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
               .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
               .addComponent(btnRotacionar)
-              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
               .addComponent(jLabel2)
               .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
               .addComponent(lstEixos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
               .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
               .addComponent(jLabel3)
-              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-              .addComponent(ctrAngulo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 6, Short.MAX_VALUE)
+              .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addComponent(ctrAngulo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(ckbFechado))
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
               .addComponent(eixoBaixo)))
           .addComponent(eixoLado))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+            .addComponent(txtLado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(lblEixoLado)
             .addComponent(txtBaixo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addComponent(lblEixoBaixo))
-          .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-            .addComponent(txtLado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addComponent(lblEixoLado))
           .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 12, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        .addContainerGap(15, Short.MAX_VALUE))
     );
 
     pack();
@@ -764,16 +741,20 @@ public class Perfil extends javax.swing.JFrame {
     Aresta a = arrAresta.get(arrAresta.size() - 1);
     D.setColor(pnlRevI.getBackground());
     D.drawLine((int) a.i.x, (int) a.i.y, (int) a.f.x, (int) a.f.y);
-    arrPonto.remove(arrPonto.size() - 1);
+    if (!fechado){
+      arrPonto.remove(arrPonto.size() - 1);
+    }
     arrAresta.remove(arrAresta.size() - 1);
     D.setColor(Color.BLACK);
     iniY = 2047;
+    fechado = false;
   }//GEN-LAST:event_btnDesfazerActionPerformed
 
   private void pnlRevIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseMoved
     DesenhaPerfil();
+    int Aux = (evt.getY()*-1)+300;
     txtBaixo.setText("" + evt.getX());
-    txtLado.setText("" + evt.getY());
+    txtLado.setText("" + Aux);
   }//GEN-LAST:event_pnlRevIMouseMoved
 
   private void pnlRevIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseClicked
@@ -872,9 +853,24 @@ public class Perfil extends javax.swing.JFrame {
           Ang = 360.0;
         }
       }
+      cabecalho = 0;
+      if (Ang != 360.0){ //Revolucao nao completa
+        cabecalho = 1;
+        if (ckbFechado.isSelected()){ //Se for fechado
+          cabecalho += 2;
+        }
+      }
       Ang = Ang * (Math.PI / 180); //Para pi rad
       
-      CriaObjeto(Num, op, Ang);
+      if ("x".equals(lstEixos.getSelectedItem().toString())){ //Rotacao em x
+        CriaObjetoY(Num, op, Ang); //Faz rotacoes
+      } else if("y".equals(lstEixos.getSelectedItem().toString())){
+        CriaObjetoY(Num, op, Ang); //Faz rotacoes
+      } else if("z".equals(lstEixos.getSelectedItem().toString())){
+        CriaObjetoY(Num, op, Ang); //Faz rotacoes
+      } else {
+        ErroPadrao();
+      }
     }
     P.Obj.add(obj);
     this.dispose();
@@ -918,17 +914,28 @@ public class Perfil extends javax.swing.JFrame {
     if (lstEixos.getSelectedItem() == "x"){
       eixoLado.setText("x");
       eixoBaixo.setText("y");
+      lblEixoBaixo.setText("y");
+      lblEixoLado.setText("x");
     } else if(lstEixos.getSelectedItem() == "y"){
       eixoLado.setText("y");
       eixoBaixo.setText("x");
+      lblEixoBaixo.setText("x");
+      lblEixoLado.setText("y");
     } else if (lstEixos.getSelectedItem() == "z"){
       eixoLado.setText("z");
       eixoBaixo.setText("x");
+      lblEixoBaixo.setText("x");
+      lblEixoLado.setText("z");
     } else {
       ErroPadrao();
     }
     //System.out.println("I'm being called twice");
   }//GEN-LAST:event_lstEixosItemStateChanged
+
+  private void pnlRevIMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseExited
+    txtBaixo.setText("Fora");
+    txtLado.setText("Fora");
+  }//GEN-LAST:event_pnlRevIMouseExited
   
   /**
    * @param args the command line arguments
@@ -971,7 +978,8 @@ public class Perfil extends javax.swing.JFrame {
   private javax.swing.JButton btnFechaEixo;
   private javax.swing.JButton btnIniciaEixo;
   private javax.swing.JButton btnRotacionar;
-  private javax.swing.JSpinner ctrAngulo;
+  private javax.swing.JCheckBox ckbFechado;
+  public javax.swing.JSpinner ctrAngulo;
   private javax.swing.JSpinner ctrSegmentos;
   private javax.swing.JLabel eixoBaixo;
   private javax.swing.JLabel eixoLado;

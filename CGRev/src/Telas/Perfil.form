@@ -126,28 +126,33 @@
                       <Component id="pnlRev" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="lstEixos" alignment="0" max="32767" attributes="0"/>
                           <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                              <Group type="103" alignment="0" groupAlignment="0" max="-2" attributes="0">
-                                  <Component id="btnFecha" max="32767" attributes="0"/>
-                                  <Component id="btnIniciaEixo" max="32767" attributes="0"/>
-                                  <Component id="btnFechaEixo" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="btnDesfazer" alignment="0" min="-2" pref="101" max="-2" attributes="0"/>
-                              </Group>
-                              <Component id="ctrSegmentos" pref="106" max="32767" attributes="0"/>
+                              <Component id="btnFecha" max="32767" attributes="0"/>
+                              <Component id="btnIniciaEixo" max="32767" attributes="0"/>
+                              <Component id="btnFechaEixo" alignment="0" max="32767" attributes="0"/>
+                              <Component id="ctrSegmentos" pref="112" max="32767" attributes="0"/>
                               <Component id="eixoBaixo" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Group type="103" alignment="0" groupAlignment="1" attributes="0">
-                                  <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
-                                  <Component id="btnRotacionar" min="-2" pref="101" max="-2" attributes="0"/>
-                                  <Component id="jLabel3" alignment="1" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <Component id="ctrAngulo" max="32767" attributes="0"/>
+                              <Component id="btnDesfazer" alignment="0" max="32767" attributes="0"/>
+                              <Component id="btnRotacionar" alignment="0" max="32767" attributes="0"/>
                           </Group>
-                          <Component id="lstEixos" alignment="0" min="-2" pref="101" max="-2" attributes="0"/>
-                          <Component id="jLabel1" alignment="1" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" alignment="1" attributes="0">
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                  <Component id="jLabel1" alignment="1" min="-2" max="-2" attributes="0"/>
+                                  <Component id="jLabel2" alignment="1" min="-2" max="-2" attributes="0"/>
+                                  <Component id="jLabel3" alignment="1" min="-2" max="-2" attributes="0"/>
+                                  <Group type="102" alignment="1" attributes="0">
+                                      <Component id="ckbFechado" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="32767" attributes="0"/>
+                                      <Component id="ctrAngulo" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                          </Group>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
                       <Component id="lblEixoBaixo" min="-2" pref="14" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="txtBaixo" min="-2" pref="51" max="-2" attributes="0"/>
@@ -159,7 +164,7 @@
                       <Component id="lblInfo" min="-2" pref="341" max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <EmptySpace max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -184,15 +189,18 @@
                           <Component id="ctrSegmentos" min="-2" max="-2" attributes="0"/>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
                           <Component id="btnRotacionar" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
                           <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="lstEixos" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="ctrAngulo" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="32767" attributes="0"/>
+                          <EmptySpace pref="6" max="32767" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="ctrAngulo" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="ckbFechado" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
                           <Component id="eixoBaixo" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -200,17 +208,15 @@
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="txtBaixo" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="lblEixoBaixo" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
                   <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                       <Component id="txtLado" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="lblEixoLado" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="txtBaixo" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblEixoBaixo" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="lblInfo" alignment="0" min="-2" pref="12" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace max="32767" attributes="0"/>
+              <EmptySpace pref="15" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -254,6 +260,7 @@
           <Events>
             <EventHandler event="mouseMoved" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="pnlRevIMouseMoved"/>
             <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="pnlRevIMouseClicked"/>
+            <EventHandler event="mouseExited" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="pnlRevIMouseExited"/>
             <EventHandler event="mouseReleased" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="pnlRevIMouseReleased"/>
           </Events>
 
@@ -385,6 +392,14 @@
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
           <SpinnerModel initial="360.0" maximum="360.0" minimum="0.01" numberType="java.lang.Float" stepSize="1.0" type="number"/>
         </Property>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="ckbFechado">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Fecha"/>
       </Properties>
     </Component>
   </SubComponents>

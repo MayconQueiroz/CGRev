@@ -16,12 +16,13 @@ public class Objeto {
   public ArrayList<Ponto> arrPonto; //Pontos do objeto
   public Color AC = Color.BLACK; //Arestas (Cor)
   public boolean Fechado;
+  public Ponto C; //Centro do Objeto
 
   public Objeto() {
     arrAresta = new ArrayList<>();
     arrPonto = new ArrayList<>();
     Fechado = false;
+    C = new Ponto();
   }
-  
   
 }
