@@ -14,6 +14,7 @@ import java.awt.Toolkit;
 import static java.lang.Math.round;
 import java.util.ArrayList;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 
@@ -59,6 +60,7 @@ public class Modelos extends javax.swing.JFrame {
     arAresta = new ArrayList();
     //pnlTempIn.setBackground(Color.LIGHT_GRAY);
     De = pnlTempIn.getGraphics();
+    setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Modelos.png")).getImage());
   }
 
   public Modelos(Perfil P) {
@@ -412,7 +414,7 @@ public class Modelos extends javax.swing.JFrame {
     pnlTemp.setLayout(pnlTempLayout);
     pnlTempLayout.setHorizontalGroup(
       pnlTempLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(pnlTempIn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addComponent(pnlTempIn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
     pnlTempLayout.setVerticalGroup(
       pnlTempLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -491,13 +493,17 @@ public class Modelos extends javax.swing.JFrame {
 
   private void btnSelecionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelecionarActionPerformed
     for (Ponto p : arPonto) {
-      p.x = round(p.x * 1.538461538461538461);
+      p.x = round(p.x * 1.538461538461538461); //Proporcao entre as telas
       p.y = round(p.y * 1.538461538461538461);
     }
     P.LimpaTudo();
     P.arrPonto = arPonto;
     P.arrAresta = arAresta;
-    P.fechado = true;
+    P.fechado = (lstModelos.getSelectedIndex() == 0 || lstModelos.getSelectedIndex() == 1 
+            || lstModelos.getSelectedIndex() == 3 || lstModelos.getSelectedIndex() == 5 
+            || lstModelos.getSelectedIndex() == 6 || lstModelos.getSelectedIndex() == 7 
+            || lstModelos.getSelectedIndex() == 8 || lstModelos.getSelectedIndex() == 9 
+            || lstModelos.getSelectedIndex() == 10); //Quem diria, eu quebrando linha
     this.dispose();
     P.setEnabled(true);
     P.requestFocus(); //Traz o foco para tela anterior

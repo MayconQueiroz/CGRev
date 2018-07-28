@@ -10,7 +10,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -39,6 +38,17 @@ public class Perfil extends javax.swing.JFrame {
   public boolean fechado;
 
   /**
+   * Variaveis globais internas
+   */
+  byte Bcount = 0;
+  ArrayList<Ponto> BarrPonto;
+  ArrayList<Ponto> BarrPontoC;
+  byte Bsp = -1;
+  Ponto Slc;
+  int Bseg = 5;
+  double Bau = 0;
+
+  /**
    * Creates new form Perfil
    */
   private Perfil() {
@@ -46,9 +56,13 @@ public class Perfil extends javax.swing.JFrame {
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
     this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     setResizable(false); //Nao deixa redimensionar a janela
+    //Instancia
     arrPonto = new ArrayList();
+    BarrPonto = new ArrayList();
+    BarrPontoC = new ArrayList();
     arrAresta = new ArrayList();
     arrPontoNil = new ArrayList();
+    Slc = new Ponto();
     //pnlRevI.setBackground(Color.LIGHT_GRAY);
     D = pnlRevI.getGraphics();
     issaved = true;
@@ -56,6 +70,7 @@ public class Perfil extends javax.swing.JFrame {
     lstEixos.setSelectedIndex(1);
     txtBaixo.setEnabled(false);
     txtLado.setEnabled(false);
+    setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Perfil.png")).getImage());
   }
 
   public Perfil(Principal P) {
@@ -64,11 +79,53 @@ public class Perfil extends javax.swing.JFrame {
   }
 
   /**
+   * Calcula as arestas de bezier
+   */
+  public void CalculaBezier() {
+    Bau = (double) 1 / Bseg;
+    BarrPonto.clear();
+    BarrPonto.add(BarrPontoC.get(0));
+    double Bau2 = Bau;
+    for (int i = 1; i < Bseg; i++) {
+      DeCasteljau(Bau2);
+      Bau2 += Bau;
+      BarrPonto.add(new Ponto(Slc));
+    }
+    for (Ponto v : BarrPonto) {
+      System.out.println("P69584 = " + v.toString());
+      D.drawRect((int) v.x - 3, (int) v.y - 3, 6, 6);
+    }
+    BarrPonto.add(new Ponto(BarrPontoC.get(3)));
+    DesenhaPerfil();
+  }
+
+  /**
    * Desenha as linhas do perfil escolhido
    */
   public void DesenhaPerfil() {
+    D.clearRect(0, 0, 400, 300);
     for (Aresta a : arrAresta) {
       D.drawLine((int) a.i.x, (int) a.i.y, (int) a.f.x, (int) a.f.y);
+    }
+    if (isB) { //Se estiver no meio de uma curva de Bezier
+      D.setColor(Color.BLUE);
+      if (Bcount == 3) {
+        Ponto k = new Ponto();
+        D.drawLine((int) BarrPontoC.get(0).x, (int) BarrPontoC.get(0).y, (int) BarrPontoC.get(1).x, (int) BarrPontoC.get(1).y);
+        D.drawLine((int) BarrPontoC.get(3).x, (int) BarrPontoC.get(3).y, (int) BarrPontoC.get(2).x, (int) BarrPontoC.get(2).y);
+        D.setColor(Color.BLACK);
+        k = BarrPonto.get(0);
+        for (int j = 1; j < BarrPonto.size(); j++) {
+          D.drawLine((int) k.x, (int) k.y, (int) BarrPonto.get(j).x, (int) BarrPonto.get(j).y);
+          k = BarrPonto.get(j);
+        }
+        D.setColor(Color.BLUE);
+      }
+      for (Ponto v : BarrPontoC) {
+        System.out.println("Ponto em = " + v.toString());
+        D.drawRect((int) v.x - 3, (int) v.y - 3, 6, 6);
+      }
+      D.setColor(Color.BLACK);
     }
   }
 
@@ -100,50 +157,44 @@ public class Perfil extends javax.swing.JFrame {
   }
 
   /**
-   * Imprime os pontos (Debug mode)
+   * Retorna um ponto da curva de bezier
+   *
+   * @param t Fator de ponderacao
    */
-  public void PrintPontos() {
-    int i = 0;
-    for (Ponto p : arrPonto) {
-      System.out.println("P" + i + " = " + p.toString());
-      i++;
+  public void DeCasteljau(double t) {
+    double z1, d3, u2, ut, z12, u23;
+    ut = 1 - t;
+    for (Ponto v : BarrPontoC) {
+      System.out.println("t = " + t + "PC1 = " + v.toString());
+      D.drawRect((int) v.x - 3, (int) v.y - 3, 6, 6);
     }
-    i = 0;
-    for (Ponto p : arrPontoNil) {
-      System.out.println("PN" + i + " = " + p.toString());
-      i++;
+    z1 = ((ut * BarrPontoC.get(0).x) + (t * BarrPontoC.get(1).x));
+    u2 = ((ut * BarrPontoC.get(1).x) + (t * BarrPontoC.get(2).x));
+    d3 = ((ut * BarrPontoC.get(2).x) + (t * BarrPontoC.get(3).x));
+    z12 = ((ut * z1) + (t * u2));
+    u23 = ((ut * u2) + (t * d3));
+    Slc.x = (ut * z12) + (t * u23);
+    z1 = ((ut * BarrPontoC.get(0).y) + (t * BarrPontoC.get(1).y));
+    u2 = ((ut * BarrPontoC.get(1).y) + (t * BarrPontoC.get(2).y));
+    d3 = ((ut * BarrPontoC.get(2).y) + (t * BarrPontoC.get(3).y));
+    z12 = ((ut * z1) + (t * u2));
+    u23 = ((ut * u2) + (t * d3));
+    Slc.y = (ut * z12) + (t * u23);
+    for (Ponto v : BarrPontoC) {
+      System.out.println("PC2 = " + v.toString());
+      D.drawRect((int) v.x - 3, (int) v.y - 3, 6, 6);
     }
-  }
-
-  /**
-   * Imprime as arestas do objeto (Debug mode)
-   */
-  public void PrintListaArestas() {
-    int i = 0;
-    for (Aresta a : obj.arrAresta) {
-      System.out.println("A" + i + " = " + a.toString());
-      i++;
-    }
-  }
-
-  /**
-   * Imprime as arestas (Debug mode)
-   */
-  public void PrintListaArestasIn() {
-    int i = 0;
-    for (Aresta a : arrAresta) {
-      System.out.println("-IN-A" + i + " = " + a.toString());
-      i++;
-    }
+    System.out.println("SLC = " + Slc.toString());
   }
 
   /**
    * Onde a magica acontece
    *
    * @param Num Numero de segmentos
-   * @param op Operacao (0 e 1 fechados, 2 abertos)
+   * @param Ang Angulo maximo de rotacao
    */
-  public void CriaObjetoY(int Num, int op, double Ang) {
+  public void CriaObjeto(int Num, double Ang) {
+    int op = 2;
     double teta = Ang / Num;
     double ccos = Math.cos(teta);
     double csin = Math.sin(teta);
@@ -159,10 +210,10 @@ public class Perfil extends javax.swing.JFrame {
     for (Ponto p : arrPonto) {
       arrPontoNil.add(new Ponto(p));
       if (p.y < xold) {
-	xold = p.y;
+        xold = p.y;
       }
       if (p.y > zold) {
-	zold = p.y;
+        zold = p.y;
       }
     }
     obj.C.x = 0;
@@ -172,79 +223,79 @@ public class Perfil extends javax.swing.JFrame {
     if (op == 0) { //Inicia e encerra no eixo - fechado
       obj.Fechado = true; //Marca objeto fechado
       for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
-	for (int y = 1; y < arrPonto.size(); y++) { //Para todos os pontos exceto o primeiro
-	  plinha = arrPonto.get(y);
-	  if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
-	    xold = plinha.x;
-	    zold = plinha.z;
-	    plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotacao em teta graus
-	    plinha.z = (xold * (-csin)) + (plinha.z * ccos);
-	    arrPontoNil.add(new Ponto(plinha)); //Adiciona novo ponto a lista geral
-	    arrPonto.get(y).x = plinha.x;
-	    arrPonto.get(y).z = plinha.z;
-	    if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
-	      obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
-	    } else {
-	      obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
-	    }
-	    obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
-	  } else {
-	    arAux = new Aresta(arrPontoNil.get(y), arrPontoNil.get(arrPontoNil.size() - 1));
-	    obj.arrAresta.add(new Aresta(arAux));
-	  }
-	}
+        for (int y = 1; y < arrPonto.size(); y++) { //Para todos os pontos exceto o primeiro
+          plinha = arrPonto.get(y);
+          if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
+            xold = plinha.x;
+            zold = plinha.z;
+            plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotacao em teta graus
+            plinha.z = (xold * (-csin)) + (plinha.z * ccos);
+            arrPontoNil.add(new Ponto(plinha)); //Adiciona novo ponto a lista geral
+            arrPonto.get(y).x = plinha.x;
+            arrPonto.get(y).z = plinha.z;
+            if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
+              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
+            } else {
+              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
+            }
+            obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
+          } else {
+            arAux = new Aresta(arrPontoNil.get(y), arrPontoNil.get(arrPontoNil.size() - 1));
+            obj.arrAresta.add(new Aresta(arAux));
+          }
+        }
       }
       for (int u = 0; u < arrPonto.size(); u++) { //Ultima Conexao
-	if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
-	  obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
-	}
+        if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
+          obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
+        }
       }
     } else if (op == 1) { //Inicia e encerra no mesmo ponto - fechado
       obj.Fechado = true; //Marca objeto como fechado
       for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
-	for (int y = 0; y < arrPonto.size(); y++) { //Para todos os pontos (inclui o primeiro)
-	  //System.out.println("Plinha = " + plinha.toString());
-	  //System.out.println("+.+.+.+.+");
-	  //PrintListaArestas();
-	  //System.out.println("=*=*=*=*=");
-	  //PrintListaArestasIn();
-	  //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
-	  //System.out.println("ccos = " + ccos + " - csin = " + csin);
-	  plinha = arrPonto.get(y);
-	  if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
-	    xold = plinha.x;
-	    zold = plinha.z;
-	    plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotacao
-	    plinha.z = (xold * (-csin)) + (plinha.z * ccos);
-	    arrPontoNil.add(new Ponto(plinha));
-	    arrPonto.get(y).x = plinha.x;
-	    arrPonto.get(y).z = plinha.z;
-	    if (y != 0) { //Para nao calcular pro primeiro
-	      if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
-		obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
-	      } else {
-		obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
-	      }
-	    }
-	    obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
-	    //System.out.println("x = " + p.x + " - z = " + p.z);
-	    //System.out.println("....");
-	    //PrintPontos();
-	  } else {
-	    arAux = new Aresta(arrPontoNil.get(y), arrPontoNil.get(arrPontoNil.size() - 1));
-	    obj.arrAresta.add(new Aresta(arAux));
-	  }
-	}
-	obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(arrPonto.get(0))));
-	//System.out.println("Saí para construir arestas, já volto");
-	//ConstroiArestas(); //Constroi arestas baseadas nos pontos
-	//PrintListaArestasIn();
-	//--PrintListaArestas();
+        for (int y = 0; y < arrPonto.size(); y++) { //Para todos os pontos (inclui o primeiro)
+          //System.out.println("Plinha = " + plinha.toString());
+          //System.out.println("+.+.+.+.+");
+          //PrintListaArestas();
+          //System.out.println("=*=*=*=*=");
+          //PrintListaArestasIn();
+          //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
+          //System.out.println("ccos = " + ccos + " - csin = " + csin);
+          plinha = arrPonto.get(y);
+          if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
+            xold = plinha.x;
+            zold = plinha.z;
+            plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotacao
+            plinha.z = (xold * (-csin)) + (plinha.z * ccos);
+            arrPontoNil.add(new Ponto(plinha));
+            arrPonto.get(y).x = plinha.x;
+            arrPonto.get(y).z = plinha.z;
+            if (y != 0) { //Para nao calcular pro primeiro
+              if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
+                obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
+              } else {
+                obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
+              }
+            }
+            obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
+            //System.out.println("x = " + p.x + " - z = " + p.z);
+            //System.out.println("....");
+            //PrintPontos();
+          } else {
+            arAux = new Aresta(arrPontoNil.get(y), arrPontoNil.get(arrPontoNil.size() - 1));
+            obj.arrAresta.add(new Aresta(arAux));
+          }
+        }
+        obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(arrPonto.get(0))));
+        //System.out.println("Saí para construir arestas, já volto");
+        //ConstroiArestas(); //Constroi arestas baseadas nos pontos
+        //PrintListaArestasIn();
+        //--PrintListaArestas();
       }
       for (int u = 0; u < arrPonto.size(); u++) {
-	if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
-	  obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
-	}
+        if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
+          obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
+        }
       }
       //PrintListaArestas();
     } else if (op == 2) { //Encerra em ponto diferente que inicia - aberto
@@ -255,49 +306,49 @@ public class Perfil extends javax.swing.JFrame {
       obj.Fechado = false;
       //PrintListaArestas();//PrintPontos();
       for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
-	//System.out.println("()()()()()()()()()()()()()()()()()");
-	for (int y = 0; y < arrPonto.size(); y++) {
-	  plinha = arrPonto.get(y);
-	  //System.out.println("Plinha = " + plinha.toString());
-	  //System.out.println("+.+.+.+.+");
-	  //PrintListaArestas();
-	  //System.out.println("=*=*=*=*=");
-	  //PrintListaArestasIn();
-	  //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
-	  //System.out.println("ccos = " + ccos + " - csin = " + csin);
-	  xold = plinha.x;
-	  zold = plinha.z;
-	  plinha.x = (plinha.x * ccos) + (plinha.z * csin);
-	  plinha.z = (xold * (-csin)) + (plinha.z * ccos);
-	  arrPontoNil.add(new Ponto(plinha));
-	  arrPonto.get(y).x = plinha.x;
-	  arrPonto.get(y).z = plinha.z;
-	  if (y != 0) { //Para nao calcular pro primeiro
-	    if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
-	      obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
-	      //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
-	    } else {
-	      obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
-	      //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
-	    }
-	  }
-	  //System.out.println("P98 = " + new Ponto(xold, arrPonto.get(y).y, zold).toString());
-	  //System.out.println("Novo= " + plinha);
-	  obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
-	  //System.out.println("x = " + p.x + " - z = " + p.z);
-	  //System.out.println("....");
-	  //PrintPontos();
-	  //PrintListaArestas();
-	}
-	//System.out.println("Saí para construir arestas, já volto");
-	//ConstroiArestas(); //Constroi arestas baseadas nos pontos
-	//PrintListaArestasIn();
-	//PrintListaArestas();
+        //System.out.println("()()()()()()()()()()()()()()()()()");
+        for (int y = 0; y < arrPonto.size(); y++) {
+          plinha = arrPonto.get(y);
+          //System.out.println("Plinha = " + plinha.toString());
+          //System.out.println("+.+.+.+.+");
+          //PrintListaArestas();
+          //System.out.println("=*=*=*=*=");
+          //PrintListaArestasIn();
+          //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
+          //System.out.println("ccos = " + ccos + " - csin = " + csin);
+          xold = plinha.x;
+          zold = plinha.z;
+          plinha.x = (plinha.x * ccos) + (plinha.z * csin);
+          plinha.z = (xold * (-csin)) + (plinha.z * ccos);
+          arrPontoNil.add(new Ponto(plinha));
+          arrPonto.get(y).x = plinha.x;
+          arrPonto.get(y).z = plinha.z;
+          if (y != 0) { //Para nao calcular pro primeiro
+            if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
+              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
+              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
+            } else {
+              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
+              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
+            }
+          }
+          //System.out.println("P98 = " + new Ponto(xold, arrPonto.get(y).y, zold).toString());
+          //System.out.println("Novo= " + plinha);
+          obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
+          //System.out.println("x = " + p.x + " - z = " + p.z);
+          //System.out.println("....");
+          //PrintPontos();
+          //PrintListaArestas();
+        }
+        //System.out.println("Saí para construir arestas, já volto");
+        //ConstroiArestas(); //Constroi arestas baseadas nos pontos
+        //PrintListaArestasIn();
+        //PrintListaArestas();
       }
       for (int u = 0; u < arrPonto.size(); u++) {
-	if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
-	  obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
-	}
+        if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
+          obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
+        }
       }
       //PrintListaArestas();
     } else {
@@ -329,12 +380,6 @@ public class Perfil extends javax.swing.JFrame {
     eixoBaixo = new javax.swing.JLabel();
     eixoLado = new javax.swing.JLabel();
     jTabbedPane1 = new javax.swing.JTabbedPane();
-    jPanel1 = new javax.swing.JPanel();
-    btnFecha = new javax.swing.JButton();
-    btnIniciaEixo = new javax.swing.JButton();
-    btnFechaEixo = new javax.swing.JButton();
-    btnDesfazer = new javax.swing.JButton();
-    btnModelos = new javax.swing.JButton();
     jPanel2 = new javax.swing.JPanel();
     jLabel1 = new javax.swing.JLabel();
     ctrSegmentos = new javax.swing.JSpinner();
@@ -344,6 +389,16 @@ public class Perfil extends javax.swing.JFrame {
     jLabel3 = new javax.swing.JLabel();
     ctrAngulo = new javax.swing.JSpinner();
     ckbFechado = new javax.swing.JCheckBox();
+    jPanel1 = new javax.swing.JPanel();
+    btnFecha = new javax.swing.JButton();
+    btnIniciaEixo = new javax.swing.JButton();
+    btnFechaEixo = new javax.swing.JButton();
+    btnDesfazer = new javax.swing.JButton();
+    btnModelos = new javax.swing.JButton();
+    jPanel3 = new javax.swing.JPanel();
+    btnBezier = new javax.swing.JButton();
+    segBezier = new javax.swing.JSpinner();
+    jLabel4 = new javax.swing.JLabel();
     jMenuBar1 = new javax.swing.JMenuBar();
     jMenu1 = new javax.swing.JMenu();
     itemNovo = new javax.swing.JMenuItem();
@@ -382,11 +437,11 @@ public class Perfil extends javax.swing.JFrame {
       }
     });
     pnlRevI.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mouseClicked(java.awt.event.MouseEvent evt) {
-        pnlRevIMouseClicked(evt);
-      }
       public void mouseExited(java.awt.event.MouseEvent evt) {
         pnlRevIMouseExited(evt);
+      }
+      public void mousePressed(java.awt.event.MouseEvent evt) {
+        pnlRevIMousePressed(evt);
       }
       public void mouseReleased(java.awt.event.MouseEvent evt) {
         pnlRevIMouseReleased(evt);
@@ -417,84 +472,22 @@ public class Perfil extends javax.swing.JFrame {
 
     lblInfo.setVerticalAlignment(javax.swing.SwingConstants.BOTTOM);
 
+    txtBaixo.setToolTipText("Posição do cursor no painel");
+
     lblEixoBaixo.setText("x");
 
     lblEixoLado.setText("y");
+
+    txtLado.setToolTipText("Posição do cursor no painel");
 
     eixoBaixo.setText("x");
 
     eixoLado.setText("y");
 
-    btnFecha.setText("Fechar Forma");
-    btnFecha.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnFechaActionPerformed(evt);
-      }
-    });
-
-    btnIniciaEixo.setText("Seleciona Eixo");
-    btnIniciaEixo.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnIniciaEixoActionPerformed(evt);
-      }
-    });
-
-    btnFechaEixo.setText("Fecha eixo");
-    btnFechaEixo.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnFechaEixoActionPerformed(evt);
-      }
-    });
-
-    btnDesfazer.setText("Desfazer");
-    btnDesfazer.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnDesfazerActionPerformed(evt);
-      }
-    });
-
-    btnModelos.setText("Carregar Modelos");
-    btnModelos.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnModelosActionPerformed(evt);
-      }
-    });
-
-    javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-    jPanel1.setLayout(jPanel1Layout);
-    jPanel1Layout.setHorizontalGroup(
-      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(jPanel1Layout.createSequentialGroup()
-        .addContainerGap()
-        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnDesfazer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnModelos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        .addContainerGap())
-    );
-    jPanel1Layout.setVerticalGroup(
-      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(jPanel1Layout.createSequentialGroup()
-        .addContainerGap()
-        .addComponent(btnFecha)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(btnIniciaEixo)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(btnFechaEixo)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(btnDesfazer)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(btnModelos)
-        .addContainerGap(126, Short.MAX_VALUE))
-    );
-
-    jTabbedPane1.addTab("Perfil", jPanel1);
-
     jLabel1.setText("Segmentos Revolução");
 
     ctrSegmentos.setModel(new javax.swing.SpinnerNumberModel(10, 3, 100, 1));
+    ctrSegmentos.setToolTipText("Segmentos para revolução");
 
     btnRotacionar.setText("Rotacionar");
     btnRotacionar.addActionListener(new java.awt.event.ActionListener() {
@@ -506,6 +499,7 @@ public class Perfil extends javax.swing.JFrame {
     jLabel2.setText("Eixo de rotação");
 
     lstEixos.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "x", "y", "z" }));
+    lstEixos.setToolTipText("Eixo no qual a rotação será realizada");
     lstEixos.addItemListener(new java.awt.event.ItemListener() {
       public void itemStateChanged(java.awt.event.ItemEvent evt) {
         lstEixosItemStateChanged(evt);
@@ -515,8 +509,10 @@ public class Perfil extends javax.swing.JFrame {
     jLabel3.setText("Ângulo");
 
     ctrAngulo.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(360.0f), Float.valueOf(0.01f), Float.valueOf(360.0f), Float.valueOf(1.0f)));
+    ctrAngulo.setToolTipText("Ângulo de rotação em graus");
 
     ckbFechado.setText("Fechado");
+    ckbFechado.setToolTipText("Define se o objeto será fechado ou aberto (ângulo < 360)");
 
     javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
     jPanel2.setLayout(jPanel2Layout);
@@ -527,7 +523,7 @@ public class Perfil extends javax.swing.JFrame {
         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addComponent(ctrSegmentos, javax.swing.GroupLayout.Alignment.TRAILING)
           .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-            .addGap(0, 5, Short.MAX_VALUE)
+            .addGap(0, 9, Short.MAX_VALUE)
             .addComponent(btnRotacionar, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE))
           .addComponent(lstEixos, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addGroup(jPanel2Layout.createSequentialGroup()
@@ -563,6 +559,126 @@ public class Perfil extends javax.swing.JFrame {
     );
 
     jTabbedPane1.addTab("Rotacionar", jPanel2);
+
+    btnFecha.setText("Fechar Forma");
+    btnFecha.setToolTipText("Põe uma aresta ligando o último ponto ao ponto inicial");
+    btnFecha.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnFechaActionPerformed(evt);
+      }
+    });
+
+    btnIniciaEixo.setText("Seleciona Eixo");
+    btnIniciaEixo.setToolTipText("Permite a seleção de um ponto com altura qualquer junto ao eixo vertical");
+    btnIniciaEixo.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnIniciaEixoActionPerformed(evt);
+      }
+    });
+
+    btnFechaEixo.setText("Fecha eixo");
+    btnFechaEixo.setToolTipText("Liga o último ponto ao eixo na mesma altura");
+    btnFechaEixo.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnFechaEixoActionPerformed(evt);
+      }
+    });
+
+    btnDesfazer.setText("Desfazer");
+    btnDesfazer.setToolTipText("Apaga o último ponto criado");
+    btnDesfazer.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnDesfazerActionPerformed(evt);
+      }
+    });
+
+    btnModelos.setText("Carregar Modelos");
+    btnModelos.setToolTipText("Carrega modelos pré-definidos");
+    btnModelos.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnModelosActionPerformed(evt);
+      }
+    });
+
+    jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Bezier"));
+
+    btnBezier.setText("Iniciar/Parar");
+    btnBezier.setToolTipText("Inicia/Finaliza a construção de uma curva de Bezier");
+    btnBezier.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnBezierActionPerformed(evt);
+      }
+    });
+
+    segBezier.setModel(new javax.swing.SpinnerNumberModel(5, 1, 50, 1));
+    segBezier.setToolTipText("Segmentos a seremcalculados para a curva");
+    segBezier.addChangeListener(new javax.swing.event.ChangeListener() {
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        segBezierStateChanged(evt);
+      }
+    });
+
+    jLabel4.setText("Segmentos");
+
+    javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+    jPanel3.setLayout(jPanel3Layout);
+    jPanel3Layout.setHorizontalGroup(
+      jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(jPanel3Layout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(btnBezier, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(segBezier, javax.swing.GroupLayout.Alignment.TRAILING)
+          .addGroup(jPanel3Layout.createSequentialGroup()
+            .addComponent(jLabel4)
+            .addGap(0, 0, Short.MAX_VALUE)))
+        .addContainerGap())
+    );
+    jPanel3Layout.setVerticalGroup(
+      jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(jPanel3Layout.createSequentialGroup()
+        .addComponent(btnBezier)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(jLabel4)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(segBezier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addGap(12, 12, 12))
+    );
+
+    javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+    jPanel1.setLayout(jPanel1Layout);
+    jPanel1Layout.setHorizontalGroup(
+      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(jPanel1Layout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(btnFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnIniciaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnFechaEixo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnDesfazer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnModelos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        .addContainerGap())
+    );
+    jPanel1Layout.setVerticalGroup(
+      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(jPanel1Layout.createSequentialGroup()
+        .addContainerGap()
+        .addComponent(btnFecha)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnIniciaEixo)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnFechaEixo)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnDesfazer)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnModelos)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addContainerGap(18, Short.MAX_VALUE))
+    );
+
+    jTabbedPane1.addTab("Perfil", jPanel1);
 
     jMenu1.setText("Arquivo");
 
@@ -675,13 +791,13 @@ public class Perfil extends javax.swing.JFrame {
       iniY = 2047;
     } else {
       if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(0).x == 0) {
-	JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
-	//arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
-	//btnDesfazerActionPerformed(null);
+        JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
+        //arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
+        //btnDesfazerActionPerformed(null);
       } else {
-	arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
-	DesenhaPerfil();
-	fechado = true;
+        arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
+        DesenhaPerfil();
+        fechado = true;
       }
     }
   }//GEN-LAST:event_btnFechaActionPerformed
@@ -711,7 +827,7 @@ public class Perfil extends javax.swing.JFrame {
   private void btnDesfazerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDesfazerActionPerformed
     if (arrAresta.size() < 1) {
       if (arrPonto.size() > 0) {
-	arrPonto.clear();
+        arrPonto.clear();
       }
       iniY = 2047;
       return;
@@ -735,30 +851,6 @@ public class Perfil extends javax.swing.JFrame {
     txtLado.setText("" + Aux);
   }//GEN-LAST:event_pnlRevIMouseMoved
 
-  private void pnlRevIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseClicked
-    ///Funcao Isolada, transferida para mouseReleased para garantir funcionalidade
-    /*if (!fechado) {
-      Ponto p = new Ponto();
-      p.x = evt.getX() & iniY; //*0.25 0~100
-      iniY = 1023;
-      p.y = evt.getY(); //*0.25 0~75
-      //System.out.println("X = " + p.x + " - Y = " + p.y);
-      arrPonto.add(p);
-      if (arrPonto.size() > 1) {
-        if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(arrPonto.size() - 2).x == 0) {
-          JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
-          arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
-          btnDesfazerActionPerformed(null);
-        } else {
-          arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 2), arrPonto.get(arrPonto.size() - 1)));
-          DesenhaPerfil();
-        }
-      }
-      lblInfo.setText("");
-      issaved = false;
-    }*/
-  }//GEN-LAST:event_pnlRevIMouseClicked
-
   private void btnRotacionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRotacionarActionPerformed
     if (arrAresta.isEmpty()) {
       JOptionPane.showMessageDialog(this, "Não há arestas a rotacionar", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -767,70 +859,63 @@ public class Perfil extends javax.swing.JFrame {
     String input = ctrSegmentos.getValue().toString();
     if (input.isEmpty()) {
       JOptionPane.showMessageDialog(this, "Quantidade de sementos não informada", "Erro", JOptionPane.ERROR_MESSAGE);
+      return;
     } else {
       int Num = 6;
       try {
-	Num = Integer.parseInt(input);
+        Num = Integer.parseInt(input);
       } catch (NumberFormatException | NullPointerException e) {
-	JOptionPane.showMessageDialog(this, "Valor de segmentos informado não é inteiro - definido como 6", "Não pode ser...", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Valor de segmentos informado não é inteiro - definido como 6", "Não pode ser...", JOptionPane.WARNING_MESSAGE);
+        return;
       }
       if (Num < 3) {
-	JOptionPane.showMessageDialog(this, "Valor deve ser maior que 3 - definido como 3", "Erro", JOptionPane.ERROR_MESSAGE);
-	Num = 3;
+        JOptionPane.showMessageDialog(this, "Valor deve ser maior que 3 - definido como 3", "Erro", JOptionPane.ERROR_MESSAGE);
+        Num = 3;
       } else if (Num > 100) {
-	JOptionPane.showMessageDialog(this, "Valor deve ser menor que 100 - definido como 100", "Erro", JOptionPane.ERROR_MESSAGE);
-	Num = 100;
-      }
-      int op;
-      //System.out.println("Inicial = " + arrAresta.get(0).toString());
-      //System.out.println("Final   = " + arrAresta.get(arrAresta.size() - 1));
-      if (arrAresta.get(0).i.x == 0 && arrAresta.get(arrAresta.size() - 1).f.x == 0) { // 0 nao roda
-	op = 0;
-      } else if (arrAresta.get(0).i.x == arrAresta.get(arrAresta.size() - 1).f.x) { //Inicial igual ao final
-	op = 1;
-      } else {
-	op = 2;
+        JOptionPane.showMessageDialog(this, "Valor deve ser menor que 100 - definido como 100", "Erro", JOptionPane.ERROR_MESSAGE);
+        Num = 100;
       }
       input = ctrAngulo.getValue().toString();
       double Ang;
       if (input.isEmpty()) {
-	JOptionPane.showMessageDialog(this, "Ângulo não informado", "Erro", JOptionPane.ERROR_MESSAGE);
-	return;
+        JOptionPane.showMessageDialog(this, "Ângulo não informado", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
       } else {
-	try {
-	  Ang = Double.parseDouble(input);
-	} catch (NumberFormatException | NullPointerException e) {
-	  JOptionPane.showMessageDialog(this, "Valor de ângulo informado não é válido - definido como 360", "Não pode ser...", JOptionPane.WARNING_MESSAGE);
-	  Ang = 360.0;
-	}
-	if (Ang < 0.01) {
-	  JOptionPane.showMessageDialog(this, "Valor deve ser maior que 0.01 - definido como 0.01", "Erro", JOptionPane.ERROR_MESSAGE);
-	  Ang = 0.01;
-	} else if (Ang > 360.0) {
-	  JOptionPane.showMessageDialog(this, "Valor deve ser menor que 360 - definido como 360", "Erro", JOptionPane.ERROR_MESSAGE);
-	  Ang = 360.0;
-	}
+        try {
+          Ang = Double.parseDouble(input);
+        } catch (NumberFormatException | NullPointerException e) {
+          JOptionPane.showMessageDialog(this, "Valor de ângulo informado não é válido - definido como 360", "Não pode ser...", JOptionPane.WARNING_MESSAGE);
+          Ang = 360.0;
+        }
+        if (Ang < 0.01) {
+          JOptionPane.showMessageDialog(this, "Valor deve ser maior que 0.01 - definido como 0.01", "Erro", JOptionPane.ERROR_MESSAGE);
+          Ang = 0.01;
+        } else if (Ang > 360.0) {
+          JOptionPane.showMessageDialog(this, "Valor deve ser menor que 360 - definido como 360", "Erro", JOptionPane.ERROR_MESSAGE);
+          Ang = 360.0;
+        }
       }
       cabecalho = 0;
       if (Ang != 360.0) { //Revolucao nao completa
-	cabecalho = 1;
-	if (ckbFechado.isSelected()) { //Se for fechado
-	  cabecalho += 2;
-	}
+        cabecalho = 1;
+        if (ckbFechado.isSelected()) { //Se for fechado
+          cabecalho += 2;
+        }
       }
       Ang = Ang * (Math.PI / 180); //Para pi rad
-
+      
       if ("x".equals(lstEixos.getSelectedItem().toString())) { //Rotacao em x
-	CriaObjetoY(Num, op, Ang); //Faz rotacoes
+	CriaObjeto(Num, Ang); //Faz rotacoes
       } else if ("y".equals(lstEixos.getSelectedItem().toString())) {
-	CriaObjetoY(Num, op, Ang); //Faz rotacoes
+	CriaObjeto(Num, Ang); //Faz rotacoes
       } else if ("z".equals(lstEixos.getSelectedItem().toString())) {
-	CriaObjetoY(Num, op, Ang); //Faz rotacoes
+	CriaObjeto(Num, Ang); //Faz rotacoes
       } else {
 	ErroPadrao();
       }
     }
     P.Obj.add(obj);
+    P.ObSel = P.Obj.size() - 1;
     this.dispose();
     P.setEnabled(true);
     P.requestFocus(); //Traz o foco para tela anterior
@@ -838,7 +923,8 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_btnRotacionarActionPerformed
 
   private void itemAjudaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAjudaActionPerformed
-
+    this.setEnabled(false);
+    new Ajuda(this, 2).setVisible(true);
   }//GEN-LAST:event_itemAjudaActionPerformed
 
   private void formWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowGainedFocus
@@ -847,24 +933,54 @@ public class Perfil extends javax.swing.JFrame {
 
   private void pnlRevIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMouseReleased
     if (!fechado) {
-      Ponto p = new Ponto();
-      p.x = evt.getX() & iniY; //*0.25 0~100
-      iniY = 1023;
-      p.y = evt.getY(); //*0.25 0~75
-      //System.out.println("X = " + p.x + " - Y = " + p.y);
-      arrPonto.add(p);
-      if (arrPonto.size() > 1) {
-	if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(arrPonto.size() - 2).x == 0) {
-	  JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
-	  arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
-	  btnDesfazerActionPerformed(null);
-	} else {
-	  arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 2), arrPonto.get(arrPonto.size() - 1)));
-	  DesenhaPerfil();
-	}
+      if (isB) {
+        if (Bcount < 3) {
+          Ponto p = new Ponto();
+          p.x = evt.getX() & iniY; //*0.25 0~100
+          iniY = 1023;
+          p.y = evt.getY(); //*0.25 0~75
+          BarrPontoC.add(p);
+          Bcount++;
+          if (Bcount == 3) {
+            CalculaBezier();
+            System.out.println("Bseg = " + Bseg);
+          }
+        } else {
+          Ponto p = new Ponto();
+          p.x = evt.getX(); //*0.25 0~100
+          p.y = evt.getY(); //*0.25 0~75
+          System.out.println("Soltado em " + p.toString());
+          if (Bsp >= 0) { //Mover algum ponto
+            BarrPontoC.get(Bsp).x = p.x;
+            BarrPontoC.get(Bsp).y = p.y;
+            CalculaBezier();
+            System.out.println("Novo Ponto " + BarrPontoC.get(Bsp).toString());
+          }
+          Slc = new Ponto();
+        }
+        for (Ponto o : BarrPontoC) {
+          System.out.println("BC = " + o.toString());
+        }
+      } else {
+        Ponto p = new Ponto();
+        p.x = evt.getX() & iniY; //*0.25 0~100
+        iniY = 1023;
+        p.y = evt.getY(); //*0.25 0~75
+        //System.out.println("X = " + p.x + " - Y = " + p.y);
+        arrPonto.add(p);
+        if (arrPonto.size() > 1) {
+          if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(arrPonto.size() - 2).x == 0) {
+            JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
+            arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
+            btnDesfazerActionPerformed(null);
+          } else {
+            arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 2), arrPonto.get(arrPonto.size() - 1)));
+            DesenhaPerfil();
+          }
+        }
+        lblInfo.setText("");
+        issaved = false;
       }
-      lblInfo.setText("");
-      issaved = false;
     }
   }//GEN-LAST:event_pnlRevIMouseReleased
 
@@ -981,6 +1097,81 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_itemNovoActionPerformed
 
   /**
+   * Variaveis so de Bezier
+   */
+  boolean isB = false;
+
+  private void btnBezierActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBezierActionPerformed
+    if (isB) {
+      if (Bcount != 3) {
+        return;
+      } else {
+        isB = false;
+        BarrPonto.remove(0);
+        arrPonto.addAll(BarrPonto);
+        Bcount = 0;
+        BarrPonto.clear();
+        BarrPontoC.clear();
+        ConstroiArestas();
+      }
+    } else {
+      isB = true;
+      Bcount = 0;
+      if (arrPonto.isEmpty()) { //No elements
+        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, evt);
+        JOptionPane.showMessageDialog(this, "Deve haver pelo o menos um ponto já na área de desenho para se iniciar uma curva de bezier", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+      } else {
+        BarrPonto.add(arrPonto.get(arrPonto.size() - 1));
+        BarrPontoC.add(arrPonto.get(arrPonto.size() - 1));
+      }
+    }
+  }//GEN-LAST:event_btnBezierActionPerformed
+
+  private void segBezierStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_segBezierStateChanged
+    if (isB) {
+      String input = segBezier.getValue().toString();
+      Bseg = 5;
+      if (input.isEmpty()) {
+        segBezier.setValue(5);
+      } else {
+        try {
+          Bseg = Integer.parseInt(input);
+          CalculaBezier();
+        } catch (NumberFormatException | NullPointerException e) {
+          segBezier.setValue(5);
+        }
+      }
+      DesenhaPerfil();
+    }
+  }//GEN-LAST:event_segBezierStateChanged
+
+  private void pnlRevIMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlRevIMousePressed
+    if (isB) {
+      if (Bcount == 3) {
+        Ponto p = new Ponto();
+        p.x = evt.getX(); //*0.25 0~100
+        iniY = 1023;
+        p.y = evt.getY(); //*0.25 0~75
+        double dist = Math.sqrt((p.x - BarrPontoC.get(0).x) * (p.x - BarrPontoC.get(0).x) + (p.y - BarrPontoC.get(0).y) * (p.y - BarrPontoC.get(0).y));
+        double d2;
+        Bsp = 0;
+        for (int i = 1; i < BarrPontoC.size(); i++) {
+          d2 = Math.sqrt((p.x - BarrPontoC.get(i).x) * (p.x - BarrPontoC.get(i).x) + (p.y - BarrPontoC.get(i).y) * (p.y - BarrPontoC.get(i).y));
+          if (d2 < dist) {
+            dist = d2;
+            Bsp = (byte) i;
+          }
+        }
+        if (dist > 10) { //No raio de ninguem
+          Bsp = -1;
+        }
+        System.out.println("Bsp = " + Bsp);
+      }
+    }
+  }//GEN-LAST:event_pnlRevIMousePressed
+
+  /**
    * @param args the command line arguments
    */
   public static void main(String args[]) {
@@ -991,10 +1182,10 @@ public class Perfil extends javax.swing.JFrame {
      */
     try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-	if ("Windows".equals(info.getName())) {
-	  javax.swing.UIManager.setLookAndFeel(info.getClassName());
-	  break;
-	}
+        if ("Windows".equals(info.getName())) {
+          javax.swing.UIManager.setLookAndFeel(info.getClassName());
+          break;
+        }
       }
     } catch (ClassNotFoundException ex) {
       java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
@@ -1010,12 +1201,13 @@ public class Perfil extends javax.swing.JFrame {
     /* Create and display the form */
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
-	new Perfil().setVisible(true);
+        new Perfil().setVisible(true);
       }
     });
   }
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JButton btnBezier;
   private javax.swing.JButton btnDesfazer;
   private javax.swing.JButton btnFecha;
   private javax.swing.JButton btnFechaEixo;
@@ -1034,6 +1226,7 @@ public class Perfil extends javax.swing.JFrame {
   private javax.swing.JLabel jLabel1;
   private javax.swing.JLabel jLabel2;
   private javax.swing.JLabel jLabel3;
+  private javax.swing.JLabel jLabel4;
   private javax.swing.JMenu jMenu1;
   private javax.swing.JMenu jMenu2;
   private javax.swing.JMenuBar jMenuBar1;
@@ -1042,6 +1235,7 @@ public class Perfil extends javax.swing.JFrame {
   private javax.swing.JMenuItem jMenuItem7;
   private javax.swing.JPanel jPanel1;
   private javax.swing.JPanel jPanel2;
+  private javax.swing.JPanel jPanel3;
   private javax.swing.JSeparator jSeparator1;
   private javax.swing.JTabbedPane jTabbedPane1;
   private javax.swing.JTabbedPane jTabbedPane3;
@@ -1051,6 +1245,7 @@ public class Perfil extends javax.swing.JFrame {
   private javax.swing.JComboBox<String> lstEixos;
   private javax.swing.JPanel pnlRev;
   private javax.swing.JPanel pnlRevI;
+  private javax.swing.JSpinner segBezier;
   private javax.swing.JTextField txtBaixo;
   private javax.swing.JTextField txtLado;
   // End of variables declaration//GEN-END:variables

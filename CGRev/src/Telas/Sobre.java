@@ -2,6 +2,7 @@ package Telas;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import javax.swing.ImageIcon;
 
 /**
  * Janela com informacoes sobre o programa
@@ -24,6 +25,7 @@ public class Sobre extends javax.swing.JFrame {
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
     this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     setResizable(false); //Torna impossivel redimensionar a janela
+    setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Sobre.png")).getImage());
   }
 
   /**
@@ -78,7 +80,7 @@ public class Sobre extends javax.swing.JFrame {
     jTextArea1.setEditable(false);
     jTextArea1.setColumns(20);
     jTextArea1.setRows(5);
-    jTextArea1.setText("Versão 0.1\nJava jdk1.8.0_111\n");
+    jTextArea1.setText("Versão 0.2\nJava jdk1.8.0_111\n\nhttps://github.com/MayconQueiroz/CGRev/");
     jScrollPane1.setViewportView(jTextArea1);
 
     jLabel4.setText("Trabalho Final de Computação Gráfica");
@@ -93,22 +95,21 @@ public class Sobre extends javax.swing.JFrame {
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
       .addGroup(layout.createSequentialGroup()
         .addContainerGap()
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-          .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-            .addGap(0, 0, Short.MAX_VALUE)
-            .addComponent(jLabel5)
-            .addGap(181, 181, 181))
           .addGroup(layout.createSequentialGroup()
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
               .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING))
-            .addGap(0, 0, Short.MAX_VALUE)))
+            .addGap(0, 120, Short.MAX_VALUE))
+          .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGap(0, 0, Short.MAX_VALUE)
+            .addComponent(jLabel5)))
         .addContainerGap())
-      .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -124,7 +125,7 @@ public class Sobre extends javax.swing.JFrame {
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(jLabel5)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(jScrollPane1)
+        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addContainerGap())
     );
 
