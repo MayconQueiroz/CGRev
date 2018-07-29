@@ -38,6 +38,7 @@ public class Modelos extends javax.swing.JFrame {
    */
   public Modelos() {
     initComponents();
+    ErrosIniciais();
     dl.addElement("Prisma regular/Cilindro");
     dl.addElement("Pirâmide/Cone");
     dl.addElement("Copo Falso");
@@ -54,7 +55,7 @@ public class Modelos extends javax.swing.JFrame {
     ctrSegmentos.setEnabled(false);
     ctrDistancia.setEnabled(false);
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    //this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
     setResizable(false); //Nao deixa redimensionar a janela
     arPonto = new ArrayList();
     arAresta = new ArrayList();
@@ -531,6 +532,27 @@ public class Modelos extends javax.swing.JFrame {
     DesenhaSelecionado();
   }//GEN-LAST:event_ctrDistanciaStateChanged
 
+  public void ErrosIniciais(){
+    if (EI == -1){
+      JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 0){
+      return; //Ready to go
+    } else if (EI == 1){
+      JOptionPane.showMessageDialog(this, "Classe faltante, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 2){
+      JOptionPane.showMessageDialog(this, "Erro de instanciacao, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 3){
+      JOptionPane.showMessageDialog(this, "Acesso Ilegal, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 4){
+      JOptionPane.showMessageDialog(this, "Aparencia do programa com problemas (Apenas windows), consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else {
+      JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+    System.exit(-1);
+  }
+  
+  public static byte EI = 0;
+  
   /**
    * @param args the command line arguments
    */
@@ -540,6 +562,7 @@ public class Modelos extends javax.swing.JFrame {
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
+    
     try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
         if ("Windows".equals(info.getName())) {
@@ -548,13 +571,17 @@ public class Modelos extends javax.swing.JFrame {
         }
       }
     } catch (ClassNotFoundException ex) {
-      java.util.logging.Logger.getLogger(Modelos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 1;
     } catch (InstantiationException ex) {
-      java.util.logging.Logger.getLogger(Modelos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 2;
     } catch (IllegalAccessException ex) {
-      java.util.logging.Logger.getLogger(Modelos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 3;
     } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-      java.util.logging.Logger.getLogger(Modelos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 4;
     }
     //</editor-fold>
 

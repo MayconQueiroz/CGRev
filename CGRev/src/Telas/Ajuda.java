@@ -8,7 +8,10 @@ package Telas;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import static revcg.RevCG.ErroPadrao;
 
 /**
@@ -34,6 +37,12 @@ public class Ajuda extends javax.swing.JFrame {
     this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     setResizable(false); //Nao deixa redimensionar a janela
     setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Ajuda.png")).getImage());
+    lstTopicos.setRootVisible(false);
+    DefaultTreeCellRenderer a = new DefaultTreeCellRenderer();
+    ImageIcon leafIcon = new ImageIcon(ClassLoader.getSystemResource("Icones/blackbox.png"));
+    a.setOpenIcon(leafIcon);
+    a.setClosedIcon(leafIcon);
+    lstTopicos.setCellRenderer(a);
   }
   
   /**
@@ -43,6 +52,7 @@ public class Ajuda extends javax.swing.JFrame {
    */
   public Ajuda(Principal P, int C){
     this();
+    ErrosIniciais();
     Pr = P;
     Pe = null;
     Cod = C;
@@ -84,13 +94,13 @@ public class Ajuda extends javax.swing.JFrame {
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
 
-    jScrollPane1 = new javax.swing.JScrollPane();
-    lstItens = new javax.swing.JList<>();
     jScrollPane2 = new javax.swing.JScrollPane();
     txtInstrucoes = new javax.swing.JTextArea();
     btnAnterior = new javax.swing.JButton();
     btnProximo = new javax.swing.JButton();
     pnlImagem = new javax.swing.JPanel();
+    jScrollPane3 = new javax.swing.JScrollPane();
+    lstTopicos = new javax.swing.JTree();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     addWindowListener(new java.awt.event.WindowAdapter() {
@@ -98,8 +108,6 @@ public class Ajuda extends javax.swing.JFrame {
         formWindowClosed(evt);
       }
     });
-
-    jScrollPane1.setViewportView(lstItens);
 
     txtInstrucoes.setColumns(20);
     txtInstrucoes.setRows(5);
@@ -120,13 +128,17 @@ public class Ajuda extends javax.swing.JFrame {
       .addGap(0, 380, Short.MAX_VALUE)
     );
 
+    javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
+    lstTopicos.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+    jScrollPane3.setViewportView(lstTopicos);
+
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(layout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
           .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 365, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -143,14 +155,14 @@ public class Ajuda extends javax.swing.JFrame {
       .addGroup(layout.createSequentialGroup()
         .addContainerGap()
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(jScrollPane3)
           .addComponent(pnlImagem, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addGroup(layout.createSequentialGroup()
             .addComponent(jScrollPane2)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
               .addComponent(btnAnterior)
-              .addComponent(btnProximo)))
-          .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE))
+              .addComponent(btnProximo))))
         .addContainerGap())
     );
 
@@ -171,30 +183,56 @@ public class Ajuda extends javax.swing.JFrame {
     }
   }//GEN-LAST:event_formWindowClosed
 
+  public void ErrosIniciais(){
+    if (EI == -1){
+      JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 0){
+      return; //Ready to go
+    } else if (EI == 1){
+      JOptionPane.showMessageDialog(this, "Classe faltante, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 2){
+      JOptionPane.showMessageDialog(this, "Erro de instanciacao, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 3){
+      JOptionPane.showMessageDialog(this, "Acesso Ilegal, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 4){
+      JOptionPane.showMessageDialog(this, "Aparencia do programa com problemas (Apenas windows), consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else {
+      JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+    System.exit(-1);
+  }
+  
+  public static byte EI = 0;
+  
   /**
    * @param args the command line arguments
    */
   public static void main(String args[]) {
-    /* Set the Nimbus look and feel */
+    /* Set the Windows look and feel */
     //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
+    
     try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-        if ("Nimbus".equals(info.getName())) {
+        if ("Windows".equals(info.getName())) {
           javax.swing.UIManager.setLookAndFeel(info.getClassName());
           break;
         }
       }
     } catch (ClassNotFoundException ex) {
-      java.util.logging.Logger.getLogger(Ajuda.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 1;
     } catch (InstantiationException ex) {
-      java.util.logging.Logger.getLogger(Ajuda.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 2;
     } catch (IllegalAccessException ex) {
-      java.util.logging.Logger.getLogger(Ajuda.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 3;
     } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-      java.util.logging.Logger.getLogger(Ajuda.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 4;
     }
     //</editor-fold>
 
@@ -209,9 +247,9 @@ public class Ajuda extends javax.swing.JFrame {
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton btnAnterior;
   private javax.swing.JButton btnProximo;
-  private javax.swing.JScrollPane jScrollPane1;
   private javax.swing.JScrollPane jScrollPane2;
-  private javax.swing.JList<String> lstItens;
+  private javax.swing.JScrollPane jScrollPane3;
+  private javax.swing.JTree lstTopicos;
   private javax.swing.JPanel pnlImagem;
   private javax.swing.JTextArea txtInstrucoes;
   // End of variables declaration//GEN-END:variables

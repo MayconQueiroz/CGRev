@@ -65,9 +65,10 @@ public class Principal extends javax.swing.JFrame {
       UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"); 
     } catch (Exception ex) { 
       ex.printStackTrace(); 
-      ErroPadrao();
+      EI = 4;
     }   
     initComponents();
+    ErrosIniciais();
     //Seta janela para o meio da tela, independente da resolucao.
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
     this.setLocation(dim.width/2-this.getSize().width/2, 0);
@@ -905,6 +906,9 @@ public class Principal extends javax.swing.JFrame {
       Per = (byte) ((Per&0b11111101)|0b00000001);
       btnRedimensionar.setSelected(false);
       btnRotacionar.setSelected(false);
+    } else {
+      Per = (byte) (Per&0b11111100);
+      ObSel = -1;
     }
   }//GEN-LAST:event_btnMoverActionPerformed
 
@@ -913,6 +917,9 @@ public class Principal extends javax.swing.JFrame {
       Per = (byte) ((Per&0b11111110)|0b00000010);
       btnRedimensionar.setSelected(false);
       btnMover.setSelected(false);
+    } else {
+      Per = (byte) (Per&0b11111100);
+      ObSel = -1;
     }
   }//GEN-LAST:event_btnRotacionarActionPerformed
 
@@ -921,6 +928,9 @@ public class Principal extends javax.swing.JFrame {
       Per = (byte) ((Per&0b11111111)|0b00000011);
       btnMover.setSelected(false);
       btnRotacionar.setSelected(false);
+    } else {
+      Per = (byte) (Per&0b11111100);
+      ObSel = -1;
     }
   }//GEN-LAST:event_btnRedimensionarActionPerformed
 
@@ -946,11 +956,32 @@ public class Principal extends javax.swing.JFrame {
       } else if ((Per&3) == 3){ //Rotacionar
         //
       }
-    } else {
-      
+    } else { //Selecionar
+      //
     }
   }//GEN-LAST:event_pnlLadoIMouseReleased
 
+  public void ErrosIniciais(){
+    if (EI == -1){
+      JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 0){
+      return; //Ready to go
+    } else if (EI == 1){
+      JOptionPane.showMessageDialog(this, "Classe faltante, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 2){
+      JOptionPane.showMessageDialog(this, "Erro de instanciacao, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 3){
+      JOptionPane.showMessageDialog(this, "Acesso Ilegal, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 4){
+      JOptionPane.showMessageDialog(this, "Aparencia do programa com problemas (Apenas windows), consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else {
+      JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+    System.exit(-1);
+  }
+  
+  public static byte EI = 0;
+  
   /**
    * @param args the command line arguments
    */

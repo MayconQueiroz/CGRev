@@ -7,6 +7,7 @@ package revcg;
 
 import Telas.*;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 /**
  *

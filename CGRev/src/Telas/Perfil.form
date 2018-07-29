@@ -477,7 +477,7 @@
             </Component>
             <Component class="javax.swing.JButton" name="btnDesfazer">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Desfazer"/>
+                <Property name="text" type="java.lang.String" value="Apaga"/>
                 <Property name="toolTipText" type="java.lang.String" value="Apaga o &#xfa;ltimo ponto criado"/>
               </Properties>
               <Events>

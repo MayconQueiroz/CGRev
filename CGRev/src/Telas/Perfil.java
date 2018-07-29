@@ -10,8 +10,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 import static revcg.RevCG.*;
 
@@ -53,6 +51,7 @@ public class Perfil extends javax.swing.JFrame {
    */
   private Perfil() {
     initComponents();
+    ErrosIniciais();
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
     this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     setResizable(false); //Nao deixa redimensionar a janela
@@ -91,10 +90,6 @@ public class Perfil extends javax.swing.JFrame {
       Bau2 += Bau;
       BarrPonto.add(new Ponto(Slc));
     }
-    for (Ponto v : BarrPonto) {
-      System.out.println("P69584 = " + v.toString());
-      D.drawRect((int) v.x - 3, (int) v.y - 3, 6, 6);
-    }
     BarrPonto.add(new Ponto(BarrPontoC.get(3)));
     DesenhaPerfil();
   }
@@ -122,7 +117,7 @@ public class Perfil extends javax.swing.JFrame {
         D.setColor(Color.BLUE);
       }
       for (Ponto v : BarrPontoC) {
-        System.out.println("Ponto em = " + v.toString());
+        //System.out.println("Ponto em = " + v.toString());
         D.drawRect((int) v.x - 3, (int) v.y - 3, 6, 6);
       }
       D.setColor(Color.BLACK);
@@ -165,7 +160,7 @@ public class Perfil extends javax.swing.JFrame {
     double z1, d3, u2, ut, z12, u23;
     ut = 1 - t;
     for (Ponto v : BarrPontoC) {
-      System.out.println("t = " + t + "PC1 = " + v.toString());
+      //System.out.println("t = " + t + "PC1 = " + v.toString());
       D.drawRect((int) v.x - 3, (int) v.y - 3, 6, 6);
     }
     z1 = ((ut * BarrPontoC.get(0).x) + (t * BarrPontoC.get(1).x));
@@ -181,10 +176,10 @@ public class Perfil extends javax.swing.JFrame {
     u23 = ((ut * u2) + (t * d3));
     Slc.y = (ut * z12) + (t * u23);
     for (Ponto v : BarrPontoC) {
-      System.out.println("PC2 = " + v.toString());
+      //System.out.println("PC2 = " + v.toString());
       D.drawRect((int) v.x - 3, (int) v.y - 3, 6, 6);
     }
-    System.out.println("SLC = " + Slc.toString());
+    //System.out.println("SLC = " + Slc.toString());
   }
 
   /**
@@ -584,7 +579,7 @@ public class Perfil extends javax.swing.JFrame {
       }
     });
 
-    btnDesfazer.setText("Desfazer");
+    btnDesfazer.setText("Apaga");
     btnDesfazer.setToolTipText("Apaga o último ponto criado");
     btnDesfazer.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -825,6 +820,9 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_btnFechaEixoActionPerformed
 
   private void btnDesfazerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDesfazerActionPerformed
+    if (isB){
+      return;
+    }
     if (arrAresta.size() < 1) {
       if (arrPonto.size() > 0) {
         arrPonto.clear();
@@ -935,6 +933,7 @@ public class Perfil extends javax.swing.JFrame {
     if (!fechado) {
       if (isB) {
         if (Bcount < 3) {
+          System.out.println("Pontos " + Bcount);
           Ponto p = new Ponto();
           p.x = evt.getX() & iniY; //*0.25 0~100
           iniY = 1023;
@@ -943,23 +942,18 @@ public class Perfil extends javax.swing.JFrame {
           Bcount++;
           if (Bcount == 3) {
             CalculaBezier();
-            System.out.println("Bseg = " + Bseg);
           }
         } else {
+          System.out.println("Pontos " + Bcount);
           Ponto p = new Ponto();
           p.x = evt.getX(); //*0.25 0~100
           p.y = evt.getY(); //*0.25 0~75
-          System.out.println("Soltado em " + p.toString());
           if (Bsp >= 0) { //Mover algum ponto
             BarrPontoC.get(Bsp).x = p.x;
             BarrPontoC.get(Bsp).y = p.y;
             CalculaBezier();
-            System.out.println("Novo Ponto " + BarrPontoC.get(Bsp).toString());
           }
           Slc = new Ponto();
-        }
-        for (Ponto o : BarrPontoC) {
-          System.out.println("BC = " + o.toString());
         }
       } else {
         Ponto p = new Ponto();
@@ -1038,9 +1032,11 @@ public class Perfil extends javax.swing.JFrame {
           }
         }
       } catch (FileNotFoundException ex) {
-        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+        JOptionPane.showMessageDialog(this, "Nao foi possivel encontrar o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
       } catch (IOException ex) {
-        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+        JOptionPane.showMessageDialog(this, "Nao foi possivel escrever o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
       }
       issaved = true;
     }
@@ -1067,11 +1063,9 @@ public class Perfil extends javax.swing.JFrame {
         ConstroiArestas();
         DesenhaPerfil();
       } catch (FileNotFoundException ex) {
-        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
         JOptionPane.showMessageDialog(this, "Nao foi possivel ler o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
         return;
       } catch (IOException ex) {
-        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
         JOptionPane.showMessageDialog(this, "Erro generico de leitura", "Erro", JOptionPane.ERROR_MESSAGE);
         return;
       }
@@ -1115,13 +1109,12 @@ public class Perfil extends javax.swing.JFrame {
         ConstroiArestas();
       }
     } else {
-      isB = true;
       Bcount = 0;
       if (arrPonto.isEmpty()) { //No elements
-        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, evt);
         JOptionPane.showMessageDialog(this, "Deve haver pelo o menos um ponto já na área de desenho para se iniciar uma curva de bezier", "Erro", JOptionPane.ERROR_MESSAGE);
         return;
       } else {
+        isB = true;
         BarrPonto.add(arrPonto.get(arrPonto.size() - 1));
         BarrPontoC.add(arrPonto.get(arrPonto.size() - 1));
       }
@@ -1170,7 +1163,28 @@ public class Perfil extends javax.swing.JFrame {
       }
     }
   }//GEN-LAST:event_pnlRevIMousePressed
-
+  
+  public void ErrosIniciais(){
+    if (EI == -1){
+      JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 0){
+      return; //Ready to go
+    } else if (EI == 1){
+      JOptionPane.showMessageDialog(this, "Classe faltante, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 2){
+      JOptionPane.showMessageDialog(this, "Erro de instanciacao, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 3){
+      JOptionPane.showMessageDialog(this, "Acesso Ilegal, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else if (EI == 4){
+      JOptionPane.showMessageDialog(this, "Aparencia do programa com problemas (Apenas windows), consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    } else {
+      JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+    System.exit(-1);
+  }
+  
+  public static byte EI = 0;
+  
   /**
    * @param args the command line arguments
    */
@@ -1180,6 +1194,7 @@ public class Perfil extends javax.swing.JFrame {
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
+    
     try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
         if ("Windows".equals(info.getName())) {
@@ -1189,12 +1204,16 @@ public class Perfil extends javax.swing.JFrame {
       }
     } catch (ClassNotFoundException ex) {
       java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 1;
     } catch (InstantiationException ex) {
       java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 2;
     } catch (IllegalAccessException ex) {
       java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 3;
     } catch (javax.swing.UnsupportedLookAndFeelException ex) {
       java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      EI = 4;
     }
     //</editor-fold>
 
