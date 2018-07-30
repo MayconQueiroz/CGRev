@@ -25,4 +25,21 @@ public class Objeto {
     C = new Ponto();
   }
   
+  /**
+   * Constroi arestas com base nos pontos ja existentes (De leitura por exemplo)
+   * @param fechado Se o primeiro ponto eh igual ao ultimo
+   */
+  public void ConstroiArestas(boolean fechado) {
+    Ponto Au;
+    arrAresta.clear();
+    Au = arrPonto.get(0);
+    for (Ponto p : arrPonto.subList(1, arrPonto.size())) {
+      arrAresta.add(new Aresta(Au, p));
+      Au = p;
+    }
+    if (fechado) { //Fechada
+      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
+    }
+  }
+  
 }

@@ -1,13 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Telas;
 
 import Objetos.Aresta;
 import Objetos.Ponto;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
@@ -16,10 +10,10 @@ import java.util.ArrayList;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
-import javax.swing.event.ListSelectionEvent;
 
 /**
- *
+ * Fornece modelos pre-configurados de perfis para escolha do usuario
+ * 
  * @author Maycon
  */
 public class Modelos extends javax.swing.JFrame {

@@ -25,7 +25,6 @@ public class Perfil extends javax.swing.JFrame {
    */
   public Principal P;
   public ArrayList<Ponto> arrPonto;
-  public ArrayList<Ponto> arrPontoNil;
   public Graphics D; //de Desenho
   public ArrayList<Aresta> arrAresta;
   public int iniY = 1023;
@@ -60,7 +59,6 @@ public class Perfil extends javax.swing.JFrame {
     BarrPonto = new ArrayList();
     BarrPontoC = new ArrayList();
     arrAresta = new ArrayList();
-    arrPontoNil = new ArrayList();
     Slc = new Ponto();
     //pnlRevI.setBackground(Color.LIGHT_GRAY);
     D = pnlRevI.getGraphics();
@@ -72,6 +70,11 @@ public class Perfil extends javax.swing.JFrame {
     setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Perfil.png")).getImage());
   }
 
+  /**
+   * Novo perfil - Construtor usado
+   *
+   * @param P
+   */
   public Perfil(Principal P) {
     this();
     this.P = P;
@@ -183,27 +186,22 @@ public class Perfil extends javax.swing.JFrame {
   }
 
   /**
-   * Onde a magica acontece
+   * Onde a magica acontece (Para y)
    *
    * @param Num Numero de segmentos
    * @param Ang Angulo maximo de rotacao
    */
-  public void CriaObjeto(int Num, double Ang) {
-    int op = 2;
+  public void CriaObjetoY(int Num, double Ang) {
     double teta = Ang / Num;
     double ccos = Math.cos(teta);
     double csin = Math.sin(teta);
     double xold = arrPonto.get(0).y, zold = arrPonto.get(0).y;
-    int l;
     Ponto plinha = new Ponto();
     Aresta arAux;
-    //System.out.println("001");
     obj = new Objeto();
-    for (Aresta a : arrAresta) {
-      obj.arrAresta.add(new Aresta(a));
-    }
     for (Ponto p : arrPonto) {
-      arrPontoNil.add(new Ponto(p));
+      System.out.println("Possuo : " + p.toString());
+      obj.arrPonto.add(new Ponto(p));
       if (p.y < xold) {
         xold = p.y;
       }
@@ -211,145 +209,33 @@ public class Perfil extends javax.swing.JFrame {
         zold = p.y;
       }
     }
+    obj.ConstroiArestas(fechado);
+    //FAZER Construir os parametros C depois da revolucao do objeto
     obj.C.x = 0;
     obj.C.y = (xold + zold) / 2;
     obj.C.z = 0;
-    //PrintPontos();
-    if (op == 0) { //Inicia e encerra no eixo - fechado
-      obj.Fechado = true; //Marca objeto fechado
-      for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
-        for (int y = 1; y < arrPonto.size(); y++) { //Para todos os pontos exceto o primeiro
-          plinha = arrPonto.get(y);
-          if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
-            xold = plinha.x;
-            zold = plinha.z;
-            plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotacao em teta graus
-            plinha.z = (xold * (-csin)) + (plinha.z * ccos);
-            arrPontoNil.add(new Ponto(plinha)); //Adiciona novo ponto a lista geral
-            arrPonto.get(y).x = plinha.x;
-            arrPonto.get(y).z = plinha.z;
-            if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
-              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
-            } else {
-              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
-            }
-            obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
-          } else {
-            arAux = new Aresta(arrPontoNil.get(y), arrPontoNil.get(arrPontoNil.size() - 1));
-            obj.arrAresta.add(new Aresta(arAux));
-          }
-        }
-      }
-      for (int u = 0; u < arrPonto.size(); u++) { //Ultima Conexao
-        if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
-          obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
-        }
-      }
-    } else if (op == 1) { //Inicia e encerra no mesmo ponto - fechado
-      obj.Fechado = true; //Marca objeto como fechado
-      for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
-        for (int y = 0; y < arrPonto.size(); y++) { //Para todos os pontos (inclui o primeiro)
-          //System.out.println("Plinha = " + plinha.toString());
-          //System.out.println("+.+.+.+.+");
-          //PrintListaArestas();
-          //System.out.println("=*=*=*=*=");
-          //PrintListaArestasIn();
-          //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
-          //System.out.println("ccos = " + ccos + " - csin = " + csin);
-          plinha = arrPonto.get(y);
-          if (plinha.x != 0 || plinha.z != 0) { //So rotaciona se o ponto for fora do eixo, senao vai usar o mesmo
-            xold = plinha.x;
-            zold = plinha.z;
-            plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotacao
-            plinha.z = (xold * (-csin)) + (plinha.z * ccos);
-            arrPontoNil.add(new Ponto(plinha));
-            arrPonto.get(y).x = plinha.x;
-            arrPonto.get(y).z = plinha.z;
-            if (y != 0) { //Para nao calcular pro primeiro
-              if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
-                obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
-              } else {
-                obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
-              }
-            }
-            obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
-            //System.out.println("x = " + p.x + " - z = " + p.z);
-            //System.out.println("....");
-            //PrintPontos();
-          } else {
-            arAux = new Aresta(arrPontoNil.get(y), arrPontoNil.get(arrPontoNil.size() - 1));
-            obj.arrAresta.add(new Aresta(arAux));
-          }
-        }
-        obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(arrPonto.get(0))));
-        //System.out.println("Saí para construir arestas, já volto");
-        //ConstroiArestas(); //Constroi arestas baseadas nos pontos
-        //PrintListaArestasIn();
-        //--PrintListaArestas();
-      }
-      for (int u = 0; u < arrPonto.size(); u++) {
-        if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
-          obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
-        }
-      }
-      //PrintListaArestas();
-    } else if (op == 2) { //Encerra em ponto diferente que inicia - aberto
-      //System.out.println("Aberto OP2");
-      ////////////////////////////////////////////////////////////////////////
-      ////////////////////////////////////////////////////////////////////////
-      ////////////////////////////////////////////////////////////////////////
-      obj.Fechado = false;
-      //PrintListaArestas();//PrintPontos();
-      for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
-        //System.out.println("()()()()()()()()()()()()()()()()()");
-        for (int y = 0; y < arrPonto.size(); y++) {
-          plinha = arrPonto.get(y);
-          //System.out.println("Plinha = " + plinha.toString());
-          //System.out.println("+.+.+.+.+");
-          //PrintListaArestas();
-          //System.out.println("=*=*=*=*=");
-          //PrintListaArestasIn();
-          //System.out.println("Previously on x = " + p.x + " - z = " + p.z);
-          //System.out.println("ccos = " + ccos + " - csin = " + csin);
+    obj.Fechado = false;
+    ///////////////////////////////////////////////////////////////
+    for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
+      for (int y = 0; y < arrPonto.size(); y++) { //Para todos os pontos
+        plinha = arrPonto.get(y);
+        if (plinha.x != 0 || plinha.z != 0) { //Ponto fora do eixo
           xold = plinha.x;
           zold = plinha.z;
-          plinha.x = (plinha.x * ccos) + (plinha.z * csin);
+          plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotacionando ponto
           plinha.z = (xold * (-csin)) + (plinha.z * ccos);
-          arrPontoNil.add(new Ponto(plinha));
+          obj.arrPonto.add(new Ponto(plinha)); //copia plinha
           arrPonto.get(y).x = plinha.x;
-          arrPonto.get(y).z = plinha.z;
-          if (y != 0) { //Para nao calcular pro primeiro
-            if (arrPonto.get(y - 1).x == 0) { //Se o ponto anterior for do eixo
-              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(y - 1)));
-              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
-            } else {
-              obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), arrPontoNil.get(arrPontoNil.size() - 2)));
-              //obj.arrAresta.add(new Aresta(arrAresta.get(y-1)));
-            }
-          }
-          //System.out.println("P98 = " + new Ponto(xold, arrPonto.get(y).y, zold).toString());
-          //System.out.println("Novo= " + plinha);
-          obj.arrAresta.add(new Aresta(arrPontoNil.get(arrPontoNil.size() - 1), new Ponto(xold, arrPonto.get(y).y, zold)));
-          //System.out.println("x = " + p.x + " - z = " + p.z);
-          //System.out.println("....");
-          //PrintPontos();
-          //PrintListaArestas();
+          arrPonto.get(y).z = plinha.z; //Salvando novo ponto
+        } else { //Ponto no eixo
+          //
         }
-        //System.out.println("Saí para construir arestas, já volto");
-        //ConstroiArestas(); //Constroi arestas baseadas nos pontos
-        //PrintListaArestasIn();
-        //PrintListaArestas();
+        //
       }
-      for (int u = 0; u < arrPonto.size(); u++) {
-        if (arrPonto.get(u).x != 0 || arrPonto.get(u).z != 0) {
-          obj.arrAresta.add(new Aresta(arrPonto.get(u), arrPontoNil.get(u)));
-        }
+      if (fechado){ //Ponto final igual inicial
+        //
       }
-      //PrintListaArestas();
-    } else {
-      ErroPadrao();
     }
-    obj.arrPonto = arrPontoNil;
   }
 
   /**
@@ -820,7 +706,7 @@ public class Perfil extends javax.swing.JFrame {
   }//GEN-LAST:event_btnFechaEixoActionPerformed
 
   private void btnDesfazerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDesfazerActionPerformed
-    if (isB){
+    if (isB) {
       return;
     }
     if (arrAresta.size() < 1) {
@@ -901,15 +787,15 @@ public class Perfil extends javax.swing.JFrame {
         }
       }
       Ang = Ang * (Math.PI / 180); //Para pi rad
-      
+
       if ("x".equals(lstEixos.getSelectedItem().toString())) { //Rotacao em x
-	CriaObjeto(Num, Ang); //Faz rotacoes
+        CriaObjetoY(Num, Ang); //Faz rotacoes
       } else if ("y".equals(lstEixos.getSelectedItem().toString())) {
-	CriaObjeto(Num, Ang); //Faz rotacoes
+        CriaObjetoY(Num, Ang); //Faz rotacoes
       } else if ("z".equals(lstEixos.getSelectedItem().toString())) {
-	CriaObjeto(Num, Ang); //Faz rotacoes
+        CriaObjetoY(Num, Ang); //Faz rotacoes
       } else {
-	ErroPadrao();
+        ErroPadrao();
       }
     }
     P.Obj.add(obj);
@@ -1159,32 +1045,32 @@ public class Perfil extends javax.swing.JFrame {
         if (dist > 10) { //No raio de ninguem
           Bsp = -1;
         }
-        System.out.println("Bsp = " + Bsp);
+        //System.out.println("Bsp = " + Bsp);
       }
     }
   }//GEN-LAST:event_pnlRevIMousePressed
-  
-  public void ErrosIniciais(){
-    if (EI == -1){
+
+  public void ErrosIniciais() {
+    if (EI == -1) {
       JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 0){
+    } else if (EI == 0) {
       return; //Ready to go
-    } else if (EI == 1){
+    } else if (EI == 1) {
       JOptionPane.showMessageDialog(this, "Classe faltante, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 2){
+    } else if (EI == 2) {
       JOptionPane.showMessageDialog(this, "Erro de instanciacao, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 3){
+    } else if (EI == 3) {
       JOptionPane.showMessageDialog(this, "Acesso Ilegal, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 4){
+    } else if (EI == 4) {
       JOptionPane.showMessageDialog(this, "Aparencia do programa com problemas (Apenas windows), consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
     } else {
       JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
     }
     System.exit(-1);
   }
-  
+
   public static byte EI = 0;
-  
+
   /**
    * @param args the command line arguments
    */
@@ -1194,25 +1080,33 @@ public class Perfil extends javax.swing.JFrame {
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
-    
+
     try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
         if ("Windows".equals(info.getName())) {
           javax.swing.UIManager.setLookAndFeel(info.getClassName());
           break;
+
         }
       }
     } catch (ClassNotFoundException ex) {
-      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class
+              .getName()).log(java.util.logging.Level.SEVERE, null, ex);
       EI = 1;
+
     } catch (InstantiationException ex) {
-      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class
+              .getName()).log(java.util.logging.Level.SEVERE, null, ex);
       EI = 2;
+
     } catch (IllegalAccessException ex) {
-      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class
+              .getName()).log(java.util.logging.Level.SEVERE, null, ex);
       EI = 3;
+
     } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-      java.util.logging.Logger.getLogger(Perfil.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      java.util.logging.Logger.getLogger(Perfil.class
+              .getName()).log(java.util.logging.Level.SEVERE, null, ex);
       EI = 4;
     }
     //</editor-fold>

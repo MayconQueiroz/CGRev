@@ -87,7 +87,7 @@ public class Sobre extends javax.swing.JFrame {
 
     jLabel5.setText("2018");
 
-    jLabel1.setFont(new java.awt.Font("Cambria", 0, 36)); // NOI18N
+    jLabel1.setFont(new java.awt.Font("Times New Roman", 0, 36)); // NOI18N
     jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
     jLabel1.setText("CGRev");
 

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Telas;
 
 import Objetos.Aresta;
@@ -29,7 +24,8 @@ import javax.swing.UIManager;
 import static revcg.RevCG.*;
 
 /**
- *
+ * Tela principal do programa
+ * 
  * @author Maycon
  */
 public class Principal extends javax.swing.JFrame {

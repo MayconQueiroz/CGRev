@@ -15,7 +15,8 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import static revcg.RevCG.ErroPadrao;
 
 /**
- *
+ * Fornece topicos de ajuda e imagens ao usuario
+ * 
  * @author Maycon
  */
 public class Ajuda extends javax.swing.JFrame {
