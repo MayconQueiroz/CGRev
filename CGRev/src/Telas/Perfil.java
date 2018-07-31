@@ -197,10 +197,8 @@ public class Perfil extends javax.swing.JFrame {
     double csin = Math.sin(teta);
     double xold = arrPonto.get(0).y, zold = arrPonto.get(0).y;
     Ponto plinha = new Ponto();
-    Aresta arAux;
     obj = new Objeto();
     for (Ponto p : arrPonto) {
-      System.out.println("Possuo : " + p.toString());
       obj.arrPonto.add(new Ponto(p));
       if (p.y < xold) {
         xold = p.y;
@@ -215,9 +213,10 @@ public class Perfil extends javax.swing.JFrame {
     obj.C.y = (xold + zold) / 2;
     obj.C.z = 0;
     obj.Fechado = false;
+    int y, pp = -1;
     ///////////////////////////////////////////////////////////////
     for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
-      for (int y = 0; y < arrPonto.size(); y++) { //Para todos os pontos
+      for (y = 0; y < arrPonto.size(); y++) { //Para todos os pontos
         plinha = arrPonto.get(y);
         if (plinha.x != 0 || plinha.z != 0) { //Ponto fora do eixo
           xold = plinha.x;
@@ -227,13 +226,34 @@ public class Perfil extends javax.swing.JFrame {
           obj.arrPonto.add(new Ponto(plinha)); //copia plinha
           arrPonto.get(y).x = plinha.x;
           arrPonto.get(y).z = plinha.z; //Salvando novo ponto
+          if (y > 0) {
+            if (arrPonto.get(y - 1).x != 0 || arrPonto.get(y - 1).z != 0) { //Ponto anterior tambem fora do eixo
+              obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 1), obj.arrPonto.get(obj.arrPonto.size() - 2)));
+            } else {
+              obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 1), obj.arrPonto.get(y - 1)));
+            }
+          } else {
+            pp = obj.arrPonto.size() - 1;
+          }
         } else { //Ponto no eixo
-          //
+          obj.arrAresta.add(new Aresta(obj.arrPonto.get(y), obj.arrPonto.get(obj.arrPonto.size() - 1)));
         }
         //
       }
-      if (fechado){ //Ponto final igual inicial
-        //
+      if (fechado) { //Ponto final igual inicial
+        if (arrPonto.get(arrPonto.size()-1).x != 0 || arrPonto.get(arrPonto.size()-1).z != 0){ //Ponto final fora do eixo
+          if (arrPonto.get(0).x != 0 || arrPonto.get(0).z != 0){ //Ponto inicial fora do eixo
+            obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 1), obj.arrPonto.get(pp)));
+          } else { //Ponto inicial no eixo
+            obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 1), obj.arrPonto.get(0)));
+          }
+        } else { //Ponto final no eixo
+          if (arrPonto.get(0).x != 0 || arrPonto.get(0).z != 0){ //Ponto inicial fora do eixo
+            obj.arrAresta.add(new Aresta(obj.arrPonto.get(arrPonto.size() - 1), obj.arrPonto.get(pp)));
+          } else { //Ponto inicial no eixo
+            ErroPadrao(); //Ponto inicial e final nao podem estar em linha
+          }
+        }
       }
     }
   }
