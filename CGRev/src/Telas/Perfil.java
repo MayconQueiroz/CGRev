@@ -152,6 +152,7 @@ public class Perfil extends javax.swing.JFrame {
     if ((cabecalho & 8) != 0) { //Fechada
       arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
     }
+    ChecaQuantidade();
   }
 
   /**
@@ -197,6 +198,7 @@ public class Perfil extends javax.swing.JFrame {
     double csin = Math.sin(teta);
     double xold = arrPonto.get(0).y, zold = arrPonto.get(0).y;
     Ponto plinha = new Ponto();
+    BarrPonto.clear();
     obj = new Objeto();
     for (Ponto p : arrPonto) {
       obj.arrPonto.add(new Ponto(p));
@@ -213,8 +215,11 @@ public class Perfil extends javax.swing.JFrame {
     obj.C.y = (xold + zold) / 2;
     obj.C.z = 0;
     obj.Fechado = false;
-    int y, pp = -1;
     ///////////////////////////////////////////////////////////////
+    int y, pp = -1;
+    for (Ponto u : obj.arrPonto){ //Copia todos os pontos para BarrPonto
+      BarrPonto.add(u);
+    }
     for (int i = 0; i < Num - 1; i++) { //Para todos os passos da revlucao -1
       for (y = 0; y < arrPonto.size(); y++) { //Para todos os pontos
         plinha = arrPonto.get(y);
@@ -233,12 +238,17 @@ public class Perfil extends javax.swing.JFrame {
               obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 1), obj.arrPonto.get(y - 1)));
             }
           } else {
-            pp = obj.arrPonto.size() - 1;
+            if (plinha.x != 0 || plinha.z != 0) { //Ponto anterior tambem fora do eixo
+              pp = obj.arrPonto.size() - 1;
+            } else {
+              pp = 0;
+            }
           }
+          obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 1), BarrPonto.get(y)));
+          BarrPonto.set(y, obj.arrPonto.get(obj.arrPonto.size() - 1));
         } else { //Ponto no eixo
           obj.arrAresta.add(new Aresta(obj.arrPonto.get(y), obj.arrPonto.get(obj.arrPonto.size() - 1)));
         }
-        //
       }
       if (fechado) { //Ponto final igual inicial
         if (arrPonto.get(arrPonto.size()-1).x != 0 || arrPonto.get(arrPonto.size()-1).z != 0){ //Ponto final fora do eixo
@@ -255,6 +265,13 @@ public class Perfil extends javax.swing.JFrame {
           }
         }
       }
+    }
+    for (y = arrPonto.size()-1; y >= 0; y--) { //Para todos os pontos (ao contrario)
+      plinha = arrPonto.get(y);
+      if (plinha.x != 0 || plinha.z != 0) { //Ponto fora do eixo (Liga com o primeiro irmao)
+        //System.out.println("F = " + (obj.arrPonto.size()-((arrPonto.size())-y)) + " Y = " + y);
+        obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size()-((arrPonto.size())-y)), obj.arrPonto.get(y)));
+      } //Se o ponto estiver no eixo nao faz nada; ele nunca foi rotacionado
     }
   }
 
@@ -839,7 +856,7 @@ public class Perfil extends javax.swing.JFrame {
     if (!fechado) {
       if (isB) {
         if (Bcount < 3) {
-          System.out.println("Pontos " + Bcount);
+          //System.out.println("Pontos " + Bcount);
           Ponto p = new Ponto();
           p.x = evt.getX() & iniY; //*0.25 0~100
           iniY = 1023;
@@ -850,7 +867,7 @@ public class Perfil extends javax.swing.JFrame {
             CalculaBezier();
           }
         } else {
-          System.out.println("Pontos " + Bcount);
+          //System.out.println("Pontos " + Bcount);
           Ponto p = new Ponto();
           p.x = evt.getX(); //*0.25 0~100
           p.y = evt.getY(); //*0.25 0~75
@@ -882,6 +899,7 @@ public class Perfil extends javax.swing.JFrame {
         issaved = false;
       }
     }
+    ChecaQuantidade();
   }//GEN-LAST:event_pnlRevIMouseReleased
 
   private void lstEixosItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_lstEixosItemStateChanged
@@ -1070,6 +1088,13 @@ public class Perfil extends javax.swing.JFrame {
     }
   }//GEN-LAST:event_pnlRevIMousePressed
 
+  public void ChecaQuantidade(){
+    if (arrPonto.size() > 250){
+      JOptionPane.showMessageDialog(this, "Eu acho que voce ja adicionou pontos demais. Tá procurando algum bug!? Eu vou limpar tudo pra voce", "Erro", JOptionPane.WARNING_MESSAGE);
+      LimpaTudo();
+    }
+  }
+  
   public void ErrosIniciais() {
     if (EI == -1) {
       JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
