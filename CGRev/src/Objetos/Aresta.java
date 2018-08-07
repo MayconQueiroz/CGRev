@@ -11,6 +11,8 @@ public class Aresta {
    */
   public Ponto i; //Ponto Inicial
   public Ponto f; //Ponto Final
+  public Face e; //Face Esquerda
+  public Face d; //Face Direita
 
   /**
    * Construtor Default

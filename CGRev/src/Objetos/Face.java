@@ -12,13 +12,13 @@ public class Face {
   /**
    * Variaveis Publicas
    */
-  public Aresta fAresta;
+  public ArrayList<Aresta> fAresta; //Arestas da face
 
   /**
    * Construtor padrao, setar as arestas manualmente
    */
   public Face() {
-    fAresta = new Aresta();
+    fAresta = new ArrayList();
   }
 
 }
