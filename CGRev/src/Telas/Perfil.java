@@ -267,9 +267,10 @@ public class Perfil extends javax.swing.JFrame {
       }
     }
     for (y = arrPonto.size()-1; y >= 0; y--) { //Para todos os pontos (ao contrario)
-      plinha = arrPonto.get(y);
+      plinha = obj.arrPonto.get(y);
       if (plinha.x != 0 || plinha.z != 0) { //Ponto fora do eixo (Liga com o primeiro irmao)
-        //System.out.println("F = " + (obj.arrPonto.size()-((arrPonto.size())-y)) + " Y = " + y);
+        System.out.println("F = " + (obj.arrPonto.size()-((arrPonto.size())-y)) + " Y = " + y);
+        System.out.println("P = " + obj.arrPonto.get(obj.arrPonto.size()-((arrPonto.size())-y)).toString() + " I = " + obj.arrPonto.get(y).toString());
         obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size()-((arrPonto.size())-y)), obj.arrPonto.get(y)));
       } //Se o ponto estiver no eixo nao faz nada; ele nunca foi rotacionado
     }

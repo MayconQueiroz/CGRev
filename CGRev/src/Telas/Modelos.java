@@ -494,11 +494,7 @@ public class Modelos extends javax.swing.JFrame {
     P.LimpaTudo();
     P.arrPonto = arPonto;
     P.arrAresta = arAresta;
-    P.fechado = (lstModelos.getSelectedIndex() == 0 || lstModelos.getSelectedIndex() == 1 
-            || lstModelos.getSelectedIndex() == 3 || lstModelos.getSelectedIndex() == 5 
-            || lstModelos.getSelectedIndex() == 6 || lstModelos.getSelectedIndex() == 7 
-            || lstModelos.getSelectedIndex() == 8 || lstModelos.getSelectedIndex() == 9 
-            || lstModelos.getSelectedIndex() == 10); //Quem diria, eu quebrando linha
+    P.fechado = (lstModelos.getSelectedIndex() == 6);
     this.dispose();
     P.setEnabled(true);
     P.requestFocus(); //Traz o foco para tela anterior
