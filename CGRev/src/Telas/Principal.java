@@ -1,8 +1,6 @@
 package Telas;
 
-import Objetos.Aresta;
-import Objetos.Objeto;
-import Objetos.Ponto;
+import Objetos.*;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -42,6 +40,7 @@ public class Principal extends javax.swing.JFrame {
   public final int my = 127; //Meio em y
   public int ObSel = -1;
   Color Sel = Color.BLUE;
+  public Camera VL, VF, VT, VP;
   
   /**
    * Variaveis Locais Globais
@@ -80,6 +79,10 @@ public class Principal extends javax.swing.JFrame {
     Obj = new ArrayList<>();
     LimpaPaineis();
     setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Principal.png")).getImage());
+    VL = new Camera(new Ponto(-20,   0,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), -170, 170, -127, 128, 20.0);
+    VF = new Camera(new Ponto(  0,   0, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), -170, 170, -127, 128, 20.0);
+    VT = new Camera(new Ponto(  0, -20,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), -170, 170, -127, 128, 20.0);
+    VP = new Camera(new Ponto(-20, -20, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), -170, 170, -127, 128, 20.0);
   }
   
   /**
@@ -181,8 +184,8 @@ public class Principal extends javax.swing.JFrame {
     pnlTopo = new javax.swing.JPanel();
     pnlTopoI = new javax.swing.JPanel();
     btnAmpliarTopo = new javax.swing.JButton();
-    ctrEscTopo = new javax.swing.JSpinner();
-    jLabel5 = new javax.swing.JLabel();
+    tY = new javax.swing.JTextField();
+    tX = new javax.swing.JTextField();
     pnlMenus = new javax.swing.JTabbedPane();
     pnlObjetos = new javax.swing.JPanel();
     btnAdicionar = new javax.swing.JButton();
@@ -193,22 +196,21 @@ public class Principal extends javax.swing.JFrame {
     btnRedimensionar = new javax.swing.JToggleButton();
     btnDesselecionar = new javax.swing.JButton();
     pnlAmbiente = new javax.swing.JPanel();
-    ckbPropEscala = new javax.swing.JCheckBox();
     pnlFrente = new javax.swing.JPanel();
     pnlFrenteI = new javax.swing.JPanel();
     btnAmpliarFrente = new javax.swing.JButton();
-    ctrEscFrente = new javax.swing.JSpinner();
-    jLabel1 = new javax.swing.JLabel();
+    fX = new javax.swing.JTextField();
+    fY = new javax.swing.JTextField();
     pnlLado = new javax.swing.JPanel();
     pnlLadoI = new javax.swing.JPanel();
     btnAmpliarLado = new javax.swing.JButton();
-    ctrEscLado = new javax.swing.JSpinner();
-    jLabel4 = new javax.swing.JLabel();
+    lY = new javax.swing.JTextField();
+    lX = new javax.swing.JTextField();
     pnlPerspectiva = new javax.swing.JPanel();
     pnlPerspectivaI = new javax.swing.JPanel();
     btnAmpliarPerspectiva = new javax.swing.JButton();
-    ctrEscPerspectiva = new javax.swing.JSpinner();
-    jLabel3 = new javax.swing.JLabel();
+    pY = new javax.swing.JTextField();
+    pX = new javax.swing.JTextField();
     menuBar = new javax.swing.JMenuBar();
     menuArquivo = new javax.swing.JMenu();
     itemNovo = new javax.swing.JMenuItem();
@@ -229,6 +231,12 @@ public class Principal extends javax.swing.JFrame {
     pnlTopo.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Topo"));
     pnlTopo.setPreferredSize(new java.awt.Dimension(350, 276));
 
+    pnlTopoI.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseMoved(java.awt.event.MouseEvent evt) {
+        pnlTopoIMouseMoved(evt);
+      }
+    });
+
     javax.swing.GroupLayout pnlTopoILayout = new javax.swing.GroupLayout(pnlTopoI);
     pnlTopoI.setLayout(pnlTopoILayout);
     pnlTopoILayout.setHorizontalGroup(
@@ -242,36 +250,28 @@ public class Principal extends javax.swing.JFrame {
 
     btnAmpliarTopo.setText("+");
 
-    ctrEscTopo.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
-    ctrEscTopo.addChangeListener(new javax.swing.event.ChangeListener() {
-      public void stateChanged(javax.swing.event.ChangeEvent evt) {
-        ctrEscTopoStateChanged(evt);
-      }
-    });
-
-    jLabel5.setText("Escala");
-
     javax.swing.GroupLayout pnlTopoLayout = new javax.swing.GroupLayout(pnlTopo);
     pnlTopo.setLayout(pnlTopoLayout);
     pnlTopoLayout.setHorizontalGroup(
       pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addComponent(pnlTopoI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlTopoLayout.createSequentialGroup()
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        .addComponent(jLabel5)
+        .addContainerGap()
+        .addComponent(tX, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(ctrEscTopo, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(tY, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         .addComponent(btnAmpliarTopo)
         .addContainerGap())
     );
     pnlTopoLayout.setVerticalGroup(
       pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlTopoLayout.createSequentialGroup()
-        .addGroup(pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-          .addComponent(btnAmpliarTopo)
-          .addComponent(ctrEscTopo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(jLabel5))
+        .addGroup(pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+            .addComponent(tX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(tY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+          .addComponent(btnAmpliarTopo))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(pnlTopoI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
     );
@@ -382,24 +382,15 @@ public class Principal extends javax.swing.JFrame {
     pnlFerramentas.getAccessibleContext().setAccessibleName("");
     pnlFerramentas.getAccessibleContext().setAccessibleDescription("");
 
-    ckbPropEscala.setSelected(true);
-    ckbPropEscala.setText("Proporcionalidade (Escala)");
-
     javax.swing.GroupLayout pnlAmbienteLayout = new javax.swing.GroupLayout(pnlAmbiente);
     pnlAmbiente.setLayout(pnlAmbienteLayout);
     pnlAmbienteLayout.setHorizontalGroup(
       pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(pnlAmbienteLayout.createSequentialGroup()
-        .addContainerGap()
-        .addComponent(ckbPropEscala)
-        .addContainerGap(17, Short.MAX_VALUE))
+      .addGap(0, 174, Short.MAX_VALUE)
     );
     pnlAmbienteLayout.setVerticalGroup(
       pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(pnlAmbienteLayout.createSequentialGroup()
-        .addContainerGap()
-        .addComponent(ckbPropEscala)
-        .addContainerGap(542, Short.MAX_VALUE))
+      .addGap(0, 572, Short.MAX_VALUE)
     );
 
     pnlMenus.addTab("Ambiente", pnlAmbiente);
@@ -407,6 +398,11 @@ public class Principal extends javax.swing.JFrame {
     pnlFrente.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Frente"));
     pnlFrente.setPreferredSize(new java.awt.Dimension(350, 276));
 
+    pnlFrenteI.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseMoved(java.awt.event.MouseEvent evt) {
+        pnlFrenteIMouseMoved(evt);
+      }
+    });
     pnlFrenteI.addMouseListener(new java.awt.event.MouseAdapter() {
       public void mouseClicked(java.awt.event.MouseEvent evt) {
         pnlFrenteIMouseClicked(evt);
@@ -426,26 +422,17 @@ public class Principal extends javax.swing.JFrame {
 
     btnAmpliarFrente.setText("+");
 
-    ctrEscFrente.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
-    ctrEscFrente.addChangeListener(new javax.swing.event.ChangeListener() {
-      public void stateChanged(javax.swing.event.ChangeEvent evt) {
-        ctrEscFrenteStateChanged(evt);
-      }
-    });
-
-    jLabel1.setText("Escala");
-
     javax.swing.GroupLayout pnlFrenteLayout = new javax.swing.GroupLayout(pnlFrente);
     pnlFrente.setLayout(pnlFrenteLayout);
     pnlFrenteLayout.setHorizontalGroup(
       pnlFrenteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addComponent(pnlFrenteI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlFrenteLayout.createSequentialGroup()
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        .addComponent(jLabel1)
+      .addGroup(pnlFrenteLayout.createSequentialGroup()
+        .addContainerGap()
+        .addComponent(fX, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(ctrEscFrente, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(fY, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         .addComponent(btnAmpliarFrente)
         .addContainerGap())
     );
@@ -454,8 +441,8 @@ public class Principal extends javax.swing.JFrame {
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlFrenteLayout.createSequentialGroup()
         .addGroup(pnlFrenteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(btnAmpliarFrente)
-          .addComponent(ctrEscFrente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(jLabel1))
+          .addComponent(fX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(fY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(pnlFrenteI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
@@ -464,6 +451,11 @@ public class Principal extends javax.swing.JFrame {
     pnlLado.setPreferredSize(new java.awt.Dimension(350, 276));
 
     pnlLadoI.setPreferredSize(new java.awt.Dimension(340, 255));
+    pnlLadoI.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseMoved(java.awt.event.MouseEvent evt) {
+        pnlLadoIMouseMoved(evt);
+      }
+    });
     pnlLadoI.addMouseListener(new java.awt.event.MouseAdapter() {
       public void mouseReleased(java.awt.event.MouseEvent evt) {
         pnlLadoIMouseReleased(evt);
@@ -474,7 +466,7 @@ public class Principal extends javax.swing.JFrame {
     pnlLadoI.setLayout(pnlLadoILayout);
     pnlLadoILayout.setHorizontalGroup(
       pnlLadoILayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 340, Short.MAX_VALUE)
+      .addGap(0, 0, Short.MAX_VALUE)
     );
     pnlLadoILayout.setVerticalGroup(
       pnlLadoILayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -483,42 +475,40 @@ public class Principal extends javax.swing.JFrame {
 
     btnAmpliarLado.setText("+");
 
-    ctrEscLado.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
-    ctrEscLado.addChangeListener(new javax.swing.event.ChangeListener() {
-      public void stateChanged(javax.swing.event.ChangeEvent evt) {
-        ctrEscLadoStateChanged(evt);
-      }
-    });
-
-    jLabel4.setText("Escala");
-
     javax.swing.GroupLayout pnlLadoLayout = new javax.swing.GroupLayout(pnlLado);
     pnlLado.setLayout(pnlLadoLayout);
     pnlLadoLayout.setHorizontalGroup(
       pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(pnlLadoI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlLadoLayout.createSequentialGroup()
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        .addComponent(jLabel4)
+        .addContainerGap()
+        .addComponent(lX, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(ctrEscLado, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(lY, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 221, Short.MAX_VALUE)
         .addComponent(btnAmpliarLado)
         .addContainerGap())
+      .addComponent(pnlLadoI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
     pnlLadoLayout.setVerticalGroup(
       pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlLadoLayout.createSequentialGroup()
-        .addGroup(pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-          .addComponent(btnAmpliarLado)
-          .addComponent(ctrEscLado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(jLabel4))
+        .addGroup(pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+            .addComponent(lX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(lY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+          .addComponent(btnAmpliarLado))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         .addComponent(pnlLadoI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
     );
 
     pnlPerspectiva.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Perspectiva"));
     pnlPerspectiva.setPreferredSize(new java.awt.Dimension(350, 276));
+
+    pnlPerspectivaI.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseMoved(java.awt.event.MouseEvent evt) {
+        pnlPerspectivaIMouseMoved(evt);
+      }
+    });
 
     javax.swing.GroupLayout pnlPerspectivaILayout = new javax.swing.GroupLayout(pnlPerspectivaI);
     pnlPerspectivaI.setLayout(pnlPerspectivaILayout);
@@ -533,36 +523,28 @@ public class Principal extends javax.swing.JFrame {
 
     btnAmpliarPerspectiva.setText("+");
 
-    ctrEscPerspectiva.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
-    ctrEscPerspectiva.addChangeListener(new javax.swing.event.ChangeListener() {
-      public void stateChanged(javax.swing.event.ChangeEvent evt) {
-        ctrEscPerspectivaStateChanged(evt);
-      }
-    });
-
-    jLabel3.setText("Escala");
-
     javax.swing.GroupLayout pnlPerspectivaLayout = new javax.swing.GroupLayout(pnlPerspectiva);
     pnlPerspectiva.setLayout(pnlPerspectivaLayout);
     pnlPerspectivaLayout.setHorizontalGroup(
       pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addComponent(pnlPerspectivaI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlPerspectivaLayout.createSequentialGroup()
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        .addComponent(jLabel3)
+        .addContainerGap()
+        .addComponent(pX, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(ctrEscPerspectiva, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(pY, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         .addComponent(btnAmpliarPerspectiva)
         .addContainerGap())
     );
     pnlPerspectivaLayout.setVerticalGroup(
       pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlPerspectivaLayout.createSequentialGroup()
-        .addGroup(pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-          .addComponent(btnAmpliarPerspectiva)
-          .addComponent(ctrEscPerspectiva, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(jLabel3))
+        .addGroup(pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+            .addComponent(pX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(pY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+          .addComponent(btnAmpliarPerspectiva))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(pnlPerspectivaI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
@@ -682,8 +664,16 @@ public class Principal extends javax.swing.JFrame {
 
   private void itemNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemNovoActionPerformed
     if(!Obj.isEmpty()){
-      //TODO Confirmacao
-      LimpaTudo();
+      Object[] options = {"Sim", "Não", "Cancelar"};
+      int n = JOptionPane.showOptionDialog(this, "Há objetos não salvos, deseja salvá-los?",
+      "Cena existente", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+      options, options[2]);
+      if (n == 0){
+        itemSalvarActionPerformed(null);
+        LimpaTudo();
+      } else if (n == 1){
+        LimpaTudo();
+      }
     } else {
       LimpaTudo();
     }
@@ -793,110 +783,6 @@ public class Principal extends javax.swing.JFrame {
     PintaTudo();
   }//GEN-LAST:event_btnRedesenharActionPerformed
 
-  private void ctrEscLadoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ctrEscLadoStateChanged
-    //z, y
-    String input = ctrEscLado.getValue().toString();
-    EL = 1;
-    if (input.isEmpty()) {
-      ctrEscLado.setValue(1);
-    } else {
-      try {
-        EL = Double.parseDouble(input);
-      } catch (NumberFormatException | NullPointerException e) {
-        ctrEscLado.setValue(1);
-      }
-    }
-    if(ckbPropEscala.isSelected()){
-      ET = EL;
-      EP = EL;
-      EF = EL;
-      ctrEscPerspectiva.setValue(EL);
-      ctrEscTopo.setValue(EL);
-      ctrEscFrente.setValue(EL);
-      PintaTudo();
-    } else {
-      PintaLado();
-    }
-  }//GEN-LAST:event_ctrEscLadoStateChanged
-
-  private void ctrEscFrenteStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ctrEscFrenteStateChanged
-    //x, y
-    String input = ctrEscFrente.getValue().toString();
-    EF = 1;
-    if (input.isEmpty()) {
-      ctrEscFrente.setValue(1);
-    } else {
-      try {
-        EF = Double.parseDouble(input);
-      } catch (NumberFormatException | NullPointerException e) {
-        ctrEscFrente.setValue(1);
-      }
-    }
-    if(ckbPropEscala.isSelected()){
-      ET = EF;
-      EP = EF;
-      EL = EF;
-      ctrEscPerspectiva.setValue(EF);
-      ctrEscTopo.setValue(EF);
-      ctrEscLado.setValue(EF);
-      PintaTudo();
-    } else {
-      PintaFrente();
-    }
-  }//GEN-LAST:event_ctrEscFrenteStateChanged
-
-  private void ctrEscTopoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ctrEscTopoStateChanged
-    //z, x
-    String input = ctrEscTopo.getValue().toString();
-    ET = 1;
-    if (input.isEmpty()) {
-      ctrEscTopo.setValue(1);
-    } else {
-      try {
-        ET = Double.parseDouble(input);
-      } catch (NumberFormatException | NullPointerException e) {
-        ctrEscTopo.setValue(1);
-      }
-    }
-    if(ckbPropEscala.isSelected()){
-      EF = ET;
-      EP = ET;
-      EL = ET;
-      ctrEscPerspectiva.setValue(ET);
-      ctrEscLado.setValue(ET);
-      ctrEscFrente.setValue(ET);
-      PintaTudo();
-    } else {
-      PintaTopo();
-    }
-  }//GEN-LAST:event_ctrEscTopoStateChanged
-
-  private void ctrEscPerspectivaStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_ctrEscPerspectivaStateChanged
-    //Camera
-    String input = ctrEscPerspectiva.getValue().toString();
-    ET = 1;
-    if (input.isEmpty()) {
-      ctrEscPerspectiva.setValue(1);
-    } else {
-      try {
-        ET = Double.parseDouble(input);
-      } catch (NumberFormatException | NullPointerException e) {
-        ctrEscPerspectiva.setValue(1);
-      }
-    }
-    if(ckbPropEscala.isSelected()){
-      EF = EP;
-      ET = EP;
-      EL = EP;
-      ctrEscLado.setValue(EP);
-      ctrEscTopo.setValue(EP);
-      ctrEscFrente.setValue(EP);
-      PintaTudo();
-    } else {
-      PintaPerspectiva();
-    }
-  }//GEN-LAST:event_ctrEscPerspectivaStateChanged
-
   private void btnMoverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMoverActionPerformed
     if (btnMover.isSelected()){
       Per = (byte) ((Per&0b11111101)|0b00000001);
@@ -956,6 +842,30 @@ public class Principal extends javax.swing.JFrame {
       //
     }
   }//GEN-LAST:event_pnlLadoIMouseReleased
+
+  private void pnlLadoIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMouseMoved
+    int Aux = (evt.getY() * -1) + 255;
+    lX.setText("" + evt.getX());
+    lY.setText("" + Aux);
+  }//GEN-LAST:event_pnlLadoIMouseMoved
+
+  private void pnlFrenteIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMouseMoved
+    int Aux = (evt.getY() * -1) + 255;
+    fX.setText("" + evt.getX());
+    fY.setText("" + Aux);
+  }//GEN-LAST:event_pnlFrenteIMouseMoved
+
+  private void pnlTopoIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlTopoIMouseMoved
+    int Aux = (evt.getY() * -1) + 255;
+    tX.setText("" + evt.getX());
+    tY.setText("" + Aux);
+  }//GEN-LAST:event_pnlTopoIMouseMoved
+
+  private void pnlPerspectivaIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlPerspectivaIMouseMoved
+    int Aux = (evt.getY() * -1) + 255;
+    pX.setText("" + evt.getX());
+    pY.setText("" + Aux);
+  }//GEN-LAST:event_pnlPerspectivaIMouseMoved
 
   public void ErrosIniciais(){
     if (EI == -1){
@@ -1024,27 +934,24 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JButton btnRedesenhar;
   private javax.swing.JToggleButton btnRedimensionar;
   private javax.swing.JToggleButton btnRotacionar;
-  private javax.swing.JCheckBox ckbPropEscala;
-  private javax.swing.JSpinner ctrEscFrente;
-  private javax.swing.JSpinner ctrEscLado;
-  private javax.swing.JSpinner ctrEscPerspectiva;
-  private javax.swing.JSpinner ctrEscTopo;
+  private javax.swing.JTextField fX;
+  private javax.swing.JTextField fY;
   private javax.swing.JMenuItem itemAbrir;
   private javax.swing.JMenuItem itemAjuda;
   private javax.swing.JMenuItem itemNovo;
   private javax.swing.JMenuItem itemSalvar;
   private javax.swing.JMenuItem itemSalvarComo;
   private javax.swing.JMenuItem itemSobre;
-  private javax.swing.JLabel jLabel1;
-  private javax.swing.JLabel jLabel3;
-  private javax.swing.JLabel jLabel4;
-  private javax.swing.JLabel jLabel5;
   private javax.swing.JMenuItem jMenuItem2;
   private javax.swing.JPopupMenu.Separator jSeparator1;
+  private javax.swing.JTextField lX;
+  private javax.swing.JTextField lY;
   private javax.swing.JMenu menuAjuda;
   private javax.swing.JMenu menuArquivo;
   private javax.swing.JMenuBar menuBar;
   private javax.swing.JMenu menuEditar;
+  private javax.swing.JTextField pX;
+  private javax.swing.JTextField pY;
   private javax.swing.JPanel pnlAmbiente;
   private javax.swing.JPanel pnlFerramentas;
   private javax.swing.JPanel pnlFrente;
@@ -1057,5 +964,7 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JPanel pnlPerspectivaI;
   private javax.swing.JPanel pnlTopo;
   private javax.swing.JPanel pnlTopoI;
+  private javax.swing.JTextField tX;
+  private javax.swing.JTextField tY;
   // End of variables declaration//GEN-END:variables
 }

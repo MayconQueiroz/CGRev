@@ -57,6 +57,51 @@ public class Ponto {
   public Ponto(double X, double Y) {
     this(X, Y, 0.0);
   }
+  
+  /**
+   * Calcula a distancia entre dois pontos, o que chamou e o passado
+   * @param p Ponto para calculo de distancia
+   * @return Distancia em "unidades"
+   */
+  public double calculaDistancia(Ponto p){
+    double difx = p.x - this.x;
+    double dify = p.y - this.y;
+    double difz = p.z - this.z;
+    return Math.sqrt((difx*difx)+(dify*dify)+(difz*difz));
+  }
+  
+  /**
+   * Normaliza o ponto
+   */
+  public void Normaliza(){
+    double N; //Norma
+    N = Math.sqrt((x*x)+(y*y)+(z*z));
+    x = x/N;
+    y = y/N;
+    z = z/N;
+  }
+  
+  /**
+   * Realiza o produto vetorial entre dois pontos
+   * @param p Segundo ponto na multiplicacao
+   * @return Ponto final com o resultado
+   */
+  public Ponto ProdutoVetorial(Ponto p){
+    Ponto T = new Ponto();
+    T.x = (y * p.z) - (z * p.y);
+    T.y = (z * p.x) - (x * p.z);
+    T.z = (x * p.y) - (y * p.x);
+    return T;
+  }
+  
+  /**
+   * Retorna o produto escalar de dois pontos
+   * @param p Segundo Ponto na multiplicacao
+   * @return Resultado da multiplicacao
+   */
+  public double ProdutoEscalar(Ponto p){
+    return (x * p.x) + (y * p.y) + (z * p.z);
+  }
 
   /**
    * Retorna o ponto no formato (x; y; z)

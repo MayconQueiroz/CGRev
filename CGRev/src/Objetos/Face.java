@@ -20,5 +20,14 @@ public class Face {
   public Face() {
     fAresta = new ArrayList();
   }
+  
+  /**
+   * Construtor com uma aresta (Pra ter um comeco)
+   * @param a Aresta inicial
+   */
+  public Face(Aresta a){
+    this();
+    fAresta.add(a);
+  }
 
 }

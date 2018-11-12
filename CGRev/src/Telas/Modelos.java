@@ -26,7 +26,58 @@ public class Modelos extends javax.swing.JFrame {
   public Graphics De; //de Desenho
   public ArrayList<Aresta> arAresta;
   public DefaultListModel dl = new DefaultListModel();
-
+  public Ponto[] BP;
+  /**
+   * Calcula Bezier para os pontos das figuras que usam aproximacao curva
+   */
+  
+  //Ponto especial para Bezier
+  Ponto Slc = new Ponto();
+  
+  /**
+   * Calcula as arestas de bezier
+   * 
+   * @param Seg Quantidade de segmentos da curva
+   */
+  public void CalculaBezier(int Bseg) {
+    double Bau = (double) 1 / Bseg;
+    double Bau2 = Bau;
+    for (int i = 1; i < Bseg; i++) {
+      DeCasteljau(Bau2);
+      Bau2 += Bau;
+      arPonto.add(new Ponto(Slc));
+    }
+    arPonto.add(new Ponto(BP[3]));
+    System.out.println("Bseg = " + Bseg);
+    for (Ponto t : arPonto){
+      System.out.println("P=" + t.toString());
+    }
+    //DesenhaPerfil();
+  }
+  
+  /**
+   * Retorna um ponto da curva de bezier
+   *
+   * @param t Fator de ponderacao
+   */
+  public void DeCasteljau(double t) {
+    double z1, d3, u2, ut, z12, u23;
+    ut = 1 - t;
+    z1 = ((ut * BP[0].x) + (t * BP[1].x));
+    u2 = ((ut * BP[1].x) + (t * BP[2].x));
+    d3 = ((ut * BP[2].x) + (t * BP[3].x));
+    z12 = ((ut * z1) + (t * u2));
+    u23 = ((ut * u2) + (t * d3));
+    Slc.x = (ut * z12) + (t * u23);
+    z1 = ((ut * BP[0].y) + (t * BP[1].y));
+    u2 = ((ut * BP[1].y) + (t * BP[2].y));
+    d3 = ((ut * BP[2].y) + (t * BP[3].y));
+    z12 = ((ut * z1) + (t * u2));
+    u23 = ((ut * u2) + (t * d3));
+    Slc.y = (ut * z12) + (t * u23);
+  }
+  
+  
   /**
    * Creates new form Modelos
    */
@@ -56,6 +107,11 @@ public class Modelos extends javax.swing.JFrame {
     //pnlTempIn.setBackground(Color.LIGHT_GRAY);
     De = pnlTempIn.getGraphics();
     setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Modelos.png")).getImage());
+    BP = new Ponto[4];
+    BP[0] = new Ponto();
+    BP[1] = new Ponto();
+    BP[2] = new Ponto();
+    BP[3] = new Ponto();
   }
 
   public Modelos(Perfil P) {
@@ -126,6 +182,7 @@ public class Modelos extends javax.swing.JFrame {
       arPonto.add(new Ponto(70.0, 20.0));
       arPonto.add(new Ponto(70.0, 160.0));
       arPonto.add(new Ponto(0.0, 160.0));
+      System.out.println("Cilindro");
       ConstroiArestas();
     } else if (lstModelos.getSelectedIndex() == 1) { //Piramide
       ctrSegmentos.setEnabled(false);
@@ -152,10 +209,38 @@ public class Modelos extends javax.swing.JFrame {
       arPonto.add(new Ponto(0.0, 157.0));
       ConstroiArestas();
     } else if (lstModelos.getSelectedIndex() == 4) { //Vaso
-      ctrSegmentos.setEnabled(false);
+      ctrSegmentos.setEnabled(true);
       ctrDistancia.setEnabled(false);
       arPonto.add(new Ponto(0.0, 160.0));
       arPonto.add(new Ponto(40.0, 160.0));
+      /*BP[0] = new Ponto(40.0, 160.0);
+      BP[1] = new Ponto(120.0, 100.0);
+      BP[2] = new Ponto(-20.0, 80.0);
+      BP[3] = new Ponto(39.0, 20.0);
+      String input = (String) ctrSegmentos.getValue().toString();
+      int Num = 6;
+      if (input.isEmpty()){
+        ctrSegmentos.setValue("6");
+      } else {
+        try {
+          Num = Integer.parseInt(input);
+          System.out.println("input = " + input);
+          System.out.println("Num = " + Num);
+        } catch (NumberFormatException | NullPointerException e) {
+          JOptionPane.showMessageDialog(this, "Valor informado não é inteiro", "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+        if (Num < 2) {
+          //JOptionPane.showMessageDialog(this, "Valor informado inválido (Deve ser maior que 1)", "Erro" , JOptionPane.ERROR_MESSAGE);
+          ctrSegmentos.setValue(2);
+          Num = 2;
+        } else if (Num > 100) {
+          //JOptionPane.showMessageDialog(this, "Mais que 100 pontos provoca repetição", "Erro", JOptionPane.ERROR_MESSAGE);
+          ctrSegmentos.setValue(100);
+          //Num = 100;
+        }
+      }
+      CalculaBezier(Num);
+      System.out.println("Fim Bezier");*/
       arPonto.add(new Ponto(50.0, 155.0));
       arPonto.add(new Ponto(60.0, 140.0));
       arPonto.add(new Ponto(60.0, 115.0));
