@@ -81,10 +81,10 @@ public class Principal extends javax.swing.JFrame {
     Obj = new ArrayList<>();
     LimpaPaineis();
     setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Principal.png")).getImage());
-    VL = new Camera(new Ponto(-20,   0,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), -170, 170, -127, 128, 20.0);
-    VF = new Camera(new Ponto(  0,   0, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), -170, 170, -127, 128, 20.0);
-    VT = new Camera(new Ponto(  0, -20,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), -170, 170, -127, 128, 20.0);
-    VP = new Camera(new Ponto(-20, -20, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), -170, 170, -127, 128, 20.0);
+    VL = new Camera(new Ponto(-20,   0,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
+    VF = new Camera(new Ponto(  0,   0, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
+    VT = new Camera(new Ponto(  0, -20,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
+    VP = new Camera(new Ponto(-20, -20, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
   }
   
   /**

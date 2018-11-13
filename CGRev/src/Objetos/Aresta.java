@@ -9,17 +9,17 @@ public class Aresta {
   /**
    * Variaveis publicas
    */
-  public Ponto i; //Ponto Inicial
-  public Ponto f; //Ponto Final
-  public Face e; //Face Esquerda
-  public Face d; //Face Direita
+  public int i; //Indice do ponto Inicial
+  public int f; //Indice do ponto Final
+  public int e; //Indice da face Esquerda
+  public int d; //Indice da face Direita
 
   /**
    * Construtor Default
    */
   public Aresta() {
-    i = new Ponto();
-    f = new Ponto();
+    i = 0;
+    f = 0;
   }  
 
   /**
@@ -27,7 +27,7 @@ public class Aresta {
    * @param I Ponto inicial da aresta
    * @param F Ponto final da aresta
    */
-  public Aresta(Ponto I, Ponto F) {
+  public Aresta(int I, int F) {
     i = I;
     f = F;
   }
@@ -37,18 +37,17 @@ public class Aresta {
    * @param old Aresta a ser copiada
    */
   public Aresta(Aresta old){
-    this();
-    this.f = new Ponto(old.f.x, old.f.y, old.f.z);
-    this.i = new Ponto(old.i.x, old.i.y, old.i.z);
+    f = old.f;
+    i = old.i;
   }
   
   /**
-   * Retorna aresta no formato {p1; p2}
+   * Retorna aresta no formato {indice1; indice}
    * @return String com o conteudo do retorno
    */
   @Override
   public String toString() {
-    return "{" + i.toString() + "; " + f.toString() + "}";
+    return "{" + i + "; " + f + "}";
   }
 
 }

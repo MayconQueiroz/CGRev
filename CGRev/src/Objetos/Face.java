@@ -12,7 +12,7 @@ public class Face {
   /**
    * Variaveis Publicas
    */
-  public ArrayList<Aresta> fAresta; //Arestas da face
+  public ArrayList<Integer> fAresta; //Indices das arestas da face
 
   /**
    * Construtor padrao, setar as arestas manualmente
@@ -25,7 +25,7 @@ public class Face {
    * Construtor com uma aresta (Pra ter um comeco)
    * @param a Aresta inicial
    */
-  public Face(Aresta a){
+  public Face(int a){
     this();
     fAresta.add(a);
   }

@@ -32,19 +32,24 @@ public class Objeto {
   }
   
   /**
+   * Construtor de copia
+   * @param Oab Objeto para copia (ou organizacao dos associados do bradesco)
+   */
+  public Objeto(Objeto Oab){
+    
+  }
+  
+  /**
    * Constroi arestas com base nos pontos ja existentes (De leitura por exemplo)
    * @param fechado Se o primeiro ponto eh igual ao ultimo
    */
   public void ConstroiArestas(boolean fechado) {
-    Ponto Au;
     arrAresta.clear();
-    Au = arrPonto.get(0);
-    for (Ponto p : arrPonto.subList(1, arrPonto.size())) {
-      arrAresta.add(new Aresta(Au, p));
-      Au = p;
+    for (int i = 1; i < arrPonto.size(); i++){
+      arrAresta.add(new Aresta(i-1, i));
     }
-    if (fechado) { //Fechada
-      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
+    if (fechado) { //Fechada (Aresta entre ultimo ponto e primeiro)
+      arrAresta.add(new Aresta(arrPonto.size() - 1, 0));
     }
   }
   
@@ -53,20 +58,17 @@ public class Objeto {
    * @param fechado Se o primeiro ponto e igualao ultimo (nao duplica)
    */
   public void ConstroiArestasMaisFaces(boolean fechado){
-    Ponto Au;
     arrAresta.clear();
     arrFace.clear();
-    Au = arrPonto.get(0);
-    for (Ponto p : arrPonto.subList(1, arrPonto.size())) {
-      arrAresta.add(new Aresta(Au, p));
-      arrFace.add(new Face(arrAresta.get(arrAresta.size()-1))); //Cria nova face com a aresta recem criada
-      arrAresta.get(arrAresta.size()-1).d = arrFace.get(arrFace.size()-1); //Acrescenta essa face a face "direita" da aresta
-      Au = p;
+    for (int i = 1; i < arrPonto.size(); i++){
+      arrAresta.add(new Aresta(i-1, i));
+      arrFace.add(new Face(arrAresta.size()-1)); //Cria nova face com a aresta recem criada
+      arrAresta.get(arrAresta.size()-1).d = arrFace.size()-1; //Acrescenta essa face a face "direita" da aresta
     }
     if (fechado) { //Fechada
-      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
-      arrFace.add(new Face(arrAresta.get(arrAresta.size()-1))); //Cria nova face com a aresta recem criada
-      arrAresta.get(arrAresta.size()-1).d = arrFace.get(arrFace.size()-1); //Acrescenta essa face a face "direita" da aresta
+      arrAresta.add(new Aresta(arrPonto.size() - 1, 0));
+      arrFace.add(new Face(arrAresta.size()-1)); //Cria nova face com a aresta recem criada
+      arrAresta.get(arrAresta.size()-1).d = arrFace.size()-1; //Acrescenta essa face a face "direita" da aresta
     }
   }
   
