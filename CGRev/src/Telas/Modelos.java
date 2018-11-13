@@ -36,7 +36,7 @@ public class Modelos extends javax.swing.JFrame {
   
   /**
    * Calcula as arestas de bezier
-   * 
+   * NAO FUNCIONANDO
    * @param Seg Quantidade de segmentos da curva
    */
   public void CalculaBezier(int Bseg) {
@@ -57,7 +57,7 @@ public class Modelos extends javax.swing.JFrame {
   
   /**
    * Retorna um ponto da curva de bezier
-   *
+   * NO MESMO SACO DE BEZIER
    * @param t Fator de ponderacao
    */
   public void DeCasteljau(double t) {
@@ -130,7 +130,7 @@ public class Modelos extends javax.swing.JFrame {
   }
 
   /**
-   * Reinica Tudo
+   * Reinicia Tudo
    */
   public void LimpaTudo() {
     arPonto.clear();
@@ -213,7 +213,7 @@ public class Modelos extends javax.swing.JFrame {
       ctrDistancia.setEnabled(false);
       arPonto.add(new Ponto(0.0, 160.0));
       arPonto.add(new Ponto(40.0, 160.0));
-      /*BP[0] = new Ponto(40.0, 160.0);
+      /*BP[0] = new Ponto(40.0, 160.0); //Bezier isolado
       BP[1] = new Ponto(120.0, 100.0);
       BP[2] = new Ponto(-20.0, 80.0);
       BP[3] = new Ponto(39.0, 20.0);

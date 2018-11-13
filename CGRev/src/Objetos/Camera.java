@@ -17,6 +17,17 @@ public class Camera {
   public double Tr[][] = new double[4][4]; //Matriz de transformacao
   public boolean plla; //True se for paralela
 
+  /**
+   * Construtor com praticamente todos os parametros
+   * @param C Posicao do VRP
+   * @param P Ponto P
+   * @param V "Vetor" direcao de View Up
+   * @param xmin X minimo da cena
+   * @param xmax X maximo da cena
+   * @param ymin Y minimo da cena
+   * @param ymax Y maximo da cena
+   * @param d Distancia do plano de projecao (rever, pode ser o P sem problemas)
+   */
   public Camera(Ponto C, Ponto P, Ponto V, int xmin, int xmax,int ymin, int ymax, double d) {
     if (C == null || P == null || V == null){
       ErroPadrao();
@@ -33,6 +44,9 @@ public class Camera {
     D = d;
   }
 
+  /**
+   * Construtor padrao sem parametros
+   */
   public Camera() {
     VRP = new Ponto();
     P = new Ponto();
@@ -44,12 +58,12 @@ public class Camera {
    */
   public void MatrizTransformacao(){
     Ponto N = new Ponto(VRP.x-P.x, VRP.y-P.y, VRP.z-P.z);
-    N.Normaliza();
+    N.Normaliza(); //Calcula e normaliza N
     double PE = (N.x * Y.x) + (N.y * Y.y) + (N.z * Y.z);
     Ponto V = new Ponto(Y.x-(PE*N.x), Y.y-(PE*N.y), Y.z-(PE*N.z));
-    V.Normaliza();
+    V.Normaliza(); //Calcula e normaliza V
     Ponto U = V.ProdutoVetorial(N);
-    U.Normaliza();
+    U.Normaliza(); //Calcula e normaliza U
     Tr[0][0] = U.x;
     Tr[0][1] = U.y;
     Tr[0][2] = U.z;
@@ -65,6 +79,6 @@ public class Camera {
     Tr[3][0] = 0;
     Tr[3][1] = 0;
     Tr[3][2] = 0;
-    Tr[3][3] = 1;
+    Tr[3][3] = 1; //Constroi a matriz
   }
 }

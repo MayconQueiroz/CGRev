@@ -16,10 +16,13 @@ public class Objeto {
   public ArrayList<Ponto> arrPonto; //Pontos do objeto
   public ArrayList<Face> arrFace; //Faces do objeto
   public Color AC = Color.BLACK; //Arestas (Cor)
-  public Color BG = Color.TRANSPARENT; //Cor de fundo (Cor do objeto)
+  public Color BG = Color.grayRgb(240); //Cor de fundo (Cor do objeto)
   public boolean Fechado; //Se o objeto e fechado ou aberto (dupla face ou unica face)
   public Ponto C; //Centro do Objeto
 
+  /**
+   * Construtor padrao do objeto
+   */
   public Objeto() {
     arrAresta = new ArrayList<>();
     arrPonto = new ArrayList<>();
@@ -47,7 +50,7 @@ public class Objeto {
   
   /**
    * Constroi arestas e ja cria faces para estas arestas
-   * @param fechado  Se o primeiro ponto e igualao ultimo (nao duplica)
+   * @param fechado Se o primeiro ponto e igualao ultimo (nao duplica)
    */
   public void ConstroiArestasMaisFaces(boolean fechado){
     Ponto Au;
@@ -72,7 +75,7 @@ public class Objeto {
    */
   public void CalculaCentro(){
     double mx, nx, my, ny, mz, nz;
-    if (this == null){
+    if (this == null){ //Se objeto ainda nao estiver preenchido so retorna
       return;
     }
     mx = arrPonto.get(0).x;
@@ -81,7 +84,7 @@ public class Objeto {
     ny = arrPonto.get(0).y;
     mz = arrPonto.get(0).z;
     nz = arrPonto.get(0).z;
-    for (Ponto p : arrPonto){
+    for (Ponto p : arrPonto){ //Para todos os pontos do objeto
       if (p.x > mx){
         mx = p.x;
       }
@@ -101,7 +104,7 @@ public class Objeto {
         nz = p.z;
       }
     }
-    C.x = (mx + nx) / 2;
+    C.x = (mx + nx) / 2; //Grava direto na variavel C
     C.y = (my + ny) / 2;
     C.z = (mz + nz) / 2;
   }

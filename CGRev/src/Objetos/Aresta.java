@@ -33,7 +33,7 @@ public class Aresta {
   }
   
   /**
-   * Construtor de copia
+   * Construtor de copia (Cria novos pontos)
    * @param old Aresta a ser copiada
    */
   public Aresta(Aresta old){

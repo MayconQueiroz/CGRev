@@ -31,24 +31,26 @@ public class Principal extends javax.swing.JFrame {
   /**
    * Variáveis globais
    */
-  public ArrayList<Objeto> Obj; //objetos em cena
+  public ArrayList<Objeto> Obj; //Objetos em cena
   public Graphics DT; //Topo
   public Graphics DF; //Frente
   public Graphics DL; //Lado
   public Graphics DP; //Pers
   public final int mx = 170; //Meio em x
   public final int my = 127; //Meio em y
-  public int ObSel = -1;
-  Color Sel = Color.BLUE;
-  public Camera VL, VF, VT, VP;
+  public int ObSel = -1; //Objeto selecionado (posicao no array)
+  Color Sel = Color.BLUE; //Cor de selecao
+  public Camera VL, VF, VT, VP; //4 Cameras
   
   /**
    * Variaveis Locais Globais
    */
-  byte cabecalho;
-  byte Per = 0; //Operacao
-  JFileChooser fc = new JFileChooser();
+  byte cabecalho; //Byte de cabecalho do arquivo (Documentar melhor uso dos bits)
+  byte Per = 0; //Operacao (Translacao, rotacao ou escala)
+  JFileChooser fc = new JFileChooser(); //Instancia do filechooser para salvar e abrir
   double EL=1, ET=1, EP=1, EF=1;
+  double ClicX, ClicY; //Posicao onde o painel foi clicado
+  double ReleX, ReleY; //Posicao onde o painel foi "solto"
   
   Objeto o;
   
@@ -169,6 +171,13 @@ public class Principal extends javax.swing.JFrame {
     DP.clearRect(0, 0, 340, 255);
   }
   
+  /**
+   * Seleciona algum dos objetos dependendo da posicao que a tela foi clicada
+   */
+  public void SelecionaAlguem(){
+    //FAZER
+  }
+  
   //////////////////////////////////////////////////////////////////////////////
 
   /**
@@ -189,12 +198,14 @@ public class Principal extends javax.swing.JFrame {
     pnlMenus = new javax.swing.JTabbedPane();
     pnlObjetos = new javax.swing.JPanel();
     btnAdicionar = new javax.swing.JButton();
+    btnApagar = new javax.swing.JButton();
+    btnSelecionar = new javax.swing.JToggleButton();
+    btnDesselecionar = new javax.swing.JButton();
     pnlFerramentas = new javax.swing.JPanel();
     btnMover = new javax.swing.JToggleButton();
     btnRedesenhar = new javax.swing.JButton();
     btnRotacionar = new javax.swing.JToggleButton();
     btnRedimensionar = new javax.swing.JToggleButton();
-    btnDesselecionar = new javax.swing.JButton();
     pnlAmbiente = new javax.swing.JPanel();
     pnlFrente = new javax.swing.JPanel();
     pnlFrenteI = new javax.swing.JPanel();
@@ -289,13 +300,38 @@ public class Principal extends javax.swing.JFrame {
       }
     });
 
+    btnApagar.setText("Apagar");
+    btnApagar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnApagarActionPerformed(evt);
+      }
+    });
+
+    btnSelecionar.setText("Selecionar");
+    btnSelecionar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnSelecionarActionPerformed(evt);
+      }
+    });
+
+    btnDesselecionar.setText("Desselecionar");
+    btnDesselecionar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnDesselecionarActionPerformed(evt);
+      }
+    });
+
     javax.swing.GroupLayout pnlObjetosLayout = new javax.swing.GroupLayout(pnlObjetos);
     pnlObjetos.setLayout(pnlObjetosLayout);
     pnlObjetosLayout.setHorizontalGroup(
       pnlObjetosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(pnlObjetosLayout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(btnAdicionar, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
+        .addGroup(pnlObjetosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(btnAdicionar, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
+          .addComponent(btnApagar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnSelecionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnDesselecionar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE))
         .addContainerGap())
     );
     pnlObjetosLayout.setVerticalGroup(
@@ -303,7 +339,13 @@ public class Principal extends javax.swing.JFrame {
       .addGroup(pnlObjetosLayout.createSequentialGroup()
         .addContainerGap()
         .addComponent(btnAdicionar)
-        .addContainerGap(538, Short.MAX_VALUE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnSelecionar)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnDesselecionar)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnApagar)
+        .addContainerGap(451, Short.MAX_VALUE))
     );
 
     pnlMenus.addTab("Objetos", pnlObjetos);
@@ -341,13 +383,6 @@ public class Principal extends javax.swing.JFrame {
       }
     });
 
-    btnDesselecionar.setText("Desselecionar");
-    btnDesselecionar.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnDesselecionarActionPerformed(evt);
-      }
-    });
-
     javax.swing.GroupLayout pnlFerramentasLayout = new javax.swing.GroupLayout(pnlFerramentas);
     pnlFerramentas.setLayout(pnlFerramentasLayout);
     pnlFerramentasLayout.setHorizontalGroup(
@@ -358,8 +393,7 @@ public class Principal extends javax.swing.JFrame {
           .addComponent(btnMover, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
           .addComponent(btnRedesenhar, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
           .addComponent(btnRotacionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnRedimensionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnDesselecionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+          .addComponent(btnRedimensionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         .addContainerGap())
     );
     pnlFerramentasLayout.setVerticalGroup(
@@ -371,9 +405,7 @@ public class Principal extends javax.swing.JFrame {
         .addComponent(btnRotacionar)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(btnRedimensionar)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(btnDesselecionar)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 417, Short.MAX_VALUE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 446, Short.MAX_VALUE)
         .addComponent(btnRedesenhar)
         .addContainerGap())
     );
@@ -401,11 +433,6 @@ public class Principal extends javax.swing.JFrame {
     pnlFrenteI.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
       public void mouseMoved(java.awt.event.MouseEvent evt) {
         pnlFrenteIMouseMoved(evt);
-      }
-    });
-    pnlFrenteI.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mouseClicked(java.awt.event.MouseEvent evt) {
-        pnlFrenteIMouseClicked(evt);
       }
     });
 
@@ -457,6 +484,9 @@ public class Principal extends javax.swing.JFrame {
       }
     });
     pnlLadoI.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mousePressed(java.awt.event.MouseEvent evt) {
+        pnlLadoIMousePressed(evt);
+      }
       public void mouseReleased(java.awt.event.MouseEvent evt) {
         pnlLadoIMouseReleased(evt);
       }
@@ -668,13 +698,13 @@ public class Principal extends javax.swing.JFrame {
       int n = JOptionPane.showOptionDialog(this, "Há objetos não salvos, deseja salvá-los?",
       "Cena existente", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
       options, options[2]);
-      if (n == 0){
+      if (n == 0){ //Se o usuario quiser salvar
         itemSalvarActionPerformed(null);
         LimpaTudo();
-      } else if (n == 1){
+      } else if (n == 1){ //Se nao quiser
         LimpaTudo();
-      }
-    } else {
+      } //Qualquer outra coisa cancela
+    } else { //Mesmo que Obj esteja vazio, pode ter algum lixo em algum outro lugar
       LimpaTudo();
     }
   }//GEN-LAST:event_itemNovoActionPerformed
@@ -684,7 +714,7 @@ public class Principal extends javax.swing.JFrame {
     byte r;
     double xi, yi, zi, xf, yf, zf;
     int returnVal = fc.showOpenDialog(this);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
+    if (returnVal == JFileChooser.APPROVE_OPTION) { //FAZER Adaptar para novo modo de leitura e gravacao
       File file = fc.getSelectedFile();
       String s = file.toString();
       if (!file.canRead()) {
@@ -718,6 +748,7 @@ public class Principal extends javax.swing.JFrame {
         return;
       }
     }
+    //Duas vezes porque so uma as vezes dava problema (eu tambem nao gosto)
     LimpaPaineis();
     PintaTudo();
     LimpaPaineis();
@@ -726,24 +757,16 @@ public class Principal extends javax.swing.JFrame {
 
   private void btnMoverMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnMoverMouseClicked
     if(btnMover.isSelected()){
-      //System.out.println("Prendi");
-    } else {
-      //System.out.println("Soltei");
-    }
-  }//GEN-LAST:event_btnMoverMouseClicked
-
-  private void pnlFrenteIMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMouseClicked
-    if(btnMover.isSelected()){
       //System.out.println("Policia");
     } else {
       //System.out.println("Juiz");
     }
-  }//GEN-LAST:event_pnlFrenteIMouseClicked
+  }//GEN-LAST:event_btnMoverMouseClicked
 
   private void itemSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemSalvarActionPerformed
     fc = new JFileChooser();
-    int returnVal = fc.showSaveDialog(this);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
+    int returnVal = fc.showSaveDialog(this); //FAZER salvar o nome do arquivo se lido ou ja salvo para sobrescrever sem perguntar
+    if (returnVal == JFileChooser.APPROVE_OPTION) { //FAZER Adaptar para novo modo de leitura e gravacao
       File file = fc.getSelectedFile();
       String s = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
       //System.out.println("Saida = " + s);
@@ -751,15 +774,15 @@ public class Principal extends javax.swing.JFrame {
       try {
         try (DataOutputStream said = new DataOutputStream(new FileOutputStream(s))) {
           said.writeByte(cabecalho);
-          for (Objeto o : Obj) {
+          for (Objeto ob : Obj) {
             said.writeByte(0);
-            for (Ponto p : o.arrPonto) {
+            for (Ponto p : ob.arrPonto) {
               said.writeByte(1);
               said.writeDouble(p.x);
               said.writeDouble(p.y);
               said.writeDouble(p.z);
             }
-            for (Aresta a : o.arrAresta) {
+            for (Aresta a : ob.arrAresta) {
               said.writeByte(2);
               said.writeDouble(a.i.x);
               said.writeDouble(a.i.y);
@@ -771,9 +794,9 @@ public class Principal extends javax.swing.JFrame {
           }
         }
       } catch (FileNotFoundException ex) {
-        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+        JOptionPane.showMessageDialog(this, "Erro de arquivo nao encontrado: " + ex.toString(), "Erro", JOptionPane.ERROR_MESSAGE);
       } catch (IOException ex) {
-        Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
+        JOptionPane.showMessageDialog(this, "Erro generico de escrita: " + ex.toString(), "Erro", JOptionPane.ERROR_MESSAGE);
       }
     }
   }//GEN-LAST:event_itemSalvarActionPerformed
@@ -785,39 +808,39 @@ public class Principal extends javax.swing.JFrame {
 
   private void btnMoverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMoverActionPerformed
     if (btnMover.isSelected()){
-      Per = (byte) ((Per&0b11111101)|0b00000001);
+      Per = 1;
       btnRedimensionar.setSelected(false);
       btnRotacionar.setSelected(false);
     } else {
-      Per = (byte) (Per&0b11111100);
+      Per = 0;
       ObSel = -1;
     }
   }//GEN-LAST:event_btnMoverActionPerformed
 
   private void btnRotacionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRotacionarActionPerformed
     if (btnRotacionar.isSelected()) {
-      Per = (byte) ((Per&0b11111110)|0b00000010);
+      Per = 2;
       btnRedimensionar.setSelected(false);
       btnMover.setSelected(false);
     } else {
-      Per = (byte) (Per&0b11111100);
+      Per = 0;
       ObSel = -1;
     }
   }//GEN-LAST:event_btnRotacionarActionPerformed
 
   private void btnRedimensionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRedimensionarActionPerformed
     if (btnRedimensionar.isSelected()){
-      Per = (byte) ((Per&0b11111111)|0b00000011);
+      Per = 3;
       btnMover.setSelected(false);
       btnRotacionar.setSelected(false);
     } else {
-      Per = (byte) (Per&0b11111100);
+      Per = 0;
       ObSel = -1;
     }
   }//GEN-LAST:event_btnRedimensionarActionPerformed
 
   private void btnDesselecionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDesselecionarActionPerformed
-    Per = (byte) (Per&0b11111100);
+    Per = 0;
     btnMover.setSelected(false);
     btnRotacionar.setSelected(false);
     btnRedimensionar.setSelected(false);
@@ -830,12 +853,14 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_itemAjudaActionPerformed
 
   private void pnlLadoIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMouseReleased
-    if (ObSel > -1){
-      if ((Per&1) == 1){ //Mover
+    if (ObSel > -1){ //Se ja tiver algum objeto selecionado
+      if (Per == 1){ //Mover
         //
-      } else if ((Per&2) == 2){ //Redimensionar
+      } else if (Per == 2){ //Redimensionar
         //
-      } else if ((Per&3) == 3){ //Rotacionar
+      } else if (Per == 3){ //Rotacionar
+        //
+      } else if (Per == 4){ //Selecionar
         //
       }
     } else { //Selecionar
@@ -866,6 +891,24 @@ public class Principal extends javax.swing.JFrame {
     pX.setText("" + evt.getX());
     pY.setText("" + Aux);
   }//GEN-LAST:event_pnlPerspectivaIMouseMoved
+
+  private void pnlLadoIMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMousePressed
+    
+  }//GEN-LAST:event_pnlLadoIMousePressed
+
+  private void btnSelecionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelecionarActionPerformed
+    if (btnSelecionar.isSelected()){
+      Per = 4;
+    } else {
+      Per = 0;
+    }
+  }//GEN-LAST:event_btnSelecionarActionPerformed
+
+  private void btnApagarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnApagarActionPerformed
+    if (ObSel > -1){ //Alguem selecionado
+      Obj.remove(ObSel); //Remove sem perguntar
+    }
+  }//GEN-LAST:event_btnApagarActionPerformed
 
   public void ErrosIniciais(){
     if (EI == -1){
@@ -929,11 +972,13 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JButton btnAmpliarLado;
   private javax.swing.JButton btnAmpliarPerspectiva;
   private javax.swing.JButton btnAmpliarTopo;
+  private javax.swing.JButton btnApagar;
   private javax.swing.JButton btnDesselecionar;
   private javax.swing.JToggleButton btnMover;
   private javax.swing.JButton btnRedesenhar;
   private javax.swing.JToggleButton btnRedimensionar;
   private javax.swing.JToggleButton btnRotacionar;
+  private javax.swing.JToggleButton btnSelecionar;
   private javax.swing.JTextField fX;
   private javax.swing.JTextField fY;
   private javax.swing.JMenuItem itemAbrir;

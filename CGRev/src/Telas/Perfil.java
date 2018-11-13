@@ -75,7 +75,6 @@ public class Perfil extends javax.swing.JFrame {
 
   /**
    * Novo perfil - Construtor usado
-   *
    * @param P
    */
   public Perfil(Principal P) {
@@ -1624,6 +1623,10 @@ public class Perfil extends javax.swing.JFrame {
     }
   }//GEN-LAST:event_pnlRevIMousePressed
 
+  /**
+   * Verifica a quantidade de pontos ja adicionados ao painel
+   *  - Nao pode ser superior a 250 ja que eu uso um byte pra identificar quantos tem no arquivo
+   */
   public void ChecaQuantidade(){
     if (arrPonto.size() > 250){
       JOptionPane.showMessageDialog(this, "Eu acho que voce ja adicionou pontos demais. Tá procurando algum bug!? Eu vou limpar tudo pra voce", "Erro", JOptionPane.WARNING_MESSAGE);
