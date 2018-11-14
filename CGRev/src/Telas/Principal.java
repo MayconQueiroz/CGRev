@@ -16,14 +16,16 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import static revcg.RevCG.*;
 
 /**
  * Tela principal do programa
- * 
+ *
  * @author Maycon
  */
 public class Principal extends javax.swing.JFrame {
@@ -41,34 +43,35 @@ public class Principal extends javax.swing.JFrame {
   public int ObSel = -1; //Objeto selecionado (posicao no array)
   Color Sel = Color.BLUE; //Cor de selecao
   public Camera VL, VF, VT, VP; //4 Cameras
-  
+
   /**
    * Variaveis Locais Globais
    */
   byte cabecalho; //Byte de cabecalho do arquivo (Documentar melhor uso dos bits)
   byte Per = 0; //Operacao (Translacao, rotacao ou escala)
   JFileChooser fc = new JFileChooser(); //Instancia do filechooser para salvar e abrir
-  double EL=1, ET=1, EP=1, EF=1;
+  double EL = 1, ET = 1, EP = 1, EF = 1;
   double ClicX, ClicY; //Posicao onde o painel foi clicado
   double ReleX, ReleY; //Posicao onde o painel foi "solto"
-  
+  String fileName; //Nome do arquivo aberto/recem salvo
+
   Objeto o;
-  
+
   /**
    * Creates new form Principal
    */
   public Principal() {
     try {
-      UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"); 
-    } catch (Exception ex) { 
-      ex.printStackTrace(); 
+      UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel");
+    } catch (Exception ex) {
+      ex.printStackTrace();
       EI = 4;
-    }   
+    }
     initComponents();
     ErrosIniciais();
     //Seta janela para o meio da tela, independente da resolucao.
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    this.setLocation(dim.width/2-this.getSize().width/2, 0);
+    this.setLocation(dim.width / 2 - this.getSize().width / 2, 0);
     setResizable(false); //Nao deixa redimensionar a janela
     DT = pnlTopoI.getGraphics();
     //pnlTopoI.setBackground(Color.LIGHT_GRAY);
@@ -80,106 +83,103 @@ public class Principal extends javax.swing.JFrame {
     //pnlPerspectivaI.setBackground(Color.LIGHT_GRAY);
     Obj = new ArrayList<>();
     LimpaPaineis();
+    btnCor.setEnabled(false);
     setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Principal.png")).getImage());
-    VL = new Camera(new Ponto(-20,   0,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
-    VF = new Camera(new Ponto(  0,   0, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
-    VT = new Camera(new Ponto(  0, -20,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
+    VL = new Camera(new Ponto(-20, 0, 0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
+    VF = new Camera(new Ponto(0, 0, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
+    VT = new Camera(new Ponto(0, -20, 0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
     VP = new Camera(new Ponto(-20, -20, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
   }
-  
+
   /**
    * Limpa tudo, tudo mesmo
    */
-  public void LimpaTudo(){
+  public void LimpaTudo() {
     LimpaPaineis();
     Obj.clear();
   }
-  
+
   /**
    * Limpa os paineis
    */
-  public void LimpaPaineis(){
+  public void LimpaPaineis() {
     DL.clearRect(0, 0, 340, 255);
     DF.clearRect(0, 0, 340, 255);
     DT.clearRect(0, 0, 340, 255);
     DP.clearRect(0, 0, 340, 255);
   }
-  
+
   /**
    * Pinta todos paineis
    */
-  public void PintaTudo(){
-    PintaLado();
-    PintaTopo();
-    PintaFrente();
+  public void PintaTudo() {
+    oldPintaLado();
+    oldPintaTopo();
+    oldPintaFrente();
     PintaPerspectiva();
   }
-  
+
   /**
-   * Simplificacao adotada:
-   * escala(coordenada-centro)+centro
-   * Baseada na distributiva de:
-   * (Escala*coordenada)+((1-Escala)*Centro)
+   * Simplificacao adotada: escala(coordenada-centro)+centro Baseada na
+   * distributiva de: (Escala*coordenada)+((1-Escala)*Centro)
    */
-  
   /**
    * Pinta o painel Lado
    */
-  public void PintaLado(){
+  public void oldPintaLado() {
     DL.clearRect(0, 0, 340, 255);
-    for(int i = 0; i < Obj.size(); i++){
+    for (int i = 0; i < Obj.size(); i++) {
       o = Obj.get(i);
       DL.setColor(i == ObSel ? Sel : Color.BLACK);
-      for (Aresta a : o.arrAresta){
-        DL.drawLine((int)(EL*((a.i.z)-o.C.z)+o.C.z)+mx, (int)(EL*((a.i.y)-o.C.y)+o.C.y), (int)(EL*((a.f.z)-o.C.z)+o.C.z)+mx, (int)(EL*((a.f.y)-o.C.y)+o.C.y));
+      for (Aresta a : o.arrAresta) {
+        DL.drawLine((int) (EL * ((o.arrPonto.get(a.i).z) - o.C.z) + o.C.z) + mx, (int) (EL * ((o.arrPonto.get(a.i).y) - o.C.y) + o.C.y), (int) (EL * ((o.arrPonto.get(a.f).z) - o.C.z) + o.C.z) + mx, (int) (EL * ((o.arrPonto.get(a.f).y) - o.C.y) + o.C.y));
       }
     }
   }
-  
+
   /**
    * Pinta o painel Topo
    */
-  public void PintaTopo(){
+  public void oldPintaTopo() {
     DT.clearRect(0, 0, 340, 255);
-    for(int i = 0; i < Obj.size(); i++){
+    for (int i = 0; i < Obj.size(); i++) {
       DT.setColor(i == ObSel ? Sel : Color.BLACK);
       o = Obj.get(i);
-      for (Aresta a : o.arrAresta){
-        DT.drawLine((int)(ET*((a.i.x)-o.C.x)+o.C.x)+mx, (int)(ET*((a.i.z)-o.C.z)+o.C.z)+my, (int)(ET*((a.f.x)-o.C.x)+o.C.x)+mx, (int)(ET*((a.f.z)-o.C.z)+o.C.z)+my);
+      for (Aresta a : o.arrAresta) {
+        DT.drawLine((int) (ET * ((o.arrPonto.get(a.i).x) - o.C.x) + o.C.x) + mx, (int) (ET * ((o.arrPonto.get(a.i).z) - o.C.z) + o.C.z) + my, (int) (ET * ((o.arrPonto.get(a.f).x) - o.C.x) + o.C.x) + mx, (int) (ET * ((o.arrPonto.get(a.f).z) - o.C.z) + o.C.z) + my);
       }
     }
   }
-  
+
   /**
    * Pinta o painel Frente
    */
-  public void PintaFrente(){
+  public void oldPintaFrente() {
     DF.clearRect(0, 0, 340, 255);
-    for(int i = 0; i < Obj.size(); i++){
+    for (int i = 0; i < Obj.size(); i++) {
       DF.setColor(i == ObSel ? Sel : Color.BLACK);
       o = Obj.get(i);
-      for (Aresta a : o.arrAresta){
-        DF.drawLine((int)(EF*((a.i.x)-o.C.x)+o.C.x)+mx, (int)(EF*((a.i.y)-o.C.y)+o.C.y), (int)(EF*((a.f.x)-o.C.x)+o.C.x)+mx, (int)(EF*((a.f.y)-o.C.y)+o.C.y));
+      for (Aresta a : o.arrAresta) {
+        DF.drawLine((int) (EF * ((o.arrPonto.get(a.i).x) - o.C.x) + o.C.x) + mx, (int) (EF * ((o.arrPonto.get(a.i).y) - o.C.y) + o.C.y), (int) (EF * ((o.arrPonto.get(a.f).x) - o.C.x) + o.C.x) + mx, (int) (EF * ((o.arrPonto.get(a.f).y) - o.C.y) + o.C.y));
       }
     }
   }
-  
+
   /**
    * Pinta o painel de perspectiva
    */
-  public void PintaPerspectiva(){
+  public void PintaPerspectiva() {
     DP.clearRect(0, 0, 340, 255);
   }
-  
+
   /**
    * Seleciona algum dos objetos dependendo da posicao que a tela foi clicada
    */
-  public void SelecionaAlguem(){
+  public void SelecionaAlguem() {
     //FAZER
   }
-  
-  //////////////////////////////////////////////////////////////////////////////
 
+  //////////////////////////////////////////////////////////////////////////////
   /**
    * This method is called from within the constructor to initialize the form.
    * WARNING: Do NOT modify this code. The content of this method is always
@@ -198,14 +198,16 @@ public class Principal extends javax.swing.JFrame {
     pnlMenus = new javax.swing.JTabbedPane();
     pnlObjetos = new javax.swing.JPanel();
     btnAdicionar = new javax.swing.JButton();
-    btnApagar = new javax.swing.JButton();
     btnSelecionar = new javax.swing.JToggleButton();
     btnDesselecionar = new javax.swing.JButton();
-    pnlFerramentas = new javax.swing.JPanel();
+    btnApagar = new javax.swing.JButton();
     btnMover = new javax.swing.JToggleButton();
-    btnRedesenhar = new javax.swing.JButton();
     btnRotacionar = new javax.swing.JToggleButton();
     btnRedimensionar = new javax.swing.JToggleButton();
+    pnlPropriedades = new javax.swing.JPanel();
+    jLabel1 = new javax.swing.JLabel();
+    btnCor = new javax.swing.JButton();
+    pnlCor = new javax.swing.JPanel();
     pnlAmbiente = new javax.swing.JPanel();
     pnlFrente = new javax.swing.JPanel();
     pnlFrenteI = new javax.swing.JPanel();
@@ -293,6 +295,7 @@ public class Principal extends javax.swing.JFrame {
       }
     });
 
+    btnAdicionar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/mais.png"))); // NOI18N
     btnAdicionar.setText("Adicionar");
     btnAdicionar.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -300,13 +303,7 @@ public class Principal extends javax.swing.JFrame {
       }
     });
 
-    btnApagar.setText("Apagar");
-    btnApagar.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnApagarActionPerformed(evt);
-      }
-    });
-
+    btnSelecionar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/curs.png"))); // NOI18N
     btnSelecionar.setText("Selecionar");
     btnSelecionar.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -314,12 +311,103 @@ public class Principal extends javax.swing.JFrame {
       }
     });
 
+    btnDesselecionar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/cursB.png"))); // NOI18N
     btnDesselecionar.setText("Desselecionar");
     btnDesselecionar.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         btnDesselecionarActionPerformed(evt);
       }
     });
+
+    btnApagar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/apag.png"))); // NOI18N
+    btnApagar.setText("Apagar");
+    btnApagar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnApagarActionPerformed(evt);
+      }
+    });
+
+    btnMover.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/Move.png"))); // NOI18N
+    btnMover.setText("Mover");
+    btnMover.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mouseClicked(java.awt.event.MouseEvent evt) {
+        btnMoverMouseClicked(evt);
+      }
+    });
+    btnMover.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnMoverActionPerformed(evt);
+      }
+    });
+
+    btnRotacionar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/rota.png"))); // NOI18N
+    btnRotacionar.setText("Rotacionar");
+    btnRotacionar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnRotacionarActionPerformed(evt);
+      }
+    });
+
+    btnRedimensionar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/redm.png"))); // NOI18N
+    btnRedimensionar.setText("Redimensionar");
+    btnRedimensionar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnRedimensionarActionPerformed(evt);
+      }
+    });
+
+    pnlPropriedades.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Propriedades"));
+
+    jLabel1.setText("Cor");
+
+    btnCor.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/corsel.png"))); // NOI18N
+    btnCor.setText("Alterar cor");
+    btnCor.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnCorActionPerformed(evt);
+      }
+    });
+
+    pnlCor.setPreferredSize(new java.awt.Dimension(20, 12));
+
+    javax.swing.GroupLayout pnlCorLayout = new javax.swing.GroupLayout(pnlCor);
+    pnlCor.setLayout(pnlCorLayout);
+    pnlCorLayout.setHorizontalGroup(
+      pnlCorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGap(0, 20, Short.MAX_VALUE)
+    );
+    pnlCorLayout.setVerticalGroup(
+      pnlCorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGap(0, 12, Short.MAX_VALUE)
+    );
+
+    javax.swing.GroupLayout pnlPropriedadesLayout = new javax.swing.GroupLayout(pnlPropriedades);
+    pnlPropriedades.setLayout(pnlPropriedadesLayout);
+    pnlPropriedadesLayout.setHorizontalGroup(
+      pnlPropriedadesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(pnlPropriedadesLayout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(pnlPropriedadesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(btnCor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addGroup(pnlPropriedadesLayout.createSequentialGroup()
+            .addGap(21, 21, 21)
+            .addComponent(jLabel1)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(pnlCor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGap(0, 0, Short.MAX_VALUE)))
+        .addContainerGap())
+    );
+    pnlPropriedadesLayout.setVerticalGroup(
+      pnlPropriedadesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(pnlPropriedadesLayout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(pnlPropriedadesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(jLabel1)
+          .addComponent(pnlCor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnCor)
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+    );
 
     javax.swing.GroupLayout pnlObjetosLayout = new javax.swing.GroupLayout(pnlObjetos);
     pnlObjetos.setLayout(pnlObjetosLayout);
@@ -328,10 +416,14 @@ public class Principal extends javax.swing.JFrame {
       .addGroup(pnlObjetosLayout.createSequentialGroup()
         .addContainerGap()
         .addGroup(pnlObjetosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(btnAdicionar, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
-          .addComponent(btnApagar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnAdicionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(btnSelecionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnDesselecionar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE))
+          .addComponent(btnDesselecionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnApagar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnMover, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnRotacionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnRedimensionar, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)
+          .addComponent(pnlPropriedades, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         .addContainerGap())
     );
     pnlObjetosLayout.setVerticalGroup(
@@ -345,84 +437,28 @@ public class Principal extends javax.swing.JFrame {
         .addComponent(btnDesselecionar)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(btnApagar)
-        .addContainerGap(451, Short.MAX_VALUE))
-    );
-
-    pnlMenus.addTab("Objetos", pnlObjetos);
-
-    btnMover.setText("Mover");
-    btnMover.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mouseClicked(java.awt.event.MouseEvent evt) {
-        btnMoverMouseClicked(evt);
-      }
-    });
-    btnMover.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnMoverActionPerformed(evt);
-      }
-    });
-
-    btnRedesenhar.setText("Redesenhar");
-    btnRedesenhar.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnRedesenharActionPerformed(evt);
-      }
-    });
-
-    btnRotacionar.setText("Rotacionar");
-    btnRotacionar.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnRotacionarActionPerformed(evt);
-      }
-    });
-
-    btnRedimensionar.setText("Redimensionar");
-    btnRedimensionar.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        btnRedimensionarActionPerformed(evt);
-      }
-    });
-
-    javax.swing.GroupLayout pnlFerramentasLayout = new javax.swing.GroupLayout(pnlFerramentas);
-    pnlFerramentas.setLayout(pnlFerramentasLayout);
-    pnlFerramentasLayout.setHorizontalGroup(
-      pnlFerramentasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(pnlFerramentasLayout.createSequentialGroup()
-        .addContainerGap()
-        .addGroup(pnlFerramentasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(btnMover, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
-          .addComponent(btnRedesenhar, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
-          .addComponent(btnRotacionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnRedimensionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        .addContainerGap())
-    );
-    pnlFerramentasLayout.setVerticalGroup(
-      pnlFerramentasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(pnlFerramentasLayout.createSequentialGroup()
-        .addContainerGap()
+        .addGap(18, 18, 18)
         .addComponent(btnMover)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(btnRotacionar)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(btnRedimensionar)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 446, Short.MAX_VALUE)
-        .addComponent(btnRedesenhar)
-        .addContainerGap())
+        .addGap(18, 18, 18)
+        .addComponent(pnlPropriedades, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addContainerGap(264, Short.MAX_VALUE))
     );
 
-    pnlMenus.addTab("Ferramentas", null, pnlFerramentas, "");
-    pnlFerramentas.getAccessibleContext().setAccessibleName("");
-    pnlFerramentas.getAccessibleContext().setAccessibleDescription("");
+    pnlMenus.addTab("Objetos", pnlObjetos);
 
     javax.swing.GroupLayout pnlAmbienteLayout = new javax.swing.GroupLayout(pnlAmbiente);
     pnlAmbiente.setLayout(pnlAmbienteLayout);
     pnlAmbienteLayout.setHorizontalGroup(
       pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 174, Short.MAX_VALUE)
+      .addGap(0, 175, Short.MAX_VALUE)
     );
     pnlAmbienteLayout.setVerticalGroup(
       pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 572, Short.MAX_VALUE)
+      .addGap(0, 588, Short.MAX_VALUE)
     );
 
     pnlMenus.addTab("Ambiente", pnlAmbiente);
@@ -459,7 +495,7 @@ public class Principal extends javax.swing.JFrame {
         .addComponent(fX, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(fY, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 221, Short.MAX_VALUE)
         .addComponent(btnAmpliarFrente)
         .addContainerGap())
     );
@@ -582,6 +618,7 @@ public class Principal extends javax.swing.JFrame {
     menuArquivo.setText("Arquivo");
 
     itemNovo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+    itemNovo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/novo.png"))); // NOI18N
     itemNovo.setText("Novo");
     itemNovo.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -590,6 +627,8 @@ public class Principal extends javax.swing.JFrame {
     });
     menuArquivo.add(itemNovo);
 
+    itemAbrir.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+    itemAbrir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/abre.png"))); // NOI18N
     itemAbrir.setText("Abrir");
     itemAbrir.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -599,6 +638,7 @@ public class Principal extends javax.swing.JFrame {
     menuArquivo.add(itemAbrir);
 
     itemSalvar.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+    itemSalvar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/salva.png"))); // NOI18N
     itemSalvar.setText("Salvar");
     itemSalvar.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -618,6 +658,7 @@ public class Principal extends javax.swing.JFrame {
     menuAjuda.setText("Ajuda");
 
     itemAjuda.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
+    itemAjuda.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/interr.png"))); // NOI18N
     itemAjuda.setText("Tópicos de ajuda");
     itemAjuda.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -627,6 +668,7 @@ public class Principal extends javax.swing.JFrame {
     menuAjuda.add(itemAjuda);
     menuAjuda.add(jSeparator1);
 
+    itemSobre.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/_sobreic.png"))); // NOI18N
     itemSobre.setText("Sobre");
     itemSobre.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -652,7 +694,7 @@ public class Principal extends javax.swing.JFrame {
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addComponent(pnlPerspectiva, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
           .addComponent(pnlFrente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(pnlMenus)
         .addContainerGap())
     );
@@ -669,7 +711,7 @@ public class Principal extends javax.swing.JFrame {
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(pnlTopo, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
               .addComponent(pnlPerspectiva, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)))
-          .addComponent(pnlMenus))
+          .addComponent(pnlMenus, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
         .addContainerGap())
     );
 
@@ -693,15 +735,15 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_pnlObjetosMouseMoved
 
   private void itemNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemNovoActionPerformed
-    if(!Obj.isEmpty()){
+    if (!Obj.isEmpty()) {
       Object[] options = {"Sim", "Não", "Cancelar"};
       int n = JOptionPane.showOptionDialog(this, "Há objetos não salvos, deseja salvá-los?",
-      "Cena existente", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-      options, options[2]);
-      if (n == 0){ //Se o usuario quiser salvar
+              "Cena existente", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+              options, options[2]);
+      if (n == 0) { //Se o usuario quiser salvar
         itemSalvarActionPerformed(null);
         LimpaTudo();
-      } else if (n == 1){ //Se nao quiser
+      } else if (n == 1) { //Se nao quiser
         LimpaTudo();
       } //Qualquer outra coisa cancela
     } else { //Mesmo que Obj esteja vazio, pode ter algum lixo em algum outro lugar
@@ -711,40 +753,74 @@ public class Principal extends javax.swing.JFrame {
 
   private void itemAbrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAbrirActionPerformed
     fc = new JFileChooser();
-    byte r;
-    double xi, yi, zi, xf, yf, zf;
+    double x, y, z;
+    short s, e, l, ri;
     int returnVal = fc.showOpenDialog(this);
     if (returnVal == JFileChooser.APPROVE_OPTION) { //FAZER Adaptar para novo modo de leitura e gravacao
       File file = fc.getSelectedFile();
-      String s = file.toString();
+      fileName = file.toString();
       if (!file.canRead()) {
         JOptionPane.showMessageDialog(this, "Nao foi possivel ler o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+        fileName = "";
         return;
       }
       try {
-        DataInputStream entr = new DataInputStream(new FileInputStream(s));
+        DataInputStream entr = new DataInputStream(new FileInputStream(fileName));
         cabecalho = entr.readByte();
         LimpaTudo();
+        if ((cabecalho & 8) == 0) { //Tentando ler arquivo que nao e de cena
+          JOptionPane.showMessageDialog(this, "O arquivo nao e um arquivo de cena, verifique", "Erro", JOptionPane.ERROR_MESSAGE);
+          fileName = "";
+          return;
+        }
+        if ((cabecalho & 16) == 0) { //So sei ler a versao 1 do arquivo
+          JOptionPane.showMessageDialog(this, "Versao de arquivo de cena nao suportado por esta versao, espera-se a versao: 1", "Erro", JOptionPane.ERROR_MESSAGE);
+          fileName = "";
+          return;
+        }
         while (entr.available() > 0) { //Le
-          r = entr.readByte();
-          if (r == 0){ //Objeto
-            Obj.add(new Objeto());
-          } else if (r == 1){ //Ponto
-            Obj.get(Obj.size()-1).arrPonto.add(new Ponto(entr.readDouble(), entr.readDouble(), entr.readDouble()));
-          } else if (r == 2){ //Aresta
-            Obj.get(Obj.size()-1).arrAresta.add(new Aresta(new Ponto(entr.readDouble(), entr.readDouble(), entr.readDouble()), new Ponto(entr.readDouble(), entr.readDouble(), entr.readDouble())));
-          } else {
-            JOptionPane.showMessageDialog(this, "Identificador invalido", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
+          Objeto tmp = new Objeto();
+          short r = entr.readShort();
+          short g = entr.readShort();
+          short b = entr.readShort();
+          tmp.VaiCor(r, g, b);
+          byte F = entr.readByte();
+          tmp.Fechado = (F == 1);
+          short QP = entr.readShort();
+          for (int i = 0; i < QP; i++) {
+            x = entr.readDouble();
+            y = entr.readDouble();
+            z = entr.readDouble();
+            tmp.arrPonto.add(new Ponto(x, y, z));
+          }
+          QP = entr.readShort();
+          for (int i = 0; i < QP; i++) {
+            s = entr.readShort();
+            e = entr.readShort();
+            l = entr.readShort();
+            ri = entr.readShort();
+            tmp.arrAresta.add(new Aresta(s, e, l, ri));
+          }
+          QP = entr.readShort();
+          for (int i = 0; i < QP; i++) {
+            r = entr.readByte();
+            ri = entr.readShort();
+            if (r == 0) {
+              tmp.arrFace.add(new Face(ri));
+            } else {
+              tmp.arrFace.get(tmp.arrFace.size() - 1).fAresta.add((int) ri);
+            }
           }
         }
       } catch (FileNotFoundException ex) {
         Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
         JOptionPane.showMessageDialog(this, "Nao foi possivel ler o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+        LimpaTudo();
         return;
       } catch (IOException ex) {
         Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
         JOptionPane.showMessageDialog(this, "Erro generico de leitura", "Erro", JOptionPane.ERROR_MESSAGE);
+        LimpaTudo();
         return;
       }
     }
@@ -756,7 +832,7 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_itemAbrirActionPerformed
 
   private void btnMoverMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnMoverMouseClicked
-    if(btnMover.isSelected()){
+    if (btnMover.isSelected()) {
       //System.out.println("Policia");
     } else {
       //System.out.println("Juiz");
@@ -764,32 +840,54 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_btnMoverMouseClicked
 
   private void itemSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemSalvarActionPerformed
-    fc = new JFileChooser();
-    int returnVal = fc.showSaveDialog(this); //FAZER salvar o nome do arquivo se lido ou ja salvo para sobrescrever sem perguntar
-    if (returnVal == JFileChooser.APPROVE_OPTION) { //FAZER Adaptar para novo modo de leitura e gravacao
-      File file = fc.getSelectedFile();
-      String s = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
-      //System.out.println("Saida = " + s);
-      cabecalho = (byte) (VERSAO_CENA << 4);
+    int returnVal, Amn = 0;
+    if (fileName.isEmpty()) {
+      fc = new JFileChooser();
+      returnVal = fc.showSaveDialog(this); //FAZER salvar o nome do arquivo se lido ou ja salvo para sobrescrever sem perguntar
+      if (returnVal == JFileChooser.APPROVE_OPTION) { //FAZER Adaptar para novo modo de leitura e gravacao
+        File file = fc.getSelectedFile();
+        fileName = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
+        Amn = 1;
+      }
+    } else if (fileName.contains(".acr")) {
+      Amn = 1;
+    }
+    if (Amn == 1) {
+      cabecalho = (byte) VERSAO_CENA;
+      cabecalho += 8; //Marcador de "Cena"
       try {
-        try (DataOutputStream said = new DataOutputStream(new FileOutputStream(s))) {
+        try (DataOutputStream said = new DataOutputStream(new FileOutputStream(fileName))) {
           said.writeByte(cabecalho);
           for (Objeto ob : Obj) {
-            said.writeByte(0);
-            for (Ponto p : ob.arrPonto) {
+            said.writeShort((short) (ob.BG.getRed() * 255)); //RGB
+            said.writeShort((short) (ob.BG.getGreen() * 255));
+            said.writeShort((short) (ob.BG.getBlue() * 255));
+            if (ob.Fechado) {
               said.writeByte(1);
+            } else {
+              said.writeByte(0);
+            }
+            said.writeShort(ob.arrPonto.size());
+            for (Ponto p : ob.arrPonto) {
               said.writeDouble(p.x);
               said.writeDouble(p.y);
               said.writeDouble(p.z);
             }
+            said.writeShort(ob.arrAresta.size());
             for (Aresta a : ob.arrAresta) {
-              said.writeByte(2);
-              said.writeDouble(a.i.x);
-              said.writeDouble(a.i.y);
-              said.writeDouble(a.i.z);
-              said.writeDouble(a.f.x);
-              said.writeDouble(a.f.y);
-              said.writeDouble(a.f.z);
+              said.writeShort(a.i);
+              said.writeShort(a.f);
+              said.writeShort(a.e);
+              said.writeShort(a.d);
+            }
+            said.writeShort(ob.arrFace.size());
+            for (Face f : ob.arrFace) {
+              said.writeByte(0);
+              said.writeShort(f.fAresta.get(0));
+              for (int ia = 1; ia < f.fAresta.size(); ia++) {
+                said.writeByte(1);
+                said.writeShort(f.fAresta.get(ia));
+              }
             }
           }
         }
@@ -801,13 +899,8 @@ public class Principal extends javax.swing.JFrame {
     }
   }//GEN-LAST:event_itemSalvarActionPerformed
 
-  private void btnRedesenharActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRedesenharActionPerformed
-    LimpaPaineis();
-    PintaTudo();
-  }//GEN-LAST:event_btnRedesenharActionPerformed
-
   private void btnMoverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMoverActionPerformed
-    if (btnMover.isSelected()){
+    if (btnMover.isSelected()) {
       Per = 1;
       btnRedimensionar.setSelected(false);
       btnRotacionar.setSelected(false);
@@ -829,7 +922,7 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_btnRotacionarActionPerformed
 
   private void btnRedimensionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRedimensionarActionPerformed
-    if (btnRedimensionar.isSelected()){
+    if (btnRedimensionar.isSelected()) {
       Per = 3;
       btnMover.setSelected(false);
       btnRotacionar.setSelected(false);
@@ -845,6 +938,7 @@ public class Principal extends javax.swing.JFrame {
     btnRotacionar.setSelected(false);
     btnRedimensionar.setSelected(false);
     ObSel = -1;
+    btnCor.setEnabled(false);
   }//GEN-LAST:event_btnDesselecionarActionPerformed
 
   private void itemAjudaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAjudaActionPerformed
@@ -853,14 +947,14 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_itemAjudaActionPerformed
 
   private void pnlLadoIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMouseReleased
-    if (ObSel > -1){ //Se ja tiver algum objeto selecionado
-      if (Per == 1){ //Mover
+    if (ObSel > -1) { //Se ja tiver algum objeto selecionado
+      if (Per == 1) { //Mover
         //
-      } else if (Per == 2){ //Redimensionar
+      } else if (Per == 2) { //Redimensionar
         //
-      } else if (Per == 3){ //Rotacionar
+      } else if (Per == 3) { //Rotacionar
         //
-      } else if (Per == 4){ //Selecionar
+      } else if (Per == 4) { //Selecionar
         //
       }
     } else { //Selecionar
@@ -893,11 +987,11 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_pnlPerspectivaIMouseMoved
 
   private void pnlLadoIMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMousePressed
-    
+
   }//GEN-LAST:event_pnlLadoIMousePressed
 
   private void btnSelecionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelecionarActionPerformed
-    if (btnSelecionar.isSelected()){
+    if (btnSelecionar.isSelected()) {
       Per = 4;
     } else {
       Per = 0;
@@ -905,32 +999,37 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_btnSelecionarActionPerformed
 
   private void btnApagarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnApagarActionPerformed
-    if (ObSel > -1){ //Alguem selecionado
+    if (ObSel > -1) { //Alguem selecionado
       Obj.remove(ObSel); //Remove sem perguntar
     }
   }//GEN-LAST:event_btnApagarActionPerformed
 
-  public void ErrosIniciais(){
-    if (EI == -1){
+  private void btnCorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCorActionPerformed
+    this.setEnabled(false);
+    new SeletorCor(this).setVisible(true);
+  }//GEN-LAST:event_btnCorActionPerformed
+
+  public void ErrosIniciais() {
+    if (EI == -1) {
       JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 0){
+    } else if (EI == 0) {
       return; //Ready to go
-    } else if (EI == 1){
+    } else if (EI == 1) {
       JOptionPane.showMessageDialog(this, "Classe faltante, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 2){
+    } else if (EI == 2) {
       JOptionPane.showMessageDialog(this, "Erro de instanciacao, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 3){
+    } else if (EI == 3) {
       JOptionPane.showMessageDialog(this, "Acesso Ilegal, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 4){
+    } else if (EI == 4) {
       JOptionPane.showMessageDialog(this, "Aparencia do programa com problemas (Apenas windows), consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
     } else {
       JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
     }
     System.exit(-1);
   }
-  
+
   public static byte EI = 0;
-  
+
   /**
    * @param args the command line arguments
    */
@@ -940,7 +1039,7 @@ public class Principal extends javax.swing.JFrame {
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
-    /*try {
+ /*try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
         if ("Windows".equals(info.getName())) {
           javax.swing.UIManager.setLookAndFeel(info.getClassName());
@@ -973,9 +1072,9 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JButton btnAmpliarPerspectiva;
   private javax.swing.JButton btnAmpliarTopo;
   private javax.swing.JButton btnApagar;
+  public  javax.swing.JButton btnCor;
   private javax.swing.JButton btnDesselecionar;
   private javax.swing.JToggleButton btnMover;
-  private javax.swing.JButton btnRedesenhar;
   private javax.swing.JToggleButton btnRedimensionar;
   private javax.swing.JToggleButton btnRotacionar;
   private javax.swing.JToggleButton btnSelecionar;
@@ -987,6 +1086,7 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JMenuItem itemSalvar;
   private javax.swing.JMenuItem itemSalvarComo;
   private javax.swing.JMenuItem itemSobre;
+  private javax.swing.JLabel jLabel1;
   private javax.swing.JMenuItem jMenuItem2;
   private javax.swing.JPopupMenu.Separator jSeparator1;
   private javax.swing.JTextField lX;
@@ -998,7 +1098,7 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JTextField pX;
   private javax.swing.JTextField pY;
   private javax.swing.JPanel pnlAmbiente;
-  private javax.swing.JPanel pnlFerramentas;
+  private javax.swing.JPanel pnlCor;
   private javax.swing.JPanel pnlFrente;
   private javax.swing.JPanel pnlFrenteI;
   private javax.swing.JPanel pnlLado;
@@ -1007,6 +1107,7 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JPanel pnlObjetos;
   private javax.swing.JPanel pnlPerspectiva;
   private javax.swing.JPanel pnlPerspectivaI;
+  private javax.swing.JPanel pnlPropriedades;
   private javax.swing.JPanel pnlTopo;
   private javax.swing.JPanel pnlTopoI;
   private javax.swing.JTextField tX;

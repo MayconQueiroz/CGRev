@@ -105,7 +105,7 @@ public class Perfil extends javax.swing.JFrame {
   public void DesenhaPerfil() {
     D.clearRect(0, 0, 400, 300);
     for (Aresta a : arrAresta) {
-      D.drawLine((int) a.i.x, (int) a.i.y, (int) a.f.x, (int) a.f.y);
+      D.drawLine((int) arrPonto.get(a.i).x, (int) arrPonto.get(a.i).y, (int) arrPonto.get(a.f).x, (int) arrPonto.get(a.f).y);
     }
     if (isB) { //Se estiver no meio de uma curva de Bezier
       D.setColor(Color.BLUE);
@@ -144,15 +144,12 @@ public class Perfil extends javax.swing.JFrame {
    * Constroi arestas com base nos pontos ja existentes (De leitura por exemplo)
    */
   public void ConstroiArestas() {
-    Ponto Au = null;
     arrAresta.clear();
-    Au = arrPonto.get(0);
-    for (Ponto p : arrPonto.subList(1, arrPonto.size())) {
-      arrAresta.add(new Aresta(Au, p));
-      Au = p;
+    for (int i = 1; i < arrPonto.size(); i++) {
+      arrAresta.add(new Aresta(i-1, i));
     }
-    if ((cabecalho & 8) != 0) { //Fechada
-      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
+    if ((cabecalho & 4) != 0) { //Fechada
+      arrAresta.add(new Aresta(arrPonto.size() - 1, 0));
     }
     ChecaQuantidade();
   }
@@ -244,55 +241,55 @@ public class Perfil extends javax.swing.JFrame {
             plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotaciona
             plinha.z = (xold * (-csin)) + (plinha.z * ccos);
             obj.arrPonto.add(new Ponto(plinha)); //copia plinha para o objeto
-            obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[y]), obj.arrPonto.get(obj.arrPonto.size()-1))); //Aresta entre o ponto rotacionado e o seu irmão anterior
+            obj.arrAresta.add(new Aresta(BPosi[y], obj.arrPonto.size()-1)); //Aresta entre o ponto rotacionado e o seu irmão anterior
             BPosi[y] = obj.arrPonto.size()-1; //Agora o irmao anterior passa a ser ele
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1)); //Adiciona aresta na face
-            obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]); //Adiciona a aresta esta face como a esquerda
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1); //Adiciona aresta na face
+            obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij]; //Adiciona a aresta esta face como a esquerda
             if ((FPosi.length - 1) > (ij + 1)){ //Se nao for a ultima face liga com a proxima tambem
-              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij+1]);
+              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij+1];
             }
             if (y == 0){
               PPP = obj.arrAresta.size()-1; //Pode estar errado!
             } else if (y > 0){ //Qualquer outro ponto que nao o primeiro (liga com o irmao de cima)
               if (arrPonto.get(y - 1).x != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 2), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(obj.arrPonto.size() - 2, obj.arrPonto.size() - 1));
               } else { //Ponto anterior no eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y - 1), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y - 1, obj.arrPonto.size() - 1));
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           } else { //Ponto no eixo
             if (y > 0){ //Se nao for o primeiro ponto (ja que so liga com o irmao de cima)
               if (arrPonto.get(y - 1).x != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y, obj.arrPonto.size() - 1));
               } else {
                 ErroPadrao();
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++; //Para a proxima face
             }
           }
         }
         if (fechado){ //Se o objeto for fechado (Vertice final == inicial)
-          obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[BPosi.length-1]), obj.arrPonto.get(BPosi[0])));
-          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
+          obj.arrAresta.add(new Aresta(BPosi[BPosi.length-1], BPosi[0]));
+          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
           if (PPP != -1){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(PPP));
-            obj.arrAresta.get(PPP).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(PPP);
+            obj.arrAresta.get(PPP).e = FPosi[ij];
           }
           if (UPP == 0){ //Tenho minhas duvidas sobre esse trecho
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-3));
-            obj.arrAresta.get(obj.arrAresta.size()-3).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-3);
+            obj.arrAresta.get(obj.arrAresta.size()-3).e = FPosi[ij];
           }
           
         }
@@ -301,25 +298,25 @@ public class Perfil extends javax.swing.JFrame {
       int ij = 0;
       for (y = 0; y < arrPonto.size(); y++){ //Praticamente tudo igual, mas liga os pontos nos iniciais ao inves de rotacionar mais uma vez
         if (arrPonto.get(y).x != 0 || arrPonto.get(y).z != 0) { //Se nao for do eixo
-          obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[y]), obj.arrPonto.get(y))); //Ultimos vertices com os primeiros
+          obj.arrAresta.add(new Aresta(BPosi[y], y)); //Ultimos vertices com os primeiros
           if (y > 0){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
             if ((FPosi.length - 1) > (ij + 1)){
-              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij+1]);
+              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij+1];
             }
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(ij));
-            obj.arrAresta.get(ij).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(ij);
+            obj.arrAresta.get(ij).e = FPosi[ij];
             ij++;
           } else { //y = 0
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij];
           }
         } else { //Ponto no eixo
           if (y > 0){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(ij));
-            obj.arrAresta.get(ij).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(ij);
+            obj.arrAresta.get(ij).e = FPosi[ij];
             ij++;
           }
         }
@@ -334,55 +331,55 @@ public class Perfil extends javax.swing.JFrame {
             plinha.x = (plinha.x * ccos) + (plinha.z * csin); //Rotaciona
             plinha.z = (xold * (-csin)) + (plinha.z * ccos);
             obj.arrPonto.add(new Ponto(plinha)); //copia plinha
-            obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[y]), obj.arrPonto.get(obj.arrPonto.size()-1)));
+            obj.arrAresta.add(new Aresta(BPosi[y], obj.arrPonto.size()-1));
             BPosi[y] = obj.arrPonto.size()-1;
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
             if ((FPosi.length - 1) > (ij + 1)){
-              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij+1]);
+              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij+1];
             }
             if (y == 0){
               PPP = obj.arrAresta.size()-1;
             } else if (y > 0){
               if (arrPonto.get(y - 1).x != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 2), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(obj.arrPonto.size() - 2, obj.arrPonto.size() - 1));
               } else {
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y - 1), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y - 1, obj.arrPonto.size() - 1));
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           } else { //Ponto no eixo
             if (y > 0){
               if (arrPonto.get(y - 1).x != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y, obj.arrPonto.size() - 1));
               } else {
                 ErroPadrao();
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           }
         }
         if (fechado){
-          obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[BPosi.length-1]), obj.arrPonto.get(BPosi[0])));
-          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
+          obj.arrAresta.add(new Aresta(BPosi[BPosi.length-1], BPosi[0]));
+          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
           if (PPP != -1){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(PPP));
-            obj.arrAresta.get(PPP).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(PPP);
+            obj.arrAresta.get(PPP).e = FPosi[ij];
           }
           if (UPP == 0){ //Duvidas sobre esse trecho
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-3));
-            obj.arrAresta.get(obj.arrAresta.size()-3).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-3);
+            obj.arrAresta.get(obj.arrAresta.size()-3).e = FPosi[ij];
           }
         }
       }
@@ -455,55 +452,55 @@ public class Perfil extends javax.swing.JFrame {
             plinha.y = (plinha.y * ccos) + (plinha.z * (-csin));
             plinha.z = (xold * csin) + (plinha.z * ccos);
             obj.arrPonto.add(new Ponto(plinha)); //copia plinha
-            obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[y]), obj.arrPonto.get(obj.arrPonto.size()-1)));
+            obj.arrAresta.add(new Aresta(BPosi[y], obj.arrPonto.size()-1));
             BPosi[y] = obj.arrPonto.size()-1;
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
             if ((FPosi.length - 1) > (ij + 1)){
-              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij+1]);
+              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij+1];
             }
             if (y == 0){
               PPP = obj.arrAresta.size()-1;
             } else if (y > 0){
               if (arrPonto.get(y - 1).y != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 2), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(obj.arrPonto.size() - 2, obj.arrPonto.size() - 1));
               } else {
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y - 1), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y - 1, obj.arrPonto.size() - 1));
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           } else { //Ponto no eixo
             if (y > 0){
               if (arrPonto.get(y - 1).y != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y, obj.arrPonto.size() - 1));
               } else {
                 ErroPadrao();
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           }
         }
         if (fechado){
-          obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[BPosi.length-1]), obj.arrPonto.get(BPosi[0])));
-          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
+          obj.arrAresta.add(new Aresta(BPosi[BPosi.length-1], BPosi[0]));
+          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
           if (PPP != -1){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(PPP));
-            obj.arrAresta.get(PPP).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(PPP);
+            obj.arrAresta.get(PPP).e = FPosi[ij];
           }
           if (UPP == 0){ //Duvidas sobre esse trecho
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-3));
-            obj.arrAresta.get(obj.arrAresta.size()-3).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-3);
+            obj.arrAresta.get(obj.arrAresta.size()-3).e = FPosi[ij];
           }
         }
       }
@@ -511,25 +508,25 @@ public class Perfil extends javax.swing.JFrame {
       int ij = 0;
       for (y = 0; y < arrPonto.size(); y++){
         if (arrPonto.get(y).y != 0 || arrPonto.get(y).z != 0) { //Se nao for do eixo
-          obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[y]), obj.arrPonto.get(y)));
+          obj.arrAresta.add(new Aresta(BPosi[y], y));
           if (y > 0){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
             if ((FPosi.length - 1) > (ij + 1)){
-              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij+1]);
+              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij+1];
             }
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(ij));
-            obj.arrAresta.get(ij).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(ij);
+            obj.arrAresta.get(ij).e = FPosi[ij];
             ij++;
           } else {
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij];
           }
         } else { //Ponto no eixo
           if (y > 0){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(ij));
-            obj.arrAresta.get(ij).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(ij);
+            obj.arrAresta.get(ij).e = FPosi[ij];
             ij++;
           }
         }
@@ -544,55 +541,55 @@ public class Perfil extends javax.swing.JFrame {
             plinha.y = (plinha.y * ccos) + (plinha.z * (-csin));
             plinha.z = (xold * csin) + (plinha.z * ccos);
             obj.arrPonto.add(new Ponto(plinha)); //copia plinha
-            obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[y]), obj.arrPonto.get(obj.arrPonto.size()-1)));
+            obj.arrAresta.add(new Aresta(BPosi[y], obj.arrPonto.size()-1));
             BPosi[y] = obj.arrPonto.size()-1;
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
             if ((FPosi.length - 1) > (ij + 1)){
-              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij+1]);
+              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij+1];
             }
             if (y == 0){
               PPP = obj.arrAresta.size()-1;
             } else if (y > 0){
               if (arrPonto.get(y - 1).y != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 2), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(obj.arrPonto.size() - 2, obj.arrPonto.size() - 1));
               } else {
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y - 1), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y - 1, obj.arrPonto.size() - 1));
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           } else { //Ponto no eixo
             if (y > 0){
               if (arrPonto.get(y - 1).y != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y, obj.arrPonto.size() - 1));
               } else {
                 ErroPadrao();
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           }
         }
         if (fechado){
-          obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[BPosi.length-1]), obj.arrPonto.get(BPosi[0])));
-          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
+          obj.arrAresta.add(new Aresta(BPosi[BPosi.length-1], BPosi[0]));
+          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
           if (PPP != -1){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(PPP));
-            obj.arrAresta.get(PPP).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(PPP);
+            obj.arrAresta.get(PPP).e = FPosi[ij];
           }
           if (UPP == 0){ //Duvidas sobre esse trecho
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-3));
-            obj.arrAresta.get(obj.arrAresta.size()-3).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-3);
+            obj.arrAresta.get(obj.arrAresta.size()-3).e = FPosi[ij];
           }
         }
       }
@@ -663,55 +660,55 @@ public class Perfil extends javax.swing.JFrame {
             plinha.x = (plinha.x * ccos) + (plinha.y * (-csin));
             plinha.y = (xold * csin) + (plinha.y * ccos);
             obj.arrPonto.add(new Ponto(plinha)); //copia plinha
-            obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[y]), obj.arrPonto.get(obj.arrPonto.size()-1)));
+            obj.arrAresta.add(new Aresta(BPosi[y], obj.arrPonto.size()-1));
             BPosi[y] = obj.arrPonto.size()-1;
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
             if ((FPosi.length - 1) > (ij + 1)){
-              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij+1]);
+              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij+1];
             }
             if (y == 0){
               PPP = obj.arrAresta.size()-1;
             } else if (y > 0){
               if (arrPonto.get(y - 1).x != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 2), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(obj.arrPonto.size() - 2, obj.arrPonto.size() - 1));
               } else {
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y - 1), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y - 1, obj.arrPonto.size() - 1));
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           } else { //Ponto no eixo
             if (y > 0){
               if (arrPonto.get(y - 1).x != 0 || arrPonto.get(y - 1).y != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y, obj.arrPonto.size() - 1));
               } else {
                 ErroPadrao();
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           }
         }
         if (fechado){
-          obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[BPosi.length-1]), obj.arrPonto.get(BPosi[0])));
-          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
+          obj.arrAresta.add(new Aresta(BPosi[BPosi.length-1], BPosi[0]));
+          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
           if (PPP != -1){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(PPP));
-            obj.arrAresta.get(PPP).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(PPP);
+            obj.arrAresta.get(PPP).e = FPosi[ij];
           }
           if (UPP == 0){ //Duvidas sobre esse trecho
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-3));
-            obj.arrAresta.get(obj.arrAresta.size()-3).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-3);
+            obj.arrAresta.get(obj.arrAresta.size()-3).e = FPosi[ij];
           }
         }
       }
@@ -719,25 +716,25 @@ public class Perfil extends javax.swing.JFrame {
       int ij = 0;
       for (y = 0; y < arrPonto.size(); y++){
         if (arrPonto.get(y).x != 0 || arrPonto.get(y).y != 0) { //Se nao for do eixo
-          obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[y]), obj.arrPonto.get(y)));
+          obj.arrAresta.add(new Aresta(BPosi[y], y));
           if (y > 0){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
             if ((FPosi.length - 1) > (ij + 1)){
-              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij+1]);
+              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij+1];
             }
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(ij));
-            obj.arrAresta.get(ij).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(ij);
+            obj.arrAresta.get(ij).e = FPosi[ij];
             ij++;
           } else {
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij];
           }
         } else { //Ponto no eixo
           if (y > 0){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(ij));
-            obj.arrAresta.get(ij).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(ij);
+            obj.arrAresta.get(ij).e = FPosi[ij];
             ij++;
           }
         }
@@ -752,55 +749,55 @@ public class Perfil extends javax.swing.JFrame {
             plinha.x = (plinha.x * ccos) + (plinha.y * (-csin));
             plinha.y = (xold * csin) + (plinha.y * ccos);
             obj.arrPonto.add(new Ponto(plinha)); //copia plinha
-            obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[y]), obj.arrPonto.get(obj.arrPonto.size()-1)));
+            obj.arrAresta.add(new Aresta(BPosi[y], obj.arrPonto.size()-1));
             BPosi[y] = obj.arrPonto.size()-1;
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-            obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+            obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
             if ((FPosi.length - 1) > (ij + 1)){
-              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(FPosi[ij+1]);
+              obj.arrFace.get(FPosi[ij+1]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = FPosi[ij+1];
             }
             if (y == 0){
               PPP = obj.arrAresta.size()-1;
             } else if (y > 0){
               if (arrPonto.get(y - 1).x != 0 || arrPonto.get(y - 1).z != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(obj.arrPonto.size() - 2), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(obj.arrPonto.size() - 2, obj.arrPonto.size() - 1));
               } else {
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y - 1), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y - 1, obj.arrPonto.size() - 1));
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           } else { //Ponto no eixo
             if (y > 0){
               if (arrPonto.get(y - 1).x != 0 || arrPonto.get(y - 1).y != 0){ //Ponto anterior tambem fora do eixo
-                obj.arrAresta.add(new Aresta(obj.arrPonto.get(y), obj.arrPonto.get(obj.arrPonto.size() - 1)));
+                obj.arrAresta.add(new Aresta(y, obj.arrPonto.size() - 1));
               } else {
                 ErroPadrao();
               }
-              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
-              obj.arrFace.add(new Face(obj.arrAresta.get(obj.arrAresta.size()-1)));
-              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.get(obj.arrFace.size()-1);
-              obj.arrAresta.get(obj.arrAresta.size()-1).e = obj.arrFace.get(FPosi[ij]);
+              obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
+              obj.arrFace.add(new Face(obj.arrAresta.size()-1));
+              obj.arrAresta.get(obj.arrAresta.size()-1).d = obj.arrFace.size()-1;
+              obj.arrAresta.get(obj.arrAresta.size()-1).e = FPosi[ij];
               FPosi[ij] = obj.arrFace.size()-1;
               ij++;
             }
           }
         }
         if (fechado){
-          obj.arrAresta.add(new Aresta(obj.arrPonto.get(BPosi[BPosi.length-1]), obj.arrPonto.get(BPosi[0])));
-          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-1));
+          obj.arrAresta.add(new Aresta(BPosi[BPosi.length-1], BPosi[0]));
+          obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-1);
           if (PPP != -1){
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(PPP));
-            obj.arrAresta.get(PPP).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(PPP);
+            obj.arrAresta.get(PPP).e = FPosi[ij];
           }
           if (UPP == 0){ //Duvidas sobre esse trecho
-            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.get(obj.arrAresta.size()-3));
-            obj.arrAresta.get(obj.arrAresta.size()-3).e = obj.arrFace.get(FPosi[ij]);
+            obj.arrFace.get(FPosi[ij]).fAresta.add(obj.arrAresta.size()-3);
+            obj.arrAresta.get(obj.arrAresta.size()-3).e = FPosi[ij];
           }
         }
       }
@@ -974,7 +971,7 @@ public class Perfil extends javax.swing.JFrame {
         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addComponent(ctrSegmentos, javax.swing.GroupLayout.Alignment.TRAILING)
           .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-            .addGap(0, 9, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
             .addComponent(btnRotacionar, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE))
           .addComponent(lstEixos, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addGroup(jPanel2Layout.createSequentialGroup()
@@ -1126,7 +1123,7 @@ public class Perfil extends javax.swing.JFrame {
         .addComponent(btnModelos)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addContainerGap(18, Short.MAX_VALUE))
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Perfil", jPanel1);
@@ -1192,11 +1189,8 @@ public class Perfil extends javax.swing.JFrame {
             .addComponent(pnlRev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addGroup(layout.createSequentialGroup()
-                .addComponent(eixoBaixo)
-                .addGap(0, 0, Short.MAX_VALUE))
-              .addComponent(jTabbedPane1))
-            .addContainerGap())
+              .addComponent(eixoBaixo)
+              .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
           .addGroup(layout.createSequentialGroup()
             .addGap(10, 10, 10)
             .addComponent(lblEixoBaixo, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1207,8 +1201,8 @@ public class Perfil extends javax.swing.JFrame {
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(txtLado, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addGap(18, 18, 18)
-            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 341, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+            .addComponent(lblInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 341, javax.swing.GroupLayout.PREFERRED_SIZE)))
+        .addContainerGap(11, Short.MAX_VALUE))
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1246,7 +1240,7 @@ public class Perfil extends javax.swing.JFrame {
         //arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
         //btnDesfazerActionPerformed(null);
       } else {
-        arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(0)));
+        arrAresta.add(new Aresta(arrPonto.size() - 1, 0));
         DesenhaPerfil();
         fechado = true;
       }
@@ -1270,7 +1264,7 @@ public class Perfil extends javax.swing.JFrame {
       iniY = 2047;
     } else {
       arrPonto.add(new Ponto(0.0, arrPonto.get(arrPonto.size() - 1).y, 0.0));
-      arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
+      arrAresta.add(new Aresta(arrPonto.size() - 1, arrPonto.size() - 2));
       DesenhaPerfil();
     }
   }//GEN-LAST:event_btnFechaEixoActionPerformed
@@ -1288,7 +1282,7 @@ public class Perfil extends javax.swing.JFrame {
     }
     Aresta a = arrAresta.get(arrAresta.size() - 1);
     D.setColor(pnlRevI.getBackground());
-    D.drawLine((int) a.i.x, (int) a.i.y, (int) a.f.x, (int) a.f.y);
+    D.drawLine((int) arrPonto.get(a.i).x, (int) arrPonto.get(a.i).y, (int) arrPonto.get(a.f).x, (int) arrPonto.get(a.f).y);
     if (!fechado) {
       arrPonto.remove(arrPonto.size() - 1);
     }
@@ -1372,6 +1366,7 @@ public class Perfil extends javax.swing.JFrame {
     obj.CalculaCentro();
     P.Obj.add(obj);
     P.ObSel = P.Obj.size() - 1;
+    P.btnCor.setEnabled(true);
     this.dispose();
     P.setEnabled(true);
     P.requestFocus(); //Traz o foco para tela anterior
@@ -1423,10 +1418,10 @@ public class Perfil extends javax.swing.JFrame {
         if (arrPonto.size() > 1) {
           if (arrPonto.get(arrPonto.size() - 1).x == 0 && arrPonto.get(arrPonto.size() - 2).x == 0) {
             JOptionPane.showMessageDialog(this, "Aresta ilegal. Desfazendo...", "Erro", JOptionPane.ERROR_MESSAGE);
-            arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 1), arrPonto.get(arrPonto.size() - 2)));
+            arrAresta.add(new Aresta(arrPonto.size() - 1, arrPonto.size() - 2));
             btnDesfazerActionPerformed(null);
           } else {
-            arrAresta.add(new Aresta(arrPonto.get(arrPonto.size() - 2), arrPonto.get(arrPonto.size() - 1)));
+            arrAresta.add(new Aresta(arrPonto.size() - 2, arrPonto.size() - 1));
             DesenhaPerfil();
           }
         }
@@ -1478,7 +1473,7 @@ public class Perfil extends javax.swing.JFrame {
       //System.out.println("Saida = " + s);
       cabecalho = (byte) (VERSAO_PERFIL << 4);
       //System.out.println("i = " + arrAresta.get(arrAresta.size()-1).i.toString() + "f = " + arrAresta.get(arrAresta.size()-1).f.toString());
-      if (arrAresta.get(0).i.equals(arrAresta.get(arrAresta.size() - 1).f)) { //Fechado
+      if (arrAresta.get(0).i == arrAresta.get(arrAresta.size() - 1).f) { //Fechado
         cabecalho += 8;
       }
       //System.out.println("Versao = " + cabecalho);

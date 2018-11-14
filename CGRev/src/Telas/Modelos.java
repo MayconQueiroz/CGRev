@@ -125,7 +125,7 @@ public class Modelos extends javax.swing.JFrame {
   public void DesenhaPerfil() {
     De.clearRect(0, 0, 193, 258);
     for (Aresta a : arAresta) {
-      De.drawLine((int) a.i.x, (int) a.i.y, (int) a.f.x, (int) a.f.y);
+      De.drawLine((int) arPonto.get(a.i).x, (int) arPonto.get(a.i).y, (int) arPonto.get(a.f).x, (int) arPonto.get(a.f).y);
     }
   }
 
@@ -142,14 +142,8 @@ public class Modelos extends javax.swing.JFrame {
    * Constroi arestas com base nos pontos ja existentes (De leitura por exemplo)
    */
   public void ConstroiArestas() {
-    Ponto Au = null;
-    for (Ponto p : arPonto) {
-      if (p == arPonto.get(0)) {
-        Au = p;
-        continue;
-      }
-      arAresta.add(new Aresta(Au, p));
-      Au = p;
+    for (int i = 1; i < arPonto.size(); i++) {
+      arAresta.add(new Aresta(i-1, i));
     }
   }
 
@@ -158,16 +152,10 @@ public class Modelos extends javax.swing.JFrame {
    * ultimo ponto
    */
   public void ConstroiArestasFechado() {
-    Ponto Au = null;
-    for (Ponto p : arPonto) {
-      if (p == arPonto.get(0)) {
-        Au = p;
-        continue;
-      }
-      arAresta.add(new Aresta(Au, p));
-      Au = p;
+    for (int i = 1; i < arPonto.size(); i++) {
+      arAresta.add(new Aresta(i-1, i));
     }
-    arAresta.add(new Aresta(arPonto.get(arPonto.size() - 1), arPonto.get(0)));
+    arAresta.add(new Aresta(arPonto.size() - 1, 0));
   }
 
   /**

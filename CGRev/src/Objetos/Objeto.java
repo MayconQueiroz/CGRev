@@ -110,5 +110,17 @@ public class Objeto {
     C.y = (my + ny) / 2;
     C.z = (mz + nz) / 2;
   }
+
+  /**
+   * Define a cor do objeto (Eu sei que eh publico, 
+   * eh que na tela principal ja tem uma importacao 
+   * pra uma classe de cor e tava dando intereferencia)
+   * @param r Vermelho
+   * @param g Verde
+   * @param b Azul
+   */
+  public void VaiCor(short r, short g, short b) {
+    BG = Color.rgb(r, g, b);
+  }
   
 }

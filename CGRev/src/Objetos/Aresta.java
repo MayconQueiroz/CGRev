@@ -33,6 +33,20 @@ public class Aresta {
   }
   
   /**
+   * Construtor de aresta com todos os parametros (para leitor)
+   * @param I Ponto inicial
+   * @param F Ponto final
+   * @param E Face da esquerda
+   * @param D Face da direita
+   */
+  public Aresta(int I, int F, int E, int D) {
+    i = I;
+    f = F;
+    e = E;
+    d = D;
+  }
+  
+  /**
    * Construtor de copia (Cria novos pontos)
    * @param old Aresta a ser copiada
    */
