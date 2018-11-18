@@ -22,6 +22,17 @@ public class Face {
   }
   
   /**
+   * Construtor de copia
+   * @param f Face para copia
+   */
+  public Face(Face f){
+    this();
+    for (int a : f.fAresta){
+      fAresta.add(a);
+    }
+  }
+  
+  /**
    * Construtor com uma aresta (Pra ter um comeco)
    * @param a Aresta inicial
    */
@@ -29,15 +40,4 @@ public class Face {
     this();
     fAresta.add(a);
   }
-  
-  /**
-   * Calcula o centro de uma face (Coordenadas x, y e z)
-   * @return Ponto com as coordenadas (do mundo) do centro da face
-   */
-  public Ponto Centroide(){
-    Ponto Ce = new Ponto();
-    //FAZER Busca de pontos maiores e menores para tirar a media
-    return Ce;
-  }
-
 }

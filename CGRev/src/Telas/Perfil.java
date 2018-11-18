@@ -1351,6 +1351,11 @@ public class Perfil extends javax.swing.JFrame {
         }
       }
       //Ang = Ang * (Math.PI / 180); //Para pi rad
+      
+      for (Ponto p : arrPonto){ //1/2 size
+        p.x /= 2;
+        p.y = (p.y - 300) / 2;
+      }
 
       //obj.CalculaCentro();
       if ("x".equals(lstEixos.getSelectedItem().toString())) { //Rotacao em x
@@ -1366,10 +1371,11 @@ public class Perfil extends javax.swing.JFrame {
     obj.CalculaCentro();
     P.Obj.add(obj);
     P.ObSel = P.Obj.size() - 1;
-    P.btnCor.setEnabled(true);
+    P.btnCorEnabled = true;
     this.dispose();
     P.setEnabled(true);
     P.requestFocus(); //Traz o foco para tela anterior
+    P.AtualizaTudo();
     P.PintaTudo();
   }//GEN-LAST:event_btnRotacionarActionPerformed
 

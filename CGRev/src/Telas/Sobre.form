@@ -109,7 +109,7 @@
             <Property name="editable" type="boolean" value="false"/>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>
-            <Property name="text" type="java.lang.String" value="Vers&#xe3;o 0.3&#xa;Java jdk1.8.0_111&#xa;&#xa;https://github.com/MayconQueiroz/CGRev/"/>
+            <Property name="text" type="java.lang.String" value="Vers&#xe3;o 0.4&#xa;Java jdk1.8.0_111&#xa;&#xa;https://github.com/MayconQueiroz/CGRev/"/>
           </Properties>
         </Component>
       </SubComponents>

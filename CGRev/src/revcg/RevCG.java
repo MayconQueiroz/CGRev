@@ -6,8 +6,8 @@
 package revcg;
 
 import Telas.*;
+import java.awt.Color;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 /**
  *
@@ -18,6 +18,10 @@ public class RevCG {
   public static Principal P;
   public static byte VERSAO_PERFIL = 1;
   public static byte VERSAO_CENA = 16;
+  public static Color Sel = Color.BLUE; //Cor de selecao
+  public static short PLargura = 340;
+  public static short PAltura = 255;
+  public static Color CFundo = new Color(240, 240, 240);
   
   /**
    * @param args the command line arguments

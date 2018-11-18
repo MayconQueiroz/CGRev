@@ -71,7 +71,19 @@ public class Ponto {
   }
   
   /**
-   * Normaliza o ponto
+   * Calcula a distancia entre dois pontos, o que chamou e o passado (mas retorna valores negativos)
+   * @param p Ponto para calculo de diferenca
+   * @return Diferenca em "unidades"
+   */
+  public double calculaDiferenca(Ponto p){
+    double difx = p.x - this.x;
+    double dify = p.y - this.y;
+    double difz = p.z - this.z;
+    return (difx + dify + difz);
+  }
+  
+  /**
+   * Normaliza o ponto (ou vetor)
    */
   public void Normaliza(){
     double N; //Norma
@@ -101,6 +113,26 @@ public class Ponto {
    */
   public double ProdutoEscalar(Ponto p){
     return (x * p.x) + (y * p.y) + (z * p.z);
+  }
+  
+  /**
+   * Calcula a diferenca entre dois pontos
+   * @param p Ponto a subtrair o primeiro
+   */
+  public void Diferenca(Ponto p){
+    x = x - p.x;
+    y = y - p.y;
+    z = z - p.z;
+  }
+  
+  /**
+   * Calcula a soma de dois pontos 
+   * @param p Ponto a ser somado
+   */
+  public void Soma(Ponto p){
+    x = x + p.x;
+    y = y + p.y;
+    z = z + p.z;
   }
 
   /**

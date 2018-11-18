@@ -15,6 +15,7 @@ import javax.swing.event.ChangeListener;
 public class SeletorCor extends javax.swing.JFrame {
 
   public Principal P;
+  
   /**
    * Creates new form SeletorCor
    */
@@ -31,6 +32,10 @@ public class SeletorCor extends javax.swing.JFrame {
     setResizable(false); //Nao deixa redimensionar a janela
   }
   
+  /**
+   * Construtor que recebe a janela principal
+   * @param p Janela principal
+   */
   public SeletorCor(Principal p) {
     this();
     P = p;

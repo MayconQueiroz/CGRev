@@ -67,6 +67,15 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Editar"/>
           </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="ckbProporcionalidade">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Manter Proporcionalidade"/>
+                <Property name="toolTipText" type="java.lang.String" value="Mant&#xe9;m (ou n&#xe3;o) proporcionalidade de escala entre as vistas"/>
+              </Properties>
+            </MenuItem>
+          </SubComponents>
         </Menu>
         <Menu class="javax.swing.JMenu" name="menuAjuda">
           <Properties>
@@ -114,6 +123,9 @@
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
     <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
+  <Events>
+    <EventHandler event="windowGainedFocus" listener="java.awt.event.WindowFocusListener" parameters="java.awt.event.WindowEvent" handler="formWindowGainedFocus"/>
+  </Events>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
     <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
@@ -196,6 +208,10 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="tY" min="-2" pref="26" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
+                  <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="escTopo" min="-2" pref="61" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="btnAmpliarTopo" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -209,7 +225,11 @@
                           <Component id="tX" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="tY" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="btnAmpliarTopo" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="btnAmpliarTopo" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="escTopo" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="pnlTopoI" min="-2" max="-2" attributes="0"/>
@@ -220,7 +240,11 @@
       <SubComponents>
         <Container class="javax.swing.JPanel" name="pnlTopoI">
           <Events>
+            <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="pnlTopoIMouseDragged"/>
             <EventHandler event="mouseMoved" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="pnlTopoIMouseMoved"/>
+            <EventHandler event="mouseWheelMoved" listener="java.awt.event.MouseWheelListener" parameters="java.awt.event.MouseWheelEvent" handler="pnlTopoIMouseWheelMoved"/>
+            <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="pnlTopoIMousePressed"/>
+            <EventHandler event="mouseReleased" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="pnlTopoIMouseReleased"/>
           </Events>
 
           <Layout>
@@ -244,6 +268,22 @@
         <Component class="javax.swing.JTextField" name="tY">
         </Component>
         <Component class="javax.swing.JTextField" name="tX">
+        </Component>
+        <Component class="javax.swing.JSpinner" name="escTopo">
+          <Properties>
+            <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
+              <SpinnerModel initial="1.0" minimum="0.001" numberType="java.lang.Double" stepSize="0.1" type="number"/>
+            </Property>
+            <Property name="toolTipText" type="java.lang.String" value=""/>
+          </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="escTopoStateChanged"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel4">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Escala"/>
+          </Properties>
         </Component>
       </SubComponents>
     </Container>
@@ -278,7 +318,7 @@
                           <Component id="btnApagar" alignment="0" max="32767" attributes="0"/>
                           <Component id="btnMover" alignment="0" max="32767" attributes="0"/>
                           <Component id="btnRotacionar" alignment="0" max="32767" attributes="0"/>
-                          <Component id="btnRedimensionar" alignment="0" pref="155" max="32767" attributes="0"/>
+                          <Component id="btnRedimensionar" alignment="0" pref="139" max="32767" attributes="0"/>
                           <Component id="pnlPropriedades" alignment="0" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
@@ -488,15 +528,82 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="175" max="32767" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="btnRedesenhar" max="32767" attributes="0"/>
+                          <Component id="btnWireFrame" alignment="0" max="32767" attributes="0"/>
+                          <Component id="btnOcultacaoDeLinhas" max="32767" attributes="0"/>
+                          <Component id="btnConstante" alignment="0" max="32767" attributes="0"/>
+                          <Component id="btnGouraud" alignment="0" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="588" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="btnRedesenhar" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="btnWireFrame" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="btnOcultacaoDeLinhas" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="btnConstante" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="btnGouraud" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="426" max="32767" attributes="0"/>
+                  </Group>
               </Group>
             </DimensionLayout>
           </Layout>
+          <SubComponents>
+            <Component class="javax.swing.JButton" name="btnRedesenhar">
+              <Properties>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/Icones/edit.png"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Redesenhar"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnRedesenharActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JToggleButton" name="btnWireFrame">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Wireframe"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnWireFrameActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JToggleButton" name="btnOcultacaoDeLinhas">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Oculta&#xe7;&#xe3;o de Linhas"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnOcultacaoDeLinhasActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JToggleButton" name="btnConstante">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="S. Constante"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnConstanteActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JToggleButton" name="btnGouraud">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="S. Gouraud"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnGouraudActionPerformed"/>
+              </Events>
+            </Component>
+          </SubComponents>
         </Container>
       </SubComponents>
     </Container>
@@ -525,7 +632,11 @@
                   <Component id="fX" min="-2" pref="26" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="fY" min="-2" pref="26" max="-2" attributes="0"/>
-                  <EmptySpace pref="221" max="32767" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
+                  <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="escFrente" min="-2" pref="61" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="btnAmpliarFrente" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -538,6 +649,8 @@
                       <Component id="btnAmpliarFrente" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="fX" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="fY" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="escFrente" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="pnlFrenteI" max="32767" attributes="0"/>
@@ -548,7 +661,11 @@
       <SubComponents>
         <Container class="javax.swing.JPanel" name="pnlFrenteI">
           <Events>
+            <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="pnlFrenteIMouseDragged"/>
             <EventHandler event="mouseMoved" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="pnlFrenteIMouseMoved"/>
+            <EventHandler event="mouseWheelMoved" listener="java.awt.event.MouseWheelListener" parameters="java.awt.event.MouseWheelEvent" handler="pnlFrenteIMouseWheelMoved"/>
+            <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="pnlFrenteIMousePressed"/>
+            <EventHandler event="mouseReleased" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="pnlFrenteIMouseReleased"/>
           </Events>
 
           <Layout>
@@ -572,6 +689,22 @@
         <Component class="javax.swing.JTextField" name="fX">
         </Component>
         <Component class="javax.swing.JTextField" name="fY">
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel3">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Escala"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JSpinner" name="escFrente">
+          <Properties>
+            <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
+              <SpinnerModel initial="1.0" minimum="0.001" numberType="java.lang.Double" stepSize="0.1" type="number"/>
+            </Property>
+            <Property name="toolTipText" type="java.lang.String" value=""/>
+          </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="escFrenteStateChanged"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>
@@ -599,7 +732,11 @@
                   <Component id="lX" min="-2" pref="26" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="lY" min="-2" pref="26" max="-2" attributes="0"/>
-                  <EmptySpace pref="221" max="32767" attributes="0"/>
+                  <EmptySpace pref="120" max="32767" attributes="0"/>
+                  <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="escLado" min="-2" pref="61" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="btnAmpliarLado" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -613,6 +750,10 @@
                       <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                           <Component id="lX" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="lY" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <Group type="103" alignment="0" groupAlignment="3" attributes="0">
+                          <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="escLado" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Component id="btnAmpliarLado" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -630,7 +771,9 @@
             </Property>
           </Properties>
           <Events>
+            <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="pnlLadoIMouseDragged"/>
             <EventHandler event="mouseMoved" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="pnlLadoIMouseMoved"/>
+            <EventHandler event="mouseWheelMoved" listener="java.awt.event.MouseWheelListener" parameters="java.awt.event.MouseWheelEvent" handler="pnlLadoIMouseWheelMoved"/>
             <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="pnlLadoIMousePressed"/>
             <EventHandler event="mouseReleased" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="pnlLadoIMouseReleased"/>
           </Events>
@@ -656,6 +799,22 @@
         <Component class="javax.swing.JTextField" name="lY">
         </Component>
         <Component class="javax.swing.JTextField" name="lX">
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel6">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Escala"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JSpinner" name="escLado">
+          <Properties>
+            <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
+              <SpinnerModel initial="1.0" minimum="0.001" numberType="java.lang.Double" stepSize="0.1" type="number"/>
+            </Property>
+            <Property name="toolTipText" type="java.lang.String" value=""/>
+          </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="escLadoStateChanged"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>
@@ -685,6 +844,10 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="pY" min="-2" pref="26" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
+                  <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="escPerspectiva" min="-2" pref="61" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="btnAmpliarPerspectiva" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -698,7 +861,11 @@
                           <Component id="pX" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="pY" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="btnAmpliarPerspectiva" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="btnAmpliarPerspectiva" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="escPerspectiva" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel5" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="pnlPerspectivaI" max="32767" attributes="0"/>
@@ -733,6 +900,19 @@
         <Component class="javax.swing.JTextField" name="pY">
         </Component>
         <Component class="javax.swing.JTextField" name="pX">
+        </Component>
+        <Component class="javax.swing.JSpinner" name="escPerspectiva">
+          <Properties>
+            <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
+              <SpinnerModel initial="1.0" minimum="0.001" numberType="java.lang.Double" stepSize="0.1" type="number"/>
+            </Property>
+            <Property name="toolTipText" type="java.lang.String" value=""/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel5">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Escala"/>
+          </Properties>
         </Component>
       </SubComponents>
     </Container>

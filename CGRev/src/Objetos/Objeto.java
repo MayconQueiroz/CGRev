@@ -15,7 +15,6 @@ public class Objeto {
   public ArrayList<Aresta> arrAresta; //Arestas no objeto
   public ArrayList<Ponto> arrPonto; //Pontos do objeto
   public ArrayList<Face> arrFace; //Faces do objeto
-  public Color AC = Color.BLACK; //Arestas (Cor)
   public Color BG = Color.grayRgb(240); //Cor de fundo (Cor do objeto)
   public boolean Fechado; //Se o objeto e fechado ou aberto (dupla face ou unica face)
   public Ponto C; //Centro do Objeto
@@ -36,7 +35,19 @@ public class Objeto {
    * @param Oab Objeto para copia (ou organizacao dos associados do bradesco)
    */
   public Objeto(Objeto Oab){
-    
+    this();
+    for (Ponto p : Oab.arrPonto){
+      arrPonto.add(new Ponto(p));
+    }
+    for (Aresta a : Oab.arrAresta){
+      arrAresta.add(new Aresta(a));
+    }
+    for (Face f : Oab.arrFace){
+      arrFace.add(new Face(f));
+    }
+    BG = Oab.BG;
+    Fechado = Oab.Fechado;
+    C = new Ponto(Oab.C);
   }
   
   /**
@@ -115,12 +126,69 @@ public class Objeto {
    * Define a cor do objeto (Eu sei que eh publico, 
    * eh que na tela principal ja tem uma importacao 
    * pra uma classe de cor e tava dando intereferencia)
+   * Pode cair, as bibliotecas estao pra ser mudadas!!!
    * @param r Vermelho
    * @param g Verde
    * @param b Azul
    */
   public void VaiCor(short r, short g, short b) {
     BG = Color.rgb(r, g, b);
+  }
+  
+  /**
+   * Calcula o centro de uma face (Coordenadas x, y e z)
+   * @param f Face a ser computada
+   * @return Ponto com as coordenadas (do mundo) do centro da face
+   */
+  public Ponto CentroideFace(Face f){
+    Ponto Ce = new Ponto();
+    double tmx, tmy, tmz, tMx, tMy, tMz;
+    tmx = arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).x;
+    tmy = arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).y;
+    tmz = arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).z;
+    tMx = arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).x;
+    tMy = arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).y;
+    tMz = arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).z;
+    for (int i : f.fAresta){
+      tmx = tmx > arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).x ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).x : tmx;
+      tmx = tmx > arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).x ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).x : tmx;
+      tmy = tmy > arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).y ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).y : tmy;
+      tmy = tmy > arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).y ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).y : tmy;
+      tmz = tmz > arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).z ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).z : tmz;
+      tmz = tmz > arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).z ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).z : tmz;
+      tMx = tMx < arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).x ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).x : tMx;
+      tMx = tMx < arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).x ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).x : tMx;
+      tMy = tMy < arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).y ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).y : tMy;
+      tMy = tMy < arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).y ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).y : tMy;
+      tMz = tMz < arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).z ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).i).z : tMz;
+      tMz = tMz < arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).z ? arrPonto.get(arrAresta.get(f.fAresta.get(0)).f).z : tMz;
+    }
+    Ce.x = (tMx + tmx) / 2;
+    Ce.y = (tMy + tmy) / 2;
+    Ce.z = (tMz + tmz) / 2;
+    return Ce;
+  }
+  
+  /**
+   * Retira o centro de todo o objeto (sem alterar o mesmo)
+   */
+  public void MenosCentro(){
+    for (Ponto t : arrPonto){
+      t.x -= C.x;
+      t.y -= C.y;
+      t.z -= C.z;
+    }
+  }
+  
+  /**
+   * Soma o centro de todo o objeto (sem alterar o mesmo)
+   */
+  public void MaisCentro(){
+    for (Ponto t : arrPonto){
+      t.x += C.x;
+      t.y += C.y;
+      t.z += C.z;
+    }
   }
   
 }

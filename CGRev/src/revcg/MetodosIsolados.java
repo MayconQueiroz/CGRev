@@ -432,4 +432,56 @@ public class MetodosIsolados {
     obj.arrPonto = arrPontoNil;
   }
   */
+  
+  
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////OLDPINTA////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  /**
+   * Simplificacao adotada: escala(coordenada-centro)+centro Baseada na
+   * distributiva de: (Escala*coordenada)+((1-Escala)*Centro)
+   */
+  /**
+   * Pinta o painel Lado
+   */
+  /*public void oldPintaLado() {
+    DL.clearRect(0, 0, 340, 255);
+    for (int i = 0; i < Obj.size(); i++) {
+      o = Obj.get(i);
+      DL.setColor(i == ObSel ? Sel : Color.BLACK);
+      for (Aresta a : o.arrAresta) {
+        DL.drawLine((int) (EL * ((o.arrPonto.get(a.i).z) - o.C.z) + o.C.z) + mx, (int) (EL * ((o.arrPonto.get(a.i).y) - o.C.y) + o.C.y), (int) (EL * ((o.arrPonto.get(a.f).z) - o.C.z) + o.C.z) + mx, (int) (EL * ((o.arrPonto.get(a.f).y) - o.C.y) + o.C.y));
+      }
+    }
+  }*/
+  
+  /**
+   * Pinta o painel Topo
+   */
+  /*public void oldPintaTopo() {
+    DT.clearRect(0, 0, 340, 255);
+    for (int i = 0; i < Obj.size(); i++) {
+      DT.setColor(i == ObSel ? Sel : Color.BLACK);
+      o = Obj.get(i);
+      for (Aresta a : o.arrAresta) {
+        DT.drawLine((int) (ET * ((o.arrPonto.get(a.i).x) - o.C.x) + o.C.x) + mx, (int) (ET * ((o.arrPonto.get(a.i).z) - o.C.z) + o.C.z) + my, (int) (ET * ((o.arrPonto.get(a.f).x) - o.C.x) + o.C.x) + mx, (int) (ET * ((o.arrPonto.get(a.f).z) - o.C.z) + o.C.z) + my);
+      }
+    }
+  }*/
+
+  /**
+   * Pinta o painel Frente
+   */
+  /*public void oldPintaFrente() {
+    DF.clearRect(0, 0, 340, 255);
+    for (int i = 0; i < Obj.size(); i++) {
+      DF.setColor(i == ObSel ? Sel : Color.BLACK);
+      o = Obj.get(i);
+      for (Aresta a : o.arrAresta) {
+        DF.drawLine((int) (EF * ((o.arrPonto.get(a.i).x) - o.C.x) + o.C.x) + mx, (int) (EF * ((o.arrPonto.get(a.i).y) - o.C.y) + o.C.y), (int) (EF * ((o.arrPonto.get(a.f).x) - o.C.x) + o.C.x) + mx, (int) (EF * ((o.arrPonto.get(a.f).y) - o.C.y) + o.C.y));
+      }
+    }
+  }*/
 }

@@ -15,11 +15,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+//import javafx.scene.paint.Color;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import static revcg.RevCG.*;
 
@@ -41,21 +40,23 @@ public class Principal extends javax.swing.JFrame {
   public final int mx = 170; //Meio em x
   public final int my = 127; //Meio em y
   public int ObSel = -1; //Objeto selecionado (posicao no array)
-  Color Sel = Color.BLUE; //Cor de selecao
   public Camera VL, VF, VT, VP; //4 Cameras
+  public boolean btnCorEnabled; //Boolean para habilitar (ou desabilitar) o botao de selecao de cor
+  public Ponto Clique; //Ponto de clique
 
   /**
    * Variaveis Locais Globais
    */
   byte cabecalho; //Byte de cabecalho do arquivo (Documentar melhor uso dos bits)
   byte Per = 0; //Operacao (Translacao, rotacao ou escala)
+  byte Visual = 0; //Modo de visualizacao
   JFileChooser fc = new JFileChooser(); //Instancia do filechooser para salvar e abrir
   double EL = 1, ET = 1, EP = 1, EF = 1;
-  double ClicX, ClicY; //Posicao onde o painel foi clicado
-  double ReleX, ReleY; //Posicao onde o painel foi "solto"
+  double A1, A2, A3; //Auxiliares gerais
   String fileName; //Nome do arquivo aberto/recem salvo
+  
 
-  Objeto o;
+  Objeto o; //Objeto auxiliar (Declaracao para evitar mau uso de memoria)
 
   /**
    * Creates new form Principal
@@ -85,10 +86,21 @@ public class Principal extends javax.swing.JFrame {
     LimpaPaineis();
     btnCor.setEnabled(false);
     setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Principal.png")).getImage());
-    VL = new Camera(new Ponto(-20, 0, 0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
-    VF = new Camera(new Ponto(0, 0, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
-    VT = new Camera(new Ponto(0, -20, 0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
-    VP = new Camera(new Ponto(-20, -20, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 20.0);
+    VL = new Camera(new Ponto(-20,   0,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, true);
+    VF = new Camera(new Ponto(  0,   0, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, true);
+    VT = new Camera(new Ponto(  0, -20,   0), new Ponto(0, 0, 0), new Ponto(0, 0, 1), 340, 255, -170, 170, -127, 128, 0.5, true);
+    VP = new Camera(new Ponto(-20, -20, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, false);
+    Clique = new Ponto();
+  }
+  
+  public void AtualizaTudo(){
+    for (Objeto u : Obj){ //Atualiza Centroides (vai que)
+      u.CalculaCentro();
+    }
+    VL.AtualizaCamera(Obj);
+    VT.AtualizaCamera(Obj);
+    VF.AtualizaCamera(Obj);
+    //VP.AtualizaCamera(Obj);
   }
 
   /**
@@ -113,56 +125,34 @@ public class Principal extends javax.swing.JFrame {
    * Pinta todos paineis
    */
   public void PintaTudo() {
-    oldPintaLado();
-    oldPintaTopo();
-    oldPintaFrente();
+    PintaLado();
+    PintaTopo();
+    PintaFrente();
     PintaPerspectiva();
   }
 
   /**
-   * Simplificacao adotada: escala(coordenada-centro)+centro Baseada na
-   * distributiva de: (Escala*coordenada)+((1-Escala)*Centro)
+   * Pinta a vista lateral
    */
-  /**
-   * Pinta o painel Lado
-   */
-  public void oldPintaLado() {
-    DL.clearRect(0, 0, 340, 255);
-    for (int i = 0; i < Obj.size(); i++) {
-      o = Obj.get(i);
-      DL.setColor(i == ObSel ? Sel : Color.BLACK);
-      for (Aresta a : o.arrAresta) {
-        DL.drawLine((int) (EL * ((o.arrPonto.get(a.i).z) - o.C.z) + o.C.z) + mx, (int) (EL * ((o.arrPonto.get(a.i).y) - o.C.y) + o.C.y), (int) (EL * ((o.arrPonto.get(a.f).z) - o.C.z) + o.C.z) + mx, (int) (EL * ((o.arrPonto.get(a.f).y) - o.C.y) + o.C.y));
-      }
-    }
+  public void PintaLado(){
+    VL.AtualizaVisao((byte)0, ObSel);
+    DL.drawImage(VL.IBuffer, 0, 0, null);
   }
-
+  
   /**
-   * Pinta o painel Topo
+   * Pinta a vista lateral
    */
-  public void oldPintaTopo() {
-    DT.clearRect(0, 0, 340, 255);
-    for (int i = 0; i < Obj.size(); i++) {
-      DT.setColor(i == ObSel ? Sel : Color.BLACK);
-      o = Obj.get(i);
-      for (Aresta a : o.arrAresta) {
-        DT.drawLine((int) (ET * ((o.arrPonto.get(a.i).x) - o.C.x) + o.C.x) + mx, (int) (ET * ((o.arrPonto.get(a.i).z) - o.C.z) + o.C.z) + my, (int) (ET * ((o.arrPonto.get(a.f).x) - o.C.x) + o.C.x) + mx, (int) (ET * ((o.arrPonto.get(a.f).z) - o.C.z) + o.C.z) + my);
-      }
-    }
+  public void PintaTopo(){
+    VT.AtualizaVisao((byte)0, ObSel);
+    DT.drawImage(VT.IBuffer, 0, 0, null);
   }
-
+  
   /**
-   * Pinta o painel Frente
+   * Pinta a vista lateral
    */
-  public void oldPintaFrente() {
-    DF.clearRect(0, 0, 340, 255);
-    for (int i = 0; i < Obj.size(); i++) {
-      DF.setColor(i == ObSel ? Sel : Color.BLACK);
-      o = Obj.get(i);
-      for (Aresta a : o.arrAresta) {
-        DF.drawLine((int) (EF * ((o.arrPonto.get(a.i).x) - o.C.x) + o.C.x) + mx, (int) (EF * ((o.arrPonto.get(a.i).y) - o.C.y) + o.C.y), (int) (EF * ((o.arrPonto.get(a.f).x) - o.C.x) + o.C.x) + mx, (int) (EF * ((o.arrPonto.get(a.f).y) - o.C.y) + o.C.y));
-      }
-    }
+  public void PintaFrente(){
+    VF.AtualizaVisao((byte)0, ObSel);
+    DF.drawImage(VF.IBuffer, 0, 0, null);
   }
 
   /**
@@ -170,13 +160,54 @@ public class Principal extends javax.swing.JFrame {
    */
   public void PintaPerspectiva() {
     DP.clearRect(0, 0, 340, 255);
+    VL.AtualizaVisao((byte)0, ObSel);
+    DP.drawImage(VL.IBuffer, 0, 0, null);
   }
 
   /**
    * Seleciona algum dos objetos dependendo da posicao que a tela foi clicada
+   * @param xl Coordenada x
+   * @param yl Coordenada y
+   * @param zl Coordenada z
+   * @param Who Quem esta chamando (qual vista)
+   * 0 - Vista Frontal - y e x
+   * 1 - Vista Lateral - y e z
+   * 2 - Vista Topo - x e z
    */
-  public void SelecionaAlguem() {
-    //FAZER
+  public void SelecionaAlguem(double xl, double yl, double zl, byte Who) {
+    int Prox = 0; //Indice do objeto "selecionado ate o momento"
+    Ponto Cl = new Ponto(xl, yl, zl); //Ponto para calculo da distancia
+    if (Who == 0){
+      
+    } else if (Who == 1){
+      Cl.z = (Cl.z * EL) - (VL.Umax/2);
+      Cl.y = (Cl.y * EL) - (VL.Vmax/2);
+      A1 = Cl.calculaDistancia(VL.obj.get(0).C);
+      for (int i = 0; i < VL.obj.size(); i++){
+        A2 = Cl.calculaDistancia(VL.obj.get(i).C);
+        if (A2 < A1){
+          A1 = A2;
+          Prox = i;
+        }
+      }
+      ObSel = Prox;
+    } else if (Who == 2){
+      
+    } else {
+      ErroPadrao();
+    }
+    if (Per == 4){
+      Per = 0;
+    }
+    btnSelecionar.setSelected(false);
+  }
+  
+  public void TiraOp(){
+    Per = 0;
+    btnSelecionar.setSelected(false);
+    btnMover.setSelected(false);
+    btnRotacionar.setSelected(false);
+    btnRedimensionar.setSelected(false);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -195,6 +226,8 @@ public class Principal extends javax.swing.JFrame {
     btnAmpliarTopo = new javax.swing.JButton();
     tY = new javax.swing.JTextField();
     tX = new javax.swing.JTextField();
+    escTopo = new javax.swing.JSpinner();
+    jLabel4 = new javax.swing.JLabel();
     pnlMenus = new javax.swing.JTabbedPane();
     pnlObjetos = new javax.swing.JPanel();
     btnAdicionar = new javax.swing.JButton();
@@ -209,21 +242,32 @@ public class Principal extends javax.swing.JFrame {
     btnCor = new javax.swing.JButton();
     pnlCor = new javax.swing.JPanel();
     pnlAmbiente = new javax.swing.JPanel();
+    btnRedesenhar = new javax.swing.JButton();
+    btnWireFrame = new javax.swing.JToggleButton();
+    btnOcultacaoDeLinhas = new javax.swing.JToggleButton();
+    btnConstante = new javax.swing.JToggleButton();
+    btnGouraud = new javax.swing.JToggleButton();
     pnlFrente = new javax.swing.JPanel();
     pnlFrenteI = new javax.swing.JPanel();
     btnAmpliarFrente = new javax.swing.JButton();
     fX = new javax.swing.JTextField();
     fY = new javax.swing.JTextField();
+    jLabel3 = new javax.swing.JLabel();
+    escFrente = new javax.swing.JSpinner();
     pnlLado = new javax.swing.JPanel();
     pnlLadoI = new javax.swing.JPanel();
     btnAmpliarLado = new javax.swing.JButton();
     lY = new javax.swing.JTextField();
     lX = new javax.swing.JTextField();
+    jLabel6 = new javax.swing.JLabel();
+    escLado = new javax.swing.JSpinner();
     pnlPerspectiva = new javax.swing.JPanel();
     pnlPerspectivaI = new javax.swing.JPanel();
     btnAmpliarPerspectiva = new javax.swing.JButton();
     pY = new javax.swing.JTextField();
     pX = new javax.swing.JTextField();
+    escPerspectiva = new javax.swing.JSpinner();
+    jLabel5 = new javax.swing.JLabel();
     menuBar = new javax.swing.JMenuBar();
     menuArquivo = new javax.swing.JMenu();
     itemNovo = new javax.swing.JMenuItem();
@@ -231,6 +275,7 @@ public class Principal extends javax.swing.JFrame {
     itemSalvar = new javax.swing.JMenuItem();
     itemSalvarComo = new javax.swing.JMenuItem();
     menuEditar = new javax.swing.JMenu();
+    ckbProporcionalidade = new javax.swing.JCheckBoxMenuItem();
     menuAjuda = new javax.swing.JMenu();
     itemAjuda = new javax.swing.JMenuItem();
     jSeparator1 = new javax.swing.JPopupMenu.Separator();
@@ -240,13 +285,36 @@ public class Principal extends javax.swing.JFrame {
 
     setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
     setTitle("CGRev");
+    addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+      public void windowGainedFocus(java.awt.event.WindowEvent evt) {
+        formWindowGainedFocus(evt);
+      }
+      public void windowLostFocus(java.awt.event.WindowEvent evt) {
+      }
+    });
 
     pnlTopo.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Topo"));
     pnlTopo.setPreferredSize(new java.awt.Dimension(350, 276));
 
     pnlTopoI.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseDragged(java.awt.event.MouseEvent evt) {
+        pnlTopoIMouseDragged(evt);
+      }
       public void mouseMoved(java.awt.event.MouseEvent evt) {
         pnlTopoIMouseMoved(evt);
+      }
+    });
+    pnlTopoI.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+      public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
+        pnlTopoIMouseWheelMoved(evt);
+      }
+    });
+    pnlTopoI.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mousePressed(java.awt.event.MouseEvent evt) {
+        pnlTopoIMousePressed(evt);
+      }
+      public void mouseReleased(java.awt.event.MouseEvent evt) {
+        pnlTopoIMouseReleased(evt);
       }
     });
 
@@ -263,6 +331,16 @@ public class Principal extends javax.swing.JFrame {
 
     btnAmpliarTopo.setText("+");
 
+    escTopo.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
+    escTopo.setToolTipText("");
+    escTopo.addChangeListener(new javax.swing.event.ChangeListener() {
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        escTopoStateChanged(evt);
+      }
+    });
+
+    jLabel4.setText("Escala");
+
     javax.swing.GroupLayout pnlTopoLayout = new javax.swing.GroupLayout(pnlTopo);
     pnlTopo.setLayout(pnlTopoLayout);
     pnlTopoLayout.setHorizontalGroup(
@@ -274,6 +352,10 @@ public class Principal extends javax.swing.JFrame {
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(tY, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(jLabel4)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(escTopo, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(btnAmpliarTopo)
         .addContainerGap())
     );
@@ -284,7 +366,10 @@ public class Principal extends javax.swing.JFrame {
           .addGroup(pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
             .addComponent(tX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addComponent(tY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-          .addComponent(btnAmpliarTopo))
+          .addGroup(pnlTopoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+            .addComponent(btnAmpliarTopo)
+            .addComponent(escTopo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(jLabel4)))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(pnlTopoI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
     );
@@ -422,7 +507,7 @@ public class Principal extends javax.swing.JFrame {
           .addComponent(btnApagar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(btnMover, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(btnRotacionar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnRedimensionar, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)
+          .addComponent(btnRedimensionar, javax.swing.GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE)
           .addComponent(pnlPropriedades, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         .addContainerGap())
     );
@@ -450,15 +535,70 @@ public class Principal extends javax.swing.JFrame {
 
     pnlMenus.addTab("Objetos", pnlObjetos);
 
+    btnRedesenhar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icones/edit.png"))); // NOI18N
+    btnRedesenhar.setText("Redesenhar");
+    btnRedesenhar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnRedesenharActionPerformed(evt);
+      }
+    });
+
+    btnWireFrame.setText("Wireframe");
+    btnWireFrame.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnWireFrameActionPerformed(evt);
+      }
+    });
+
+    btnOcultacaoDeLinhas.setText("Ocultação de Linhas");
+    btnOcultacaoDeLinhas.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnOcultacaoDeLinhasActionPerformed(evt);
+      }
+    });
+
+    btnConstante.setText("S. Constante");
+    btnConstante.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnConstanteActionPerformed(evt);
+      }
+    });
+
+    btnGouraud.setText("S. Gouraud");
+    btnGouraud.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnGouraudActionPerformed(evt);
+      }
+    });
+
     javax.swing.GroupLayout pnlAmbienteLayout = new javax.swing.GroupLayout(pnlAmbiente);
     pnlAmbiente.setLayout(pnlAmbienteLayout);
     pnlAmbienteLayout.setHorizontalGroup(
       pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 175, Short.MAX_VALUE)
+      .addGroup(pnlAmbienteLayout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(btnRedesenhar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnWireFrame, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnOcultacaoDeLinhas, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnConstante, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnGouraud, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        .addContainerGap())
     );
     pnlAmbienteLayout.setVerticalGroup(
       pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 588, Short.MAX_VALUE)
+      .addGroup(pnlAmbienteLayout.createSequentialGroup()
+        .addContainerGap()
+        .addComponent(btnRedesenhar)
+        .addGap(18, 18, 18)
+        .addComponent(btnWireFrame)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnOcultacaoDeLinhas)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnConstante)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(btnGouraud)
+        .addContainerGap(426, Short.MAX_VALUE))
     );
 
     pnlMenus.addTab("Ambiente", pnlAmbiente);
@@ -467,8 +607,24 @@ public class Principal extends javax.swing.JFrame {
     pnlFrente.setPreferredSize(new java.awt.Dimension(350, 276));
 
     pnlFrenteI.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseDragged(java.awt.event.MouseEvent evt) {
+        pnlFrenteIMouseDragged(evt);
+      }
       public void mouseMoved(java.awt.event.MouseEvent evt) {
         pnlFrenteIMouseMoved(evt);
+      }
+    });
+    pnlFrenteI.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+      public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
+        pnlFrenteIMouseWheelMoved(evt);
+      }
+    });
+    pnlFrenteI.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mousePressed(java.awt.event.MouseEvent evt) {
+        pnlFrenteIMousePressed(evt);
+      }
+      public void mouseReleased(java.awt.event.MouseEvent evt) {
+        pnlFrenteIMouseReleased(evt);
       }
     });
 
@@ -485,6 +641,16 @@ public class Principal extends javax.swing.JFrame {
 
     btnAmpliarFrente.setText("+");
 
+    jLabel3.setText("Escala");
+
+    escFrente.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
+    escFrente.setToolTipText("");
+    escFrente.addChangeListener(new javax.swing.event.ChangeListener() {
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        escFrenteStateChanged(evt);
+      }
+    });
+
     javax.swing.GroupLayout pnlFrenteLayout = new javax.swing.GroupLayout(pnlFrente);
     pnlFrente.setLayout(pnlFrenteLayout);
     pnlFrenteLayout.setHorizontalGroup(
@@ -495,7 +661,11 @@ public class Principal extends javax.swing.JFrame {
         .addComponent(fX, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(fY, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 221, Short.MAX_VALUE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(jLabel3)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(escFrente, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(btnAmpliarFrente)
         .addContainerGap())
     );
@@ -505,7 +675,9 @@ public class Principal extends javax.swing.JFrame {
         .addGroup(pnlFrenteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(btnAmpliarFrente)
           .addComponent(fX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(fY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+          .addComponent(fY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(jLabel3)
+          .addComponent(escFrente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(pnlFrenteI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
@@ -515,8 +687,16 @@ public class Principal extends javax.swing.JFrame {
 
     pnlLadoI.setPreferredSize(new java.awt.Dimension(340, 255));
     pnlLadoI.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseDragged(java.awt.event.MouseEvent evt) {
+        pnlLadoIMouseDragged(evt);
+      }
       public void mouseMoved(java.awt.event.MouseEvent evt) {
         pnlLadoIMouseMoved(evt);
+      }
+    });
+    pnlLadoI.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+      public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
+        pnlLadoIMouseWheelMoved(evt);
       }
     });
     pnlLadoI.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -541,6 +721,16 @@ public class Principal extends javax.swing.JFrame {
 
     btnAmpliarLado.setText("+");
 
+    jLabel6.setText("Escala");
+
+    escLado.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
+    escLado.setToolTipText("");
+    escLado.addChangeListener(new javax.swing.event.ChangeListener() {
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        escLadoStateChanged(evt);
+      }
+    });
+
     javax.swing.GroupLayout pnlLadoLayout = new javax.swing.GroupLayout(pnlLado);
     pnlLado.setLayout(pnlLadoLayout);
     pnlLadoLayout.setHorizontalGroup(
@@ -550,7 +740,11 @@ public class Principal extends javax.swing.JFrame {
         .addComponent(lX, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(lY, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 221, Short.MAX_VALUE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 120, Short.MAX_VALUE)
+        .addComponent(jLabel6)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(escLado, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(btnAmpliarLado)
         .addContainerGap())
       .addComponent(pnlLadoI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -562,6 +756,9 @@ public class Principal extends javax.swing.JFrame {
           .addGroup(pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
             .addComponent(lX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addComponent(lY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+          .addGroup(pnlLadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+            .addComponent(jLabel6)
+            .addComponent(escLado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
           .addComponent(btnAmpliarLado))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         .addComponent(pnlLadoI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -589,6 +786,11 @@ public class Principal extends javax.swing.JFrame {
 
     btnAmpliarPerspectiva.setText("+");
 
+    escPerspectiva.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.001d, null, 0.1d));
+    escPerspectiva.setToolTipText("");
+
+    jLabel5.setText("Escala");
+
     javax.swing.GroupLayout pnlPerspectivaLayout = new javax.swing.GroupLayout(pnlPerspectiva);
     pnlPerspectiva.setLayout(pnlPerspectivaLayout);
     pnlPerspectivaLayout.setHorizontalGroup(
@@ -600,6 +802,10 @@ public class Principal extends javax.swing.JFrame {
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(pY, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(jLabel5)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(escPerspectiva, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(btnAmpliarPerspectiva)
         .addContainerGap())
     );
@@ -610,7 +816,10 @@ public class Principal extends javax.swing.JFrame {
           .addGroup(pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
             .addComponent(pX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addComponent(pY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-          .addComponent(btnAmpliarPerspectiva))
+          .addGroup(pnlPerspectivaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+            .addComponent(btnAmpliarPerspectiva)
+            .addComponent(escPerspectiva, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(jLabel5)))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(pnlPerspectivaI, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
@@ -653,6 +862,12 @@ public class Principal extends javax.swing.JFrame {
     menuBar.add(menuArquivo);
 
     menuEditar.setText("Editar");
+
+    ckbProporcionalidade.setSelected(true);
+    ckbProporcionalidade.setText("Manter Proporcionalidade");
+    ckbProporcionalidade.setToolTipText("Mantém (ou não) proporcionalidade de escala entre as vistas");
+    menuEditar.add(ckbProporcionalidade);
+
     menuBar.add(menuEditar);
 
     menuAjuda.setText("Ajuda");
@@ -756,7 +971,7 @@ public class Principal extends javax.swing.JFrame {
     double x, y, z;
     short s, e, l, ri;
     int returnVal = fc.showOpenDialog(this);
-    if (returnVal == JFileChooser.APPROVE_OPTION) { //FAZER Adaptar para novo modo de leitura e gravacao
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
       File file = fc.getSelectedFile();
       fileName = file.toString();
       if (!file.canRead()) {
@@ -843,8 +1058,8 @@ public class Principal extends javax.swing.JFrame {
     int returnVal, Amn = 0;
     if (fileName.isEmpty()) {
       fc = new JFileChooser();
-      returnVal = fc.showSaveDialog(this); //FAZER salvar o nome do arquivo se lido ou ja salvo para sobrescrever sem perguntar
-      if (returnVal == JFileChooser.APPROVE_OPTION) { //FAZER Adaptar para novo modo de leitura e gravacao
+      returnVal = fc.showSaveDialog(this); //VERIFICAR salvar o nome do arquivo se lido ou ja salvo para sobrescrever sem perguntar
+      if (returnVal == JFileChooser.APPROVE_OPTION) {
         File file = fc.getSelectedFile();
         fileName = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
         Amn = 1;
@@ -912,7 +1127,7 @@ public class Principal extends javax.swing.JFrame {
 
   private void btnRotacionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRotacionarActionPerformed
     if (btnRotacionar.isSelected()) {
-      Per = 2;
+      Per = 3;
       btnRedimensionar.setSelected(false);
       btnMover.setSelected(false);
     } else {
@@ -923,7 +1138,7 @@ public class Principal extends javax.swing.JFrame {
 
   private void btnRedimensionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRedimensionarActionPerformed
     if (btnRedimensionar.isSelected()) {
-      Per = 3;
+      Per = 2;
       btnMover.setSelected(false);
       btnRotacionar.setSelected(false);
     } else {
@@ -937,6 +1152,7 @@ public class Principal extends javax.swing.JFrame {
     btnMover.setSelected(false);
     btnRotacionar.setSelected(false);
     btnRedimensionar.setSelected(false);
+    btnSelecionar.setSelected(false);
     ObSel = -1;
     btnCor.setEnabled(false);
   }//GEN-LAST:event_btnDesselecionarActionPerformed
@@ -948,46 +1164,47 @@ public class Principal extends javax.swing.JFrame {
 
   private void pnlLadoIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMouseReleased
     if (ObSel > -1) { //Se ja tiver algum objeto selecionado
-      if (Per == 1) { //Mover
-        //
-      } else if (Per == 2) { //Redimensionar
-        //
-      } else if (Per == 3) { //Rotacionar
-        //
-      } else if (Per == 4) { //Selecionar
-        //
+      if (Per == 4) { //Selecionar (Troca a selecao)
+        SelecionaAlguem(0, evt.getY(), evt.getX(), (byte) 1);
       }
     } else { //Selecionar
-      //
+      SelecionaAlguem(0, evt.getY(), evt.getX(), (byte) 1);
     }
+    PintaTudo();
   }//GEN-LAST:event_pnlLadoIMouseReleased
 
   private void pnlLadoIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMouseMoved
     int Aux = (evt.getY() * -1) + 255;
     lX.setText("" + evt.getX());
     lY.setText("" + Aux);
+    PintaTudo();
   }//GEN-LAST:event_pnlLadoIMouseMoved
 
   private void pnlFrenteIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMouseMoved
     int Aux = (evt.getY() * -1) + 255;
     fX.setText("" + evt.getX());
     fY.setText("" + Aux);
+    PintaTudo();
   }//GEN-LAST:event_pnlFrenteIMouseMoved
 
   private void pnlTopoIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlTopoIMouseMoved
     int Aux = (evt.getY() * -1) + 255;
     tX.setText("" + evt.getX());
     tY.setText("" + Aux);
+    PintaTudo();
   }//GEN-LAST:event_pnlTopoIMouseMoved
 
   private void pnlPerspectivaIMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlPerspectivaIMouseMoved
     int Aux = (evt.getY() * -1) + 255;
     pX.setText("" + evt.getX());
     pY.setText("" + Aux);
+    PintaTudo();
   }//GEN-LAST:event_pnlPerspectivaIMouseMoved
 
   private void pnlLadoIMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMousePressed
-
+    Clique.z = (evt.getX() / EL) - (VL.Umax/2);
+    Clique.y = (evt.getY() / EL) - (VL.Vmax/2);
+    Clique.x = 0;
   }//GEN-LAST:event_pnlLadoIMousePressed
 
   private void btnSelecionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelecionarActionPerformed
@@ -1001,6 +1218,8 @@ public class Principal extends javax.swing.JFrame {
   private void btnApagarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnApagarActionPerformed
     if (ObSel > -1) { //Alguem selecionado
       Obj.remove(ObSel); //Remove sem perguntar
+      ObSel = -1;
+      AtualizaTudo();
     }
   }//GEN-LAST:event_btnApagarActionPerformed
 
@@ -1008,6 +1227,362 @@ public class Principal extends javax.swing.JFrame {
     this.setEnabled(false);
     new SeletorCor(this).setVisible(true);
   }//GEN-LAST:event_btnCorActionPerformed
+
+  private void btnRedesenharActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRedesenharActionPerformed
+    AtualizaTudo();
+    PintaTudo();
+  }//GEN-LAST:event_btnRedesenharActionPerformed
+
+  private void formWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowGainedFocus
+    btnCor.setEnabled(btnCorEnabled);
+    VL.AtualizaCamera(Obj);
+  }//GEN-LAST:event_formWindowGainedFocus
+
+  private void btnWireFrameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnWireFrameActionPerformed
+    //Wireframe
+    if (btnWireFrame.isSelected()){
+      btnOcultacaoDeLinhas.setSelected(false);
+      btnConstante.setEnabled(false);
+      btnGouraud.setEnabled(false);
+      Visual = 0;
+    }
+  }//GEN-LAST:event_btnWireFrameActionPerformed
+
+  private void btnOcultacaoDeLinhasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOcultacaoDeLinhasActionPerformed
+    //Ocultacao de linhas (e faces)
+    if (btnOcultacaoDeLinhas.isSelected()){
+      btnWireFrame.setSelected(false);
+      btnConstante.setEnabled(false);
+      btnGouraud.setEnabled(false);
+      Visual = 1;
+    }
+  }//GEN-LAST:event_btnOcultacaoDeLinhasActionPerformed
+
+  private void btnConstanteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConstanteActionPerformed
+    //Sombreamento constante
+    if (btnConstante.isSelected()){
+      btnOcultacaoDeLinhas.setSelected(false);
+      btnWireFrame.setEnabled(false);
+      btnGouraud.setEnabled(false);
+      Visual = 2;
+    }
+  }//GEN-LAST:event_btnConstanteActionPerformed
+
+  private void btnGouraudActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGouraudActionPerformed
+    //Sombreamento Gouraud
+    if (btnGouraud.isSelected()){
+      btnOcultacaoDeLinhas.setSelected(false);
+      btnConstante.setEnabled(false);
+      btnWireFrame.setEnabled(false);
+      Visual = 3;
+    }
+  }//GEN-LAST:event_btnGouraudActionPerformed
+
+  private void escLadoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_escLadoStateChanged
+    String input = escLado.getValue().toString();
+    EL = 1;
+    if (input.isEmpty()) {
+      escLado.setValue(1);
+    } else {
+      try {
+        EL = Double.parseDouble(input);
+      } catch (NumberFormatException | NullPointerException e) {
+        escLado.setValue(1);
+      }
+    }
+    VL.Xmin = -(int) ((PLargura/2) * EL);
+    VL.Xmax = (int) ((PLargura/2) * EL);
+    VL.Ymin = -(int) ((PAltura/2)  * EL);
+    VL.Ymax = (int) ((PAltura/2)  * EL);
+    if(ckbProporcionalidade.isSelected()){
+      ET = EL;
+      EP = EL;
+      EF = EL;
+      escPerspectiva.setValue(EL);
+      VP.Xmin = -(int) ((PLargura/2) * EL);
+      VP.Xmax = (int) ((PLargura/2) * EL);
+      VP.Ymin = -(int) ((PAltura/2)  * EL);
+      VP.Ymax = (int) ((PAltura/2)  * EL);
+      escTopo.setValue(EL);
+      VT.Xmin = -(int) ((PLargura/2) * EL);
+      VT.Xmax = (int) ((PLargura/2) * EL);
+      VT.Ymin = -(int) ((PAltura/2)  * EL);
+      VT.Ymax = (int) ((PAltura/2)  * EL);
+      escFrente.setValue(EL);
+      VF.Xmin = -(int) ((PLargura/2) * EL);
+      VF.Xmax = (int) ((PLargura/2) * EL);
+      VF.Ymin = -(int) ((PAltura/2)  * EL);
+      VF.Ymax = (int) ((PAltura/2)  * EL);
+      PintaTudo();
+    } else {
+      PintaLado();
+    }
+  }//GEN-LAST:event_escLadoStateChanged
+
+  private void escFrenteStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_escFrenteStateChanged
+    String input = escFrente.getValue().toString();
+    EF = 1;
+    if (input.isEmpty()) {
+      escFrente.setValue(1);
+    } else {
+      try {
+        EF = Double.parseDouble(input);
+      } catch (NumberFormatException | NullPointerException e) {
+        escFrente.setValue(1);
+      }
+    }
+    VF.Xmin = -(int) ((PLargura/2) * EF);
+    VF.Xmax = (int) ((PLargura/2) * EF);
+    VF.Ymin = -(int) ((PAltura/2)  * EF);
+    VF.Ymax = (int) ((PAltura/2)  * EF);
+    if(ckbProporcionalidade.isSelected()){
+      ET = EF;
+      EP = EF;
+      EL = EF;
+      escPerspectiva.setValue(EL);
+      VP.Xmin = -(int) ((PLargura/2) * EL);
+      VP.Xmax = (int) ((PLargura/2) * EL);
+      VP.Ymin = -(int) ((PAltura/2)  * EL);
+      VP.Ymax = (int) ((PAltura/2)  * EL);
+      escTopo.setValue(EL);
+      VT.Xmin = -(int) ((PLargura/2) * EL);
+      VT.Xmax = (int) ((PLargura/2) * EL);
+      VT.Ymin = -(int) ((PAltura/2)  * EL);
+      VT.Ymax = (int) ((PAltura/2)  * EL);
+      escLado.setValue(EL);
+      VL.Xmin = -(int) ((PLargura/2) * EL);
+      VL.Xmax = (int) ((PLargura/2) * EL);
+      VL.Ymin = -(int) ((PAltura/2)  * EL);
+      VL.Ymax = (int) ((PAltura/2)  * EL);
+      PintaTudo();
+    } else {
+      PintaFrente();
+    }
+  }//GEN-LAST:event_escFrenteStateChanged
+
+  private void escTopoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_escTopoStateChanged
+    String input = escTopo.getValue().toString();
+    ET = 1;
+    if (input.isEmpty()) {
+      escTopo.setValue(1);
+    } else {
+      try {
+        ET = Double.parseDouble(input);
+      } catch (NumberFormatException | NullPointerException e) {
+        escTopo.setValue(1);
+      }
+    }
+    VT.Xmin = -(int) ((PLargura/2) * ET);
+    VT.Xmax = (int) ((PLargura/2) * ET);
+    VT.Ymin = -(int) ((PAltura/2)  * ET);
+    VT.Ymax = (int) ((PAltura/2)  * ET);
+    if(ckbProporcionalidade.isSelected()){
+      EF = ET;
+      EP = ET;
+      EL = ET;
+      escPerspectiva.setValue(EL);
+      VP.Xmin = -(int) ((PLargura/2) * EL);
+      VP.Xmax = (int) ((PLargura/2) * EL);
+      VP.Ymin = -(int) ((PAltura/2)  * EL);
+      VP.Ymax = (int) ((PAltura/2)  * EL);
+      escFrente.setValue(EL);
+      VF.Xmin = -(int) ((PLargura/2) * EL);
+      VF.Xmax = (int) ((PLargura/2) * EL);
+      VF.Ymin = -(int) ((PAltura/2)  * EL);
+      VF.Ymax = (int) ((PAltura/2)  * EL);
+      escLado.setValue(EL);
+      VL.Xmin = -(int) ((PLargura/2) * EL);
+      VL.Xmax = (int) ((PLargura/2) * EL);
+      VL.Ymin = -(int) ((PAltura/2)  * EL);
+      VL.Ymax = (int) ((PAltura/2)  * EL);
+      PintaTudo();
+    } else {
+      PintaTopo();
+    }
+  }//GEN-LAST:event_escTopoStateChanged
+
+  private void pnlLadoIMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMouseDragged
+    if (ObSel > -1) { //Se ja tiver algum objeto selecionado
+      Ponto ax = new Ponto(0, (evt.getY() / EL) - (VL.Vmax/2), (evt.getX() / EL) - (VL.Umax/2));
+      Ponto axx = new Ponto(ax);
+      if (Per == 1) { //Mover
+        ax.Diferenca(Clique);
+        Obj.get(ObSel).C.Soma(ax);
+        for (Ponto ink : Obj.get(ObSel).arrPonto){
+          ink.Soma(ax);
+        }
+        AtualizaTudo();
+        PintaTudo();
+        Clique = axx;
+      } else if (Per == 3){ //Rotacionar
+        Obj.get(ObSel).MenosCentro();
+        if (Clique.z < ax.z){
+          A1 = -0.1;
+        } else {
+          A1 = 0.1;
+        }
+        for (Ponto ink : Obj.get(ObSel).arrPonto) { //Multiplica pontos (decomposto)
+          A2 = ink.y;
+          ink.y = ink.y * Math.cos(A1) - ink.z * Math.sin(A1);
+          ink.z = A2 * Math.sin(A1) + ink.z * Math.cos(A1);
+          /*ink.x = (ink.x * Math.cos(A1)) - (ink.y * Math.sin(A1));
+          ink.y = (A2 * Math.sin(A1)) + (ink.y * Math.cos(A1));*/
+        }
+        Obj.get(ObSel).MaisCentro();
+        AtualizaTudo();
+        PintaTudo();
+        Clique = axx;
+      }
+    }
+  }//GEN-LAST:event_pnlLadoIMouseDragged
+
+  private void pnlLadoIMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_pnlLadoIMouseWheelMoved
+    if (ObSel > -1 && Per == 2) { //Se ja tiver algum objeto selecionado e for redimensionar
+      A1 = 1 + (evt.getWheelRotation() * 0.1);
+      Obj.get(ObSel).MenosCentro();
+      for (Ponto ink : Obj.get(ObSel).arrPonto) { //Multiplica pontos (decomposto)
+        ink.x = ink.x * A1;
+        ink.y = ink.y * A1;
+        ink.z = ink.z * A1;
+      }
+      Obj.get(ObSel).MaisCentro();
+      AtualizaTudo();
+      //TiraOp();
+    }
+    PintaTudo();
+  }//GEN-LAST:event_pnlLadoIMouseWheelMoved
+
+  private void pnlFrenteIMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMousePressed
+    Clique.x = (evt.getX() / EF) - (VF.Umax/2);
+    Clique.y = (evt.getY() / EF) - (VF.Vmax/2);
+    Clique.z = 0;
+  }//GEN-LAST:event_pnlFrenteIMousePressed
+
+  private void pnlFrenteIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMouseReleased
+    if (ObSel > -1) { //Se ja tiver algum objeto selecionado
+      if (Per == 4) { //Selecionar (Troca a selecao)
+        SelecionaAlguem(evt.getX(), evt.getY(), 0, (byte) 1);
+      }
+    } else { //Selecionar
+      SelecionaAlguem(evt.getX(), evt.getY(), 0, (byte) 1);
+    }
+    PintaTudo();
+  }//GEN-LAST:event_pnlFrenteIMouseReleased
+
+  private void pnlFrenteIMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMouseDragged
+    if (ObSel > -1) { //Se ja tiver algum objeto selecionado
+      Ponto ax = new Ponto(-((evt.getX() / EF) - (VF.Umax/2)), (evt.getY() / EF) - (VF.Vmax/2), 0);
+      Ponto axx = new Ponto(ax);
+      if (Per == 1) { //Mover
+        ax.Diferenca(Clique);
+        Obj.get(ObSel).C.Soma(ax);
+        for (Ponto ink : Obj.get(ObSel).arrPonto){
+          ink.Soma(ax);
+        }
+        AtualizaTudo();
+        PintaTudo();
+        Clique = axx;
+      } else if (Per == 3){ //Rotacionar
+        Obj.get(ObSel).MenosCentro();
+        if (Clique.x < ax.x){
+          A1 = -0.1;
+        } else {
+          A1 = 0.1;
+        }
+        for (Ponto ink : Obj.get(ObSel).arrPonto) { //Multiplica pontos (decomposto)
+          A2 = ink.x;
+          ink.x = (ink.x * Math.cos(A1)) - (ink.y * Math.sin(A1));
+          ink.y = (A2 * Math.sin(A1)) + (ink.y * Math.cos(A1));
+        }
+        Obj.get(ObSel).MaisCentro();
+        AtualizaTudo();
+        PintaTudo();
+        Clique = axx;
+      }
+    }
+  }//GEN-LAST:event_pnlFrenteIMouseDragged
+
+  private void pnlFrenteIMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_pnlFrenteIMouseWheelMoved
+    if (ObSel > -1 && Per == 2) { //Se ja tiver algum objeto selecionado e for redimensionar
+      A1 = 1 + (evt.getWheelRotation() * 0.1);
+      Obj.get(ObSel).MenosCentro();
+      for (Ponto ink : Obj.get(ObSel).arrPonto) { //Multiplica pontos (decomposto)
+        ink.x = ink.x * A1;
+        ink.y = ink.y * A1;
+        ink.z = ink.z * A1;
+      }
+      Obj.get(ObSel).MaisCentro();
+      AtualizaTudo();
+      //TiraOp();
+    }
+    PintaTudo();
+  }//GEN-LAST:event_pnlFrenteIMouseWheelMoved
+
+  private void pnlTopoIMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlTopoIMousePressed
+    Clique.x = (evt.getX() / ET) - (VT.Umax/2);
+    Clique.y = 0;
+    Clique.z = (evt.getY() / ET) - (VT.Vmax/2);
+  }//GEN-LAST:event_pnlTopoIMousePressed
+
+  private void pnlTopoIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlTopoIMouseReleased
+    if (ObSel > -1) { //Se ja tiver algum objeto selecionado
+      if (Per == 4) { //Selecionar (Troca a selecao)
+        SelecionaAlguem(evt.getX(), 0, evt.getY(), (byte) 1);
+      }
+    } else { //Selecionar
+      SelecionaAlguem(evt.getX(), 0, evt.getY(), (byte) 1);
+    }
+    PintaTudo();
+  }//GEN-LAST:event_pnlTopoIMouseReleased
+
+  private void pnlTopoIMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlTopoIMouseDragged
+    if (ObSel > -1) { //Se ja tiver algum objeto selecionado
+      Ponto ax = new Ponto((evt.getX() / ET) - (VT.Umax/2), 0, (evt.getY() / ET) - (VT.Vmax/2));
+      Ponto axx = new Ponto(ax);
+      if (Per == 1) { //Mover
+        ax.Diferenca(Clique);
+        Obj.get(ObSel).C.Soma(ax);
+        for (Ponto ink : Obj.get(ObSel).arrPonto){
+          ink.Soma(ax);
+        }
+        AtualizaTudo();
+        PintaTudo();
+        Clique = axx;
+      } else if (Per == 3){ //Rotacionar
+        Obj.get(ObSel).MenosCentro();
+        if (Clique.x < ax.x){
+          A1 = -0.1;
+        } else {
+          A1 = 0.1;
+        }
+        for (Ponto ink : Obj.get(ObSel).arrPonto) { //Multiplica pontos (decomposto)
+          A2 = ink.x;
+          ink.x = (ink.x * Math.cos(A1)) + (ink.z * Math.sin(A1));
+          ink.z = (ink.z * Math.cos(A1)) - (A2 * Math.sin(A1));
+        }
+        Obj.get(ObSel).MaisCentro();
+        AtualizaTudo();
+        PintaTudo();
+        Clique = axx;
+      }
+    }
+  }//GEN-LAST:event_pnlTopoIMouseDragged
+
+  private void pnlTopoIMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_pnlTopoIMouseWheelMoved
+    if (ObSel > -1 && Per == 2) { //Se ja tiver algum objeto selecionado e for redimensionar
+      A1 = 1 + (evt.getWheelRotation() * 0.1);
+      Obj.get(ObSel).MenosCentro();
+      for (Ponto ink : Obj.get(ObSel).arrPonto) { //Multiplica pontos (decomposto)
+        ink.x = ink.x * A1;
+        ink.y = ink.y * A1;
+        ink.z = ink.z * A1;
+      }
+      Obj.get(ObSel).MaisCentro();
+      AtualizaTudo();
+      //TiraOp();
+    }
+    PintaTudo();
+  }//GEN-LAST:event_pnlTopoIMouseWheelMoved
 
   public void ErrosIniciais() {
     if (EI == -1) {
@@ -1072,12 +1647,22 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JButton btnAmpliarPerspectiva;
   private javax.swing.JButton btnAmpliarTopo;
   private javax.swing.JButton btnApagar;
-  public  javax.swing.JButton btnCor;
+  private javax.swing.JToggleButton btnConstante;
+  private javax.swing.JButton btnCor;
   private javax.swing.JButton btnDesselecionar;
+  private javax.swing.JToggleButton btnGouraud;
   private javax.swing.JToggleButton btnMover;
+  private javax.swing.JToggleButton btnOcultacaoDeLinhas;
+  private javax.swing.JButton btnRedesenhar;
   private javax.swing.JToggleButton btnRedimensionar;
   private javax.swing.JToggleButton btnRotacionar;
   private javax.swing.JToggleButton btnSelecionar;
+  private javax.swing.JToggleButton btnWireFrame;
+  private javax.swing.JCheckBoxMenuItem ckbProporcionalidade;
+  private javax.swing.JSpinner escFrente;
+  private javax.swing.JSpinner escLado;
+  private javax.swing.JSpinner escPerspectiva;
+  private javax.swing.JSpinner escTopo;
   private javax.swing.JTextField fX;
   private javax.swing.JTextField fY;
   private javax.swing.JMenuItem itemAbrir;
@@ -1087,6 +1672,10 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JMenuItem itemSalvarComo;
   private javax.swing.JMenuItem itemSobre;
   private javax.swing.JLabel jLabel1;
+  private javax.swing.JLabel jLabel3;
+  private javax.swing.JLabel jLabel4;
+  private javax.swing.JLabel jLabel5;
+  private javax.swing.JLabel jLabel6;
   private javax.swing.JMenuItem jMenuItem2;
   private javax.swing.JPopupMenu.Separator jSeparator1;
   private javax.swing.JTextField lX;

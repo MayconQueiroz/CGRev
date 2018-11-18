@@ -80,7 +80,7 @@ public class Sobre extends javax.swing.JFrame {
     jTextArea1.setEditable(false);
     jTextArea1.setColumns(20);
     jTextArea1.setRows(5);
-    jTextArea1.setText("Versão 0.3\nJava jdk1.8.0_111\n\nhttps://github.com/MayconQueiroz/CGRev/");
+    jTextArea1.setText("Versão 0.4\nJava jdk1.8.0_111\n\nhttps://github.com/MayconQueiroz/CGRev/");
     jScrollPane1.setViewportView(jTextArea1);
 
     jLabel4.setText("Trabalho Final de Computação Gráfica");
