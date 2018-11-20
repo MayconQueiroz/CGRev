@@ -8,9 +8,11 @@ import static revcg.RevCG.*;
 
 /**
  * Classe de estrutura e manipulacao de camera
+ *
  * @author Maycon
  */
 public class Camera {
+
   public Ponto VRP; //Ponto da camera (VRP)
   public Ponto P; //Ponto focal P (Plano de projecao fica nesse ponto)
   public double D; //Distancia do plano de projecao
@@ -41,7 +43,7 @@ public class Camera {
    * @param Plla True se a projecao for paralela, perspectiva caso contrario
    */
   public Camera(Ponto C, Ponto p, Ponto V, int umax, int vmax, int xmin, int xmax, int ymin, int ymax, double d, boolean Plla) {
-    if (C == null || p == null || V == null){
+    if (C == null || p == null || V == null) {
       ErroPadrao();
     }
     VRP = C;
@@ -71,20 +73,24 @@ public class Camera {
     Y = new Ponto();
     obj = new ArrayList<>();
   }
-  
+
   /**
    * Atualiza os objetos da camera, com as coordenadas em SRC
    * @param An Lista de objetos principal para copia
    */
-  public void AtualizaCamera(ArrayList<Objeto> An){
+  public void AtualizaCamera(ArrayList<Objeto> An) {
     obj.clear();
+    double COT[][] = new double[4][1]; //Coordenadas do objeto temporarias
     MatrizTransformacaoPSRC();
-    for (Objeto u : An){ //Copia todos os objetos para a camera
+    if (!plla){
+      MatrizTransformacaoPers();
+    }
+    for (Objeto u : An) { //Copia todos os objetos para a camera
       obj.add(new Objeto(u));
     }
-    double COT[][] = new double[4][1]; //Coordenadas do objeto temporarias
-    for (Objeto u : obj){
-      for (Ponto pi : u.arrPonto){
+    
+    for (Objeto u : obj) {
+      for (Ponto pi : u.arrPonto) {
         COT[0][0] = pi.x;
         COT[1][0] = pi.y;
         COT[2][0] = pi.z;
@@ -98,41 +104,53 @@ public class Camera {
       }
     }
   }
-  
+
   /**
    * Carrega a visualizacao para a tela
-   * @param Op Operacao de visualizacao
-   * 0 - Wireframe
-   * 1 - Wireframe com ocultacao de linhas
-   * 2 - Sombreamento constante
-   * 3 - Sombreamento Gouraud
+   * @param Op Operacao de visualizacao 0 - Wireframe 1 - Wireframe com
+   * ocultacao de linhas 2 - Sombreamento constante 3 - Sombreamento Gouraud
    * @param Obsel Indice do objeto selecionado
    */
-  public void AtualizaVisao(byte Op, int Obsel){
+  public void AtualizaVisao(byte Op, int Obsel) {
     Objeto o;
     DP.setColor(CFundo);
     DP.fillRect(0, 0, Umax, Vmax);
     DP.setColor(Color.BLACK);
-    if (Op == 0){
-      if (plla){
+    if (Op == 0) {
+      if (plla) {
         CalculaZbuffer(Op, Obsel);
       } else {
-        
+        double COT[][] = new double[4][1]; //Coordenadas do objeto temporarias
+        for (Objeto u : obj) {
+          for (Ponto pi : u.arrPonto) {
+            COT[0][0] = pi.x;
+            COT[1][0] = pi.y;
+            COT[2][0] = pi.z;
+            COT[3][0] = pi.w;
+            COT = MultMatrizes(TP, COT);
+            COT = ChecaW(COT);
+            pi.x = COT[0][0];
+            pi.y = COT[1][0];
+            pi.z = COT[2][0];
+            pi.w = COT[3][0];
+          }
+        }
+        CalculaZbuffer(Op, Obsel);
       }
-    } else if (Op == 1){
-      if (plla){
+    } else if (Op == 1) {
+      if (plla) {
         
       } else {
         
       }
-    } else if (Op == 2){
-      if (plla){
+    } else if (Op == 2) {
+      if (plla) {
         
       } else {
         
       }
-    } else if (Op == 3){
-      if (plla){
+    } else if (Op == 3) {
+      if (plla) {
         
       } else {
         
@@ -141,47 +159,47 @@ public class Camera {
       ErroPadrao();
     }
   }
-  
+
   /**
    * Onde a magica acontece para o ZBuffer
-   * @param Op Operacao de visualizacao
-   * 0 - Wireframe
+   * @param Op Operacao de visualizacao 
+   * 0 - Wireframe 
    * 1 - Wireframe com ocultacao de linhas
-   * 2 - Sombreamento constante
+   * 2 - Sombreamento constante 
    * 3 - Sombreamento Gouraud
    * @param Obsel Indice do objeto selecionado
    */
-  public void CalculaZbuffer(byte Op, int Obsel){
+  public void CalculaZbuffer(byte Op, int Obsel) {
     Objeto o;
     double Escala = (double) (Xmax - Xmin) / Umax;
-    if (Op == 0){
-      for (int i = 0; i < obj.size(); i++){
+    if (Op == 0) {
+      for (int i = 0; i < obj.size(); i++) {
         o = obj.get(i);
         DP.setColor(i == Obsel ? Sel : Color.BLACK);
-        for (Aresta w : o.arrAresta){
-          DP.drawLine((int) ((o.arrPonto.get(w.i).x * Escala) + (Umax/2)), (int) ((o.arrPonto.get(w.i).y * Escala) + (Vmax/2)), (int) ((o.arrPonto.get(w.f).x * Escala) + (Umax/2)), (int) ((o.arrPonto.get(w.f).y * Escala) + (Vmax/2)));
+        for (Aresta w : o.arrAresta) {
+          DP.drawLine((int) ((o.arrPonto.get(w.i).x * Escala) + (Umax / 2)), (int) ((o.arrPonto.get(w.i).y * Escala) + (Vmax / 2)), (int) ((o.arrPonto.get(w.f).x * Escala) + (Umax / 2)), (int) ((o.arrPonto.get(w.f).y * Escala) + (Vmax / 2)));
         }
       }
-    } else if (Op == 1){
+    } else if (Op == 1) {
       
-    } else if (Op == 2){
+    } else if (Op == 2) {
       
-    } else if (Op == 3){
+    } else if (Op == 3) {
       
     } else {
       ErroPadrao();
     }
   }
-  
+
   /**
    * Calcula a matriz de transformacao da camera
    */
-  public void MatrizTransformacaoPSRC(){
-    Ponto N = new Ponto(VRP.x-P.x, VRP.y-P.y, VRP.z-P.z);
+  public void MatrizTransformacaoPSRC() {
+    Ponto N = new Ponto(VRP.x - P.x, VRP.y - P.y, VRP.z - P.z);
     N.Normaliza(); //Calcula e normaliza N
     double PE = (N.x * Y.x) + (N.y * Y.y) + (N.z * Y.z); //ViewUp vai ser paralelo com alguem, inverter processamento de U
     //Fazer N com viewUp para U e usar U para gerar V (To tentando outra coisa
-    Ponto V = new Ponto(Y.x-(PE*N.x), Y.y-(PE*N.y), Y.z-(PE*N.z));
+    Ponto V = new Ponto(Y.x - (PE * N.x), Y.y - (PE * N.y), Y.z - (PE * N.z));
     V.Normaliza(); //Calcula e normaliza V
     Ponto U = V.ProdutoVetorial(N);
     U.Normaliza(); //Calcula e normaliza U
@@ -202,26 +220,26 @@ public class Camera {
     TC[3][2] = 0;
     TC[3][3] = 1;
   }
-  
+
   /**
    * Cria a matriz de transformacao de SRC para STR
    */
-  public void MatrizTransformacaoPSRT(){
-    TT[0][0] = Umax/(Xmax - Xmin);
+  public void MatrizTransformacaoPSRT() {
+    TT[0][0] = Umax / (Xmax - Xmin);
     TT[0][1] = 0;
     TT[0][2] = (-Xmin * TT[0][0]);
     TT[1][0] = 0;
-    TT[1][1] = Vmax/(Ymax - Ymin);
+    TT[1][1] = Vmax / (Ymax - Ymin);
     TT[1][2] = (Ymin * TT[1][1]) + Vmax;
     TT[2][0] = 0;
     TT[2][1] = 0;
     TT[2][2] = 1;
   }
-  
+
   /**
    * Cria a matriz de transformacao perspectiva
    */
-  public void MatrizTransformacaoPers(){
+  public void MatrizTransformacaoPers() {
     TP[0][0] = 1;
     TP[0][1] = 0;
     TP[0][2] = 0;
@@ -236,14 +254,14 @@ public class Camera {
     TP[2][3] = 0;
     TP[3][0] = 0;
     TP[3][1] = 0;
-    TP[3][2] = -(1/P.calculaDistancia(VRP));
+    TP[3][2] = -(1 / P.calculaDistancia(VRP));
     TP[3][3] = 0;
   }
-  
+
   /**
    * Cria a matriz de transformacao paralela
    */
-  public void MatrizTransformacaoPara(){
+  public void MatrizTransformacaoPara() {
     TP[0][0] = 1;
     TP[0][1] = 0;
     TP[0][2] = 0;
@@ -261,41 +279,42 @@ public class Camera {
     TP[3][2] = 0;
     TP[3][3] = 1;
   }
-  
+
   /**
    * Multiplica duas matrizes de dimensao 4x4 e 4x?
    * @param M1 Primeira matriz
    * @param M2 Segunda matriz
    * @return Matriz resultado
    */
-  public double[][] MultMatrizes(double[][] M1, double[][] M2){
+  public double[][] MultMatrizes(double[][] M1, double[][] M2) {
     int M2L = M2.length;
     int M1C = M1[0].length;
     int M2C = M2[0].length;
     double R[][] = new double[M2L][M2C];
-    
+
     for (int i = 0; i < M1C; i++) {
       for (int j = 0; j < M2C; j++) {
         R[i][j] = (M1[i][0] * M2[0][j]) + (M1[i][1] * M2[1][j]) + (M1[i][2] * M2[2][j]) + (M1[i][3] * M2[3][j]);
       }
     }
-    
+
     return R;
   }
-  
+
   /**
-   * Verifica se o parametro W dos pontos eh 1, se nao for, divide todos por ele pra retornar 1
+   * Verifica se o parametro W dos pontos eh 1, se nao for, divide todos por ele
+   * pra retornar 1
    * @param M Matriz 4x1 com os pontos x, y, z e w
    * @return Mesma matriz mas verificada
    */
-  public double[][] ChecaW(double[][] M){
-    if (M[3][0] == 1){
+  public double[][] ChecaW(double[][] M) {
+    if (M[3][0] == 1) {
       return M;
     }
-    M[0][0] = M[0][0]/M[3][0];
-    M[1][0] = M[1][0]/M[3][0];
-    M[2][0] = M[2][0]/M[3][0];
-    M[3][0] = M[3][0]/M[3][0];
+    M[0][0] = M[0][0] / M[3][0];
+    M[1][0] = M[1][0] / M[3][0];
+    M[2][0] = M[2][0] / M[3][0];
+    M[3][0] = M[3][0] / M[3][0];
     return M;
   }
 }

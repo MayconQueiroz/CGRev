@@ -13,7 +13,7 @@ import javax.swing.JOptionPane;
 
 /**
  * Fornece modelos pre-configurados de perfis para escolha do usuario
- * 
+ *
  * @author Maycon
  */
 public class Modelos extends javax.swing.JFrame {
@@ -30,13 +30,13 @@ public class Modelos extends javax.swing.JFrame {
   /**
    * Calcula Bezier para os pontos das figuras que usam aproximacao curva
    */
-  
+
   //Ponto especial para Bezier
   Ponto Slc = new Ponto();
-  
+
   /**
-   * Calcula as arestas de bezier
-   * NAO FUNCIONANDO
+   * Calcula as arestas de bezier NAO FUNCIONANDO
+   *
    * @param Seg Quantidade de segmentos da curva
    */
   public void CalculaBezier(int Bseg) {
@@ -49,15 +49,15 @@ public class Modelos extends javax.swing.JFrame {
     }
     arPonto.add(new Ponto(BP[3]));
     System.out.println("Bseg = " + Bseg);
-    for (Ponto t : arPonto){
+    for (Ponto t : arPonto) {
       System.out.println("P=" + t.toString());
     }
     //DesenhaPerfil();
   }
-  
+
   /**
-   * Retorna um ponto da curva de bezier
-   * NO MESMO SACO DE BEZIER
+   * Retorna um ponto da curva de bezier NO MESMO SACO DE BEZIER
+   *
    * @param t Fator de ponderacao
    */
   public void DeCasteljau(double t) {
@@ -76,8 +76,7 @@ public class Modelos extends javax.swing.JFrame {
     u23 = ((ut * u2) + (t * d3));
     Slc.y = (ut * z12) + (t * u23);
   }
-  
-  
+
   /**
    * Creates new form Modelos
    */
@@ -100,7 +99,7 @@ public class Modelos extends javax.swing.JFrame {
     ctrSegmentos.setEnabled(false);
     ctrDistancia.setEnabled(false);
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+    this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     setResizable(false); //Nao deixa redimensionar a janela
     arPonto = new ArrayList();
     arAresta = new ArrayList();
@@ -143,7 +142,7 @@ public class Modelos extends javax.swing.JFrame {
    */
   public void ConstroiArestas() {
     for (int i = 1; i < arPonto.size(); i++) {
-      arAresta.add(new Aresta(i-1, i));
+      arAresta.add(new Aresta(i - 1, i));
     }
   }
 
@@ -153,7 +152,7 @@ public class Modelos extends javax.swing.JFrame {
    */
   public void ConstroiArestasFechado() {
     for (int i = 1; i < arPonto.size(); i++) {
-      arAresta.add(new Aresta(i-1, i));
+      arAresta.add(new Aresta(i - 1, i));
     }
     arAresta.add(new Aresta(arPonto.size() - 1, 0));
   }
@@ -313,7 +312,7 @@ public class Modelos extends javax.swing.JFrame {
           Num = 100;
         }
         double teta = -1.571;
-        double passo = (2*Math.PI) / Num;
+        double passo = (2 * Math.PI) / Num;
         for (int i = 0; i < Num; i++) {
           arPonto.add(new Ponto((Math.cos(teta) * 30 + Dis), Math.sin(teta) * 30 + 98));
           //System.out.println("x = " + round(Math.cos(teta)*30+Dis) + ", y = " + round(Math.sin(teta)*30+98));
@@ -595,27 +594,27 @@ public class Modelos extends javax.swing.JFrame {
     DesenhaSelecionado();
   }//GEN-LAST:event_ctrDistanciaStateChanged
 
-  public void ErrosIniciais(){
-    if (EI == -1){
+  public void ErrosIniciais() {
+    if (EI == -1) {
       JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 0){
+    } else if (EI == 0) {
       return; //Ready to go
-    } else if (EI == 1){
+    } else if (EI == 1) {
       JOptionPane.showMessageDialog(this, "Classe faltante, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 2){
+    } else if (EI == 2) {
       JOptionPane.showMessageDialog(this, "Erro de instanciacao, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 3){
+    } else if (EI == 3) {
       JOptionPane.showMessageDialog(this, "Acesso Ilegal, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 4){
+    } else if (EI == 4) {
       JOptionPane.showMessageDialog(this, "Aparencia do programa com problemas (Apenas windows), consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
     } else {
       JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
     }
     System.exit(-1);
   }
-  
+
   public static byte EI = 0;
-  
+
   /**
    * @param args the command line arguments
    */
@@ -625,7 +624,7 @@ public class Modelos extends javax.swing.JFrame {
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
-    
+
     try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
         if ("Windows".equals(info.getName())) {

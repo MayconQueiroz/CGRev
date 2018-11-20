@@ -10,7 +10,7 @@ import static revcg.RevCG.ErroPadrao;
 
 /**
  * Fornece topicos de ajuda e imagens ao usuario
- * 
+ *
  * @author Maycon
  */
 public class Ajuda extends javax.swing.JFrame {
@@ -22,7 +22,7 @@ public class Ajuda extends javax.swing.JFrame {
   public Perfil Pe;
   public int Cod = 0;
   public DefaultListModel dl = new DefaultListModel();
-  
+
   /**
    * Creates new form Ajuda
    */
@@ -39,13 +39,14 @@ public class Ajuda extends javax.swing.JFrame {
     a.setClosedIcon(leafIcon);
     lstTopicos.setCellRenderer(a);
   }
-  
+
   /**
    * Construtor da ajuda que recebe as opcoes
+   *
    * @param P : Tela Principal
    * @param C : Codigo da tela que esta chamando
    */
-  public Ajuda(Principal P, int C){
+  public Ajuda(Principal P, int C) {
     this();
     ErrosIniciais();
     Pr = P;
@@ -53,29 +54,30 @@ public class Ajuda extends javax.swing.JFrame {
     Cod = C;
     PoeAjuda();
   }
-  
+
   /**
    * Construtor da ajuda que recebe as opcoes
+   *
    * @param P : Tela de perfil
    * @param C : Codigo da tela que esta chamando
    */
-  public Ajuda(Perfil P, int C){
+  public Ajuda(Perfil P, int C) {
     this();
     Pe = P;
     Pr = null;
     Cod = C;
     PoeAjuda();
   }
-  
+
   /**
    * Escreve a ajuda
    */
-  public void PoeAjuda(){
-    if (Cod == 0){
+  public void PoeAjuda() {
+    if (Cod == 0) {
       dl.addElement("Ajuda não implementada");
-    } else if (Cod == 1){ //Principal
+    } else if (Cod == 1) { //Principal
       dl.addElement("");
-    } else if (Cod == 2){ //Perfil
+    } else if (Cod == 2) { //Perfil
       dl.addElement("");
     }
   }
@@ -165,11 +167,11 @@ public class Ajuda extends javax.swing.JFrame {
   }// </editor-fold>//GEN-END:initComponents
 
   private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-    if (Pe == null){
+    if (Pe == null) {
       Pr.setEnabled(true);
       Pr.requestFocus(); //Traz o foco para tela anterior
       Pr.PintaTudo();
-    } else if (Pr == null){
+    } else if (Pr == null) {
       Pe.setEnabled(true);
       Pe.requestFocus(); //Traz o foco para tela anterior
       Pe.DesenhaPerfil();
@@ -178,27 +180,27 @@ public class Ajuda extends javax.swing.JFrame {
     }
   }//GEN-LAST:event_formWindowClosed
 
-  public void ErrosIniciais(){
-    if (EI == -1){
+  public void ErrosIniciais() {
+    if (EI == -1) {
       JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 0){
+    } else if (EI == 0) {
       return; //Ready to go
-    } else if (EI == 1){
+    } else if (EI == 1) {
       JOptionPane.showMessageDialog(this, "Classe faltante, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 2){
+    } else if (EI == 2) {
       JOptionPane.showMessageDialog(this, "Erro de instanciacao, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 3){
+    } else if (EI == 3) {
       JOptionPane.showMessageDialog(this, "Acesso Ilegal, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
-    } else if (EI == 4){
+    } else if (EI == 4) {
       JOptionPane.showMessageDialog(this, "Aparencia do programa com problemas (Apenas windows), consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
     } else {
       JOptionPane.showMessageDialog(this, "Algo esta impedindo a execucao deste programa, consulte o log de saida para mais informacoes", "Erro", JOptionPane.ERROR_MESSAGE);
     }
     System.exit(-1);
   }
-  
+
   public static byte EI = 0;
-  
+
   /**
    * @param args the command line arguments
    */
@@ -208,7 +210,7 @@ public class Ajuda extends javax.swing.JFrame {
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
-    
+
     try {
       for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
         if ("Windows".equals(info.getName())) {

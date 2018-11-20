@@ -1,5 +1,7 @@
 package revcg;
 
+import Objetos.Objeto;
+
 /**
  * Metodos isolados por darem problema ou terem sido substituidos por metodos mais eficientes
  * @author Maycon
@@ -484,4 +486,77 @@ public class MetodosIsolados {
       }
     }
   }*/
+  
+  //Antigos for's que salvavam a cena no formato versao 1
+  
+  //Esse salva
+  /*for (Objeto ob : Obj) {
+            said.writeShort((short) (ob.BG.getRed() * 255)); //RGB
+            said.writeShort((short) (ob.BG.getGreen() * 255));
+            said.writeShort((short) (ob.BG.getBlue() * 255));
+            if (ob.Fechado) {
+              said.writeByte(1);
+            } else {
+              said.writeByte(0);
+            }
+            said.writeShort(ob.arrPonto.size());
+            for (Ponto p : ob.arrPonto) {
+              said.writeDouble(p.x);
+              said.writeDouble(p.y);
+              said.writeDouble(p.z);
+            }
+            said.writeShort(ob.arrAresta.size());
+            for (Aresta a : ob.arrAresta) {
+              said.writeShort(a.i);
+              said.writeShort(a.f);
+              said.writeShort(a.e);
+              said.writeShort(a.d);
+            }
+            said.writeShort(ob.arrFace.size());
+            for (Face f : ob.arrFace) {
+              said.writeByte(0);
+              said.writeShort(f.fAresta.get(0));
+              for (int ia = 1; ia < f.fAresta.size(); ia++) {
+                said.writeByte(1);
+                said.writeShort(f.fAresta.get(ia));
+              }
+            }
+          }*/
+  
+  //Esse le
+  /*while (entr.available() > 0) { //Le
+          Objeto tmp = new Objeto();
+          short r = entr.readShort();
+          short g = entr.readShort();
+          short b = entr.readShort();
+          tmp.VaiCor(r, g, b);
+          byte F = entr.readByte();
+          tmp.Fechado = (F == 1);
+          short QP = entr.readShort();
+          for (int i = 0; i < QP; i++) {
+            x = entr.readDouble();
+            y = entr.readDouble();
+            z = entr.readDouble();
+            tmp.arrPonto.add(new Ponto(x, y, z));
+          }
+          QP = entr.readShort();
+          for (int i = 0; i < QP; i++) {
+            s = entr.readShort();
+            e = entr.readShort();
+            l = entr.readShort();
+            ri = entr.readShort();
+            tmp.arrAresta.add(new Aresta(s, e, l, ri));
+          }
+          QP = entr.readShort();
+          for (int i = 0; i < QP; i++) {
+            byte ui = entr.readByte();
+            ri = entr.readShort();
+            if (ui == 0) {
+              tmp.arrFace.add(new Face(ri));
+            } else {
+              tmp.arrFace.get(tmp.arrFace.size() - 1).fAresta.add((int) ri);
+            }
+          }
+        }*/
+  
 }

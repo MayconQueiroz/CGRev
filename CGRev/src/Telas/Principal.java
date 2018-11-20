@@ -1,7 +1,6 @@
 package Telas;
 
 import Objetos.*;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
@@ -12,10 +11,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import javafx.scene.paint.Color;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -43,6 +43,7 @@ public class Principal extends javax.swing.JFrame {
   public Camera VL, VF, VT, VP; //4 Cameras
   public boolean btnCorEnabled; //Boolean para habilitar (ou desabilitar) o botao de selecao de cor
   public Ponto Clique; //Ponto de clique
+  public Ponto Luz; //Ponto de fonte luminosa
 
   /**
    * Variaveis Locais Globais
@@ -53,8 +54,8 @@ public class Principal extends javax.swing.JFrame {
   JFileChooser fc = new JFileChooser(); //Instancia do filechooser para salvar e abrir
   double EL = 1, ET = 1, EP = 1, EF = 1;
   double A1, A2, A3; //Auxiliares gerais
-  String fileName; //Nome do arquivo aberto/recem salvo
-  
+  String fileName = new String(); //Nome do arquivo aberto/recem salvo
+  boolean salvo = false; //Indica se a cena ja esta salva
 
   Objeto o; //Objeto auxiliar (Declaracao para evitar mau uso de memoria)
 
@@ -72,6 +73,9 @@ public class Principal extends javax.swing.JFrame {
     ErrosIniciais();
     //Seta janela para o meio da tela, independente da resolucao.
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    if (dim.width < 1024 || dim.height < 768){
+      JOptionPane.showMessageDialog(this, "A resolucao da sua tela e inferior ao minimo recomendado para execucao deste programa (e isso e so um aviso)", "Aviso", JOptionPane.WARNING_MESSAGE);
+    }
     this.setLocation(dim.width / 2 - this.getSize().width / 2, 0);
     setResizable(false); //Nao deixa redimensionar a janela
     DT = pnlTopoI.getGraphics();
@@ -85,22 +89,36 @@ public class Principal extends javax.swing.JFrame {
     Obj = new ArrayList<>();
     LimpaPaineis();
     btnCor.setEnabled(false);
+    Luz = new Ponto();
     setIconImage(new ImageIcon(ClassLoader.getSystemResource("Icones/Principal.png")).getImage());
-    VL = new Camera(new Ponto(-20,   0,   0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, true);
-    VF = new Camera(new Ponto(  0,   0, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, true);
-    VT = new Camera(new Ponto(  0, -20,   0), new Ponto(0, 0, 0), new Ponto(0, 0, 1), 340, 255, -170, 170, -127, 128, 0.5, true);
-    VP = new Camera(new Ponto(-20, -20, -20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, false);
+    VL = new Camera(new Ponto(-20, 0, 0), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, true);
+    VF = new Camera(new Ponto(0, 0, 20), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, true);
+    VT = new Camera(new Ponto(0, -20, 0), new Ponto(0, 0, 0), new Ponto(0, 0, 1), 340, 255, -170, 170, -127, 128, 0.5, true);
+    VP = new Camera(new Ponto(-100, -100, -100), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, false);
     Clique = new Ponto();
+    btnWireFrame.setSelected(true);
+    vrpX.setText("" + VP.VRP.x);
+    vrpY.setText("" + VP.VRP.y);
+    vrpZ.setText("" + VP.VRP.z);
+    ppX.setText("" + VP.P.x);
+    ppY.setText("" + VP.P.y);
+    ppZ.setText("" + VP.P.z);
+    luzX.setText("" + Luz.x);
+    luzY.setText("" + Luz.y);
+    luzZ.setText("" + Luz.z);
   }
-  
-  public void AtualizaTudo(){
-    for (Objeto u : Obj){ //Atualiza Centroides (vai que)
+
+  /**
+   * Atualiza todas as cameras e os objetos
+   */
+  public void AtualizaTudo() {
+    for (Objeto u : Obj) { //Atualiza Centroides (vai que)
       u.CalculaCentro();
     }
     VL.AtualizaCamera(Obj);
     VT.AtualizaCamera(Obj);
     VF.AtualizaCamera(Obj);
-    //VP.AtualizaCamera(Obj);
+    VP.AtualizaCamera(Obj);
   }
 
   /**
@@ -109,6 +127,10 @@ public class Principal extends javax.swing.JFrame {
   public void LimpaTudo() {
     LimpaPaineis();
     Obj.clear();
+    VL.AtualizaCamera(Obj);
+    VT.AtualizaCamera(Obj);
+    VF.AtualizaCamera(Obj);
+    VP.AtualizaCamera(Obj);
   }
 
   /**
@@ -134,24 +156,24 @@ public class Principal extends javax.swing.JFrame {
   /**
    * Pinta a vista lateral
    */
-  public void PintaLado(){
-    VL.AtualizaVisao((byte)0, ObSel);
+  public void PintaLado() {
+    VL.AtualizaVisao((byte) 0, ObSel);
     DL.drawImage(VL.IBuffer, 0, 0, null);
   }
-  
+
   /**
    * Pinta a vista lateral
    */
-  public void PintaTopo(){
-    VT.AtualizaVisao((byte)0, ObSel);
+  public void PintaTopo() {
+    VT.AtualizaVisao((byte) 0, ObSel);
     DT.drawImage(VT.IBuffer, 0, 0, null);
   }
-  
+
   /**
    * Pinta a vista lateral
    */
-  public void PintaFrente(){
-    VF.AtualizaVisao((byte)0, ObSel);
+  public void PintaFrente() {
+    VF.AtualizaVisao((byte) 0, ObSel);
     DF.drawImage(VF.IBuffer, 0, 0, null);
   }
 
@@ -159,9 +181,8 @@ public class Principal extends javax.swing.JFrame {
    * Pinta o painel de perspectiva
    */
   public void PintaPerspectiva() {
-    DP.clearRect(0, 0, 340, 255);
-    VL.AtualizaVisao((byte)0, ObSel);
-    DP.drawImage(VL.IBuffer, 0, 0, null);
+    VP.AtualizaVisao((byte) 0, ObSel);
+    DP.drawImage(VP.IBuffer, 0, 0, null);
   }
 
   /**
@@ -169,40 +190,62 @@ public class Principal extends javax.swing.JFrame {
    * @param xl Coordenada x
    * @param yl Coordenada y
    * @param zl Coordenada z
-   * @param Who Quem esta chamando (qual vista)
-   * 0 - Vista Frontal - y e x
-   * 1 - Vista Lateral - y e z
-   * 2 - Vista Topo - x e z
+   * @param Who Quem esta chamando (qual vista) 0 - Vista Frontal - y e x 
+   * 1 - Vista Lateral - y e z; 2 - Vista Topo - x e z
    */
   public void SelecionaAlguem(double xl, double yl, double zl, byte Who) {
-    int Prox = 0; //Indice do objeto "selecionado ate o momento"
+    int Prox = ObSel == 0 ? 1 : 0; //Indice do objeto "selecionado ate o momento"
+    if (Obj.size() == 1){
+      ObSel = 0;
+      return;
+    }
     Ponto Cl = new Ponto(xl, yl, zl); //Ponto para calculo da distancia
-    if (Who == 0){
-      
-    } else if (Who == 1){
-      Cl.z = (Cl.z * EL) - (VL.Umax/2);
-      Cl.y = (Cl.y * EL) - (VL.Vmax/2);
-      A1 = Cl.calculaDistancia(VL.obj.get(0).C);
-      for (int i = 0; i < VL.obj.size(); i++){
+    if (Who == 0) {
+      Cl.x = (Cl.x * EL) - (VL.Umax / 2);
+      Cl.y = (Cl.y * EL) - (VL.Vmax / 2);
+      A1 = Cl.calculaDistancia(VL.obj.get(Prox).C);
+      for (int i = 0; i < VL.obj.size(); i++) {
         A2 = Cl.calculaDistancia(VL.obj.get(i).C);
-        if (A2 < A1){
+        if ((A2 < A1) && (i != ObSel)) {
           A1 = A2;
           Prox = i;
         }
       }
       ObSel = Prox;
-    } else if (Who == 2){
-      
+    } else if (Who == 1) {
+      Cl.z = (Cl.z * EL) - (VL.Umax / 2);
+      Cl.y = (Cl.y * EL) - (VL.Vmax / 2);
+      A1 = Cl.calculaDistancia(VL.obj.get(Prox).C);
+      for (int i = 0; i < VL.obj.size(); i++) {
+        A2 = Cl.calculaDistancia(VL.obj.get(i).C);
+        if ((A2 < A1) && (i != ObSel)) {
+          A1 = A2;
+          Prox = i;
+        }
+      }
+      ObSel = Prox;
+    } else if (Who == 2) {
+      Cl.x = (Cl.x * EL) - (VL.Umax / 2);
+      Cl.z = (Cl.z * EL) - (VL.Vmax / 2);
+      A1 = Cl.calculaDistancia(VL.obj.get(Prox).C);
+      for (int i = 0; i < VL.obj.size(); i++) {
+        A2 = Cl.calculaDistancia(VL.obj.get(i).C);
+        if (A2 < A1) {
+          A1 = A2;
+          Prox = i;
+        }
+      }
+      ObSel = Prox;
     } else {
       ErroPadrao();
     }
-    if (Per == 4){
+    /*if (Per == 4) {
       Per = 0;
     }
-    btnSelecionar.setSelected(false);
+    btnSelecionar.setSelected(false);*/
   }
-  
-  public void TiraOp(){
+
+  public void TiraOp() {
     Per = 0;
     btnSelecionar.setSelected(false);
     btnMover.setSelected(false);
@@ -247,6 +290,28 @@ public class Principal extends javax.swing.JFrame {
     btnOcultacaoDeLinhas = new javax.swing.JToggleButton();
     btnConstante = new javax.swing.JToggleButton();
     btnGouraud = new javax.swing.JToggleButton();
+    jLabel2 = new javax.swing.JLabel();
+    vrpX = new javax.swing.JTextField();
+    jLabel7 = new javax.swing.JLabel();
+    jLabel8 = new javax.swing.JLabel();
+    vrpY = new javax.swing.JTextField();
+    vrpZ = new javax.swing.JTextField();
+    jLabel9 = new javax.swing.JLabel();
+    ppZ = new javax.swing.JTextField();
+    jLabel10 = new javax.swing.JLabel();
+    jLabel11 = new javax.swing.JLabel();
+    ppY = new javax.swing.JTextField();
+    ppX = new javax.swing.JTextField();
+    jLabel12 = new javax.swing.JLabel();
+    jLabel13 = new javax.swing.JLabel();
+    jLabel14 = new javax.swing.JLabel();
+    luzZ = new javax.swing.JTextField();
+    jLabel15 = new javax.swing.JLabel();
+    luzY = new javax.swing.JTextField();
+    luzX = new javax.swing.JTextField();
+    jLabel16 = new javax.swing.JLabel();
+    jLabel17 = new javax.swing.JLabel();
+    btnAplicar = new javax.swing.JButton();
     pnlFrente = new javax.swing.JPanel();
     pnlFrenteI = new javax.swing.JPanel();
     btnAmpliarFrente = new javax.swing.JButton();
@@ -571,6 +636,37 @@ public class Principal extends javax.swing.JFrame {
       }
     });
 
+    jLabel2.setText("VRP");
+
+    jLabel7.setText("x");
+
+    jLabel8.setText("y");
+
+    jLabel9.setText("z");
+
+    jLabel10.setText("z");
+
+    jLabel11.setText("y");
+
+    jLabel12.setText("x");
+
+    jLabel13.setText("P");
+
+    jLabel14.setText("Fonte Luminosa");
+
+    jLabel15.setText("z");
+
+    jLabel16.setText("x");
+
+    jLabel17.setText("y");
+
+    btnAplicar.setText("Aplicar");
+    btnAplicar.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnAplicarActionPerformed(evt);
+      }
+    });
+
     javax.swing.GroupLayout pnlAmbienteLayout = new javax.swing.GroupLayout(pnlAmbiente);
     pnlAmbiente.setLayout(pnlAmbienteLayout);
     pnlAmbienteLayout.setHorizontalGroup(
@@ -580,9 +676,56 @@ public class Principal extends javax.swing.JFrame {
         .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addComponent(btnRedesenhar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(btnWireFrame, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnOcultacaoDeLinhas, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(btnOcultacaoDeLinhas, javax.swing.GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE)
           .addComponent(btnConstante, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(btnGouraud, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+          .addComponent(btnGouraud, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addGroup(pnlAmbienteLayout.createSequentialGroup()
+            .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                  .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                    .addComponent(jLabel7)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(vrpX, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+                  .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                    .addComponent(jLabel8)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(vrpY, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+                  .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                    .addComponent(jLabel9)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(vrpZ, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+                  .addComponent(jLabel2))
+                .addGap(18, 18, 18)
+                .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                  .addComponent(jLabel13)
+                  .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                    .addComponent(jLabel12)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(ppX, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+                  .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                    .addComponent(jLabel11)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(ppY, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+                  .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                    .addComponent(jLabel10)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(ppZ, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))))
+              .addComponent(jLabel14)
+              .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                .addComponent(jLabel16)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(luzX, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+              .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                .addComponent(jLabel17)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(luzY, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+              .addGroup(pnlAmbienteLayout.createSequentialGroup()
+                .addComponent(jLabel15)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(luzZ, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)))
+            .addGap(0, 0, Short.MAX_VALUE))
+          .addComponent(btnAplicar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         .addContainerGap())
     );
     pnlAmbienteLayout.setVerticalGroup(
@@ -598,7 +741,53 @@ public class Principal extends javax.swing.JFrame {
         .addComponent(btnConstante)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(btnGouraud)
-        .addContainerGap(426, Short.MAX_VALUE))
+        .addGap(18, 18, 18)
+        .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel2)
+          .addComponent(jLabel13))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(pnlAmbienteLayout.createSequentialGroup()
+            .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+              .addComponent(vrpX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+              .addComponent(jLabel7))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+              .addComponent(jLabel8)
+              .addComponent(vrpY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+              .addComponent(jLabel9)
+              .addComponent(vrpZ, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+          .addGroup(pnlAmbienteLayout.createSequentialGroup()
+            .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+              .addComponent(ppX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+              .addComponent(jLabel12))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+              .addComponent(jLabel11)
+              .addComponent(ppY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+              .addComponent(jLabel10)
+              .addComponent(ppZ, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+        .addComponent(jLabel14)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(luzX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(jLabel16))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel17)
+          .addComponent(luzY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(pnlAmbienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel15)
+          .addComponent(luzZ, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+        .addComponent(btnAplicar)
+        .addContainerGap(179, Short.MAX_VALUE))
     );
 
     pnlMenus.addTab("Ambiente", pnlAmbiente);
@@ -950,7 +1139,7 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_pnlObjetosMouseMoved
 
   private void itemNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemNovoActionPerformed
-    if (!Obj.isEmpty()) {
+    if (!Obj.isEmpty() && !salvo) { //Se nao estiver vazio nem salvo
       Object[] options = {"Sim", "Não", "Cancelar"};
       int n = JOptionPane.showOptionDialog(this, "Há objetos não salvos, deseja salvá-los?",
               "Cena existente", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
@@ -980,7 +1169,7 @@ public class Principal extends javax.swing.JFrame {
         return;
       }
       try {
-        DataInputStream entr = new DataInputStream(new FileInputStream(fileName));
+        ObjectInputStream entr = new ObjectInputStream(new FileInputStream(fileName));
         cabecalho = entr.readByte();
         LimpaTudo();
         if ((cabecalho & 8) == 0) { //Tentando ler arquivo que nao e de cena
@@ -988,43 +1177,21 @@ public class Principal extends javax.swing.JFrame {
           fileName = "";
           return;
         }
-        if ((cabecalho & 16) == 0) { //So sei ler a versao 1 do arquivo
+        if ((cabecalho & 32) == 0) { //So sei ler a versao 1 do arquivo
           JOptionPane.showMessageDialog(this, "Versao de arquivo de cena nao suportado por esta versao, espera-se a versao: 1", "Erro", JOptionPane.ERROR_MESSAGE);
           fileName = "";
           return;
         }
-        while (entr.available() > 0) { //Le
-          Objeto tmp = new Objeto();
-          short r = entr.readShort();
-          short g = entr.readShort();
-          short b = entr.readShort();
-          tmp.VaiCor(r, g, b);
-          byte F = entr.readByte();
-          tmp.Fechado = (F == 1);
-          short QP = entr.readShort();
-          for (int i = 0; i < QP; i++) {
-            x = entr.readDouble();
-            y = entr.readDouble();
-            z = entr.readDouble();
-            tmp.arrPonto.add(new Ponto(x, y, z));
+        boolean c = true;
+        Objeto pr1 = new Objeto();
+        while (c){
+          try{
+            pr1 = (Objeto) entr.readObject();
+          }catch(IOException ex){
+            c = false;
           }
-          QP = entr.readShort();
-          for (int i = 0; i < QP; i++) {
-            s = entr.readShort();
-            e = entr.readShort();
-            l = entr.readShort();
-            ri = entr.readShort();
-            tmp.arrAresta.add(new Aresta(s, e, l, ri));
-          }
-          QP = entr.readShort();
-          for (int i = 0; i < QP; i++) {
-            r = entr.readByte();
-            ri = entr.readShort();
-            if (r == 0) {
-              tmp.arrFace.add(new Face(ri));
-            } else {
-              tmp.arrFace.get(tmp.arrFace.size() - 1).fAresta.add((int) ri);
-            }
+          if (c){ //Le objetos ate nao querer mais
+            Obj.add(pr1);
           }
         }
       } catch (FileNotFoundException ex) {
@@ -1034,15 +1201,18 @@ public class Principal extends javax.swing.JFrame {
         return;
       } catch (IOException ex) {
         Logger.getLogger(Perfil.class.getName()).log(Level.SEVERE, null, ex);
-        JOptionPane.showMessageDialog(this, "Erro generico de leitura", "Erro", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Erro generico de leitura" + ex.toString(), "Erro", JOptionPane.ERROR_MESSAGE);
         LimpaTudo();
         return;
+      } catch (ClassNotFoundException ex) {
+        Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+        JOptionPane.showMessageDialog(this, "Erro generico de leitura" + ex.toString(), "Erro", JOptionPane.ERROR_MESSAGE);
+        LimpaTudo();
       }
     }
     //Duas vezes porque so uma as vezes dava problema (eu tambem nao gosto)
     LimpaPaineis();
-    PintaTudo();
-    LimpaPaineis();
+    AtualizaTudo();
     PintaTudo();
   }//GEN-LAST:event_itemAbrirActionPerformed
 
@@ -1071,39 +1241,10 @@ public class Principal extends javax.swing.JFrame {
       cabecalho = (byte) VERSAO_CENA;
       cabecalho += 8; //Marcador de "Cena"
       try {
-        try (DataOutputStream said = new DataOutputStream(new FileOutputStream(fileName))) {
+        try (ObjectOutputStream said = new ObjectOutputStream(new FileOutputStream(fileName))) {
           said.writeByte(cabecalho);
           for (Objeto ob : Obj) {
-            said.writeShort((short) (ob.BG.getRed() * 255)); //RGB
-            said.writeShort((short) (ob.BG.getGreen() * 255));
-            said.writeShort((short) (ob.BG.getBlue() * 255));
-            if (ob.Fechado) {
-              said.writeByte(1);
-            } else {
-              said.writeByte(0);
-            }
-            said.writeShort(ob.arrPonto.size());
-            for (Ponto p : ob.arrPonto) {
-              said.writeDouble(p.x);
-              said.writeDouble(p.y);
-              said.writeDouble(p.z);
-            }
-            said.writeShort(ob.arrAresta.size());
-            for (Aresta a : ob.arrAresta) {
-              said.writeShort(a.i);
-              said.writeShort(a.f);
-              said.writeShort(a.e);
-              said.writeShort(a.d);
-            }
-            said.writeShort(ob.arrFace.size());
-            for (Face f : ob.arrFace) {
-              said.writeByte(0);
-              said.writeShort(f.fAresta.get(0));
-              for (int ia = 1; ia < f.fAresta.size(); ia++) {
-                said.writeByte(1);
-                said.writeShort(f.fAresta.get(ia));
-              }
-            }
+            said.writeObject(ob);
           }
         }
       } catch (FileNotFoundException ex) {
@@ -1112,6 +1253,7 @@ public class Principal extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "Erro generico de escrita: " + ex.toString(), "Erro", JOptionPane.ERROR_MESSAGE);
       }
     }
+    salvo = true;
   }//GEN-LAST:event_itemSalvarActionPerformed
 
   private void btnMoverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMoverActionPerformed
@@ -1119,6 +1261,7 @@ public class Principal extends javax.swing.JFrame {
       Per = 1;
       btnRedimensionar.setSelected(false);
       btnRotacionar.setSelected(false);
+      btnSelecionar.setSelected(false);
     } else {
       Per = 0;
       ObSel = -1;
@@ -1130,6 +1273,7 @@ public class Principal extends javax.swing.JFrame {
       Per = 3;
       btnRedimensionar.setSelected(false);
       btnMover.setSelected(false);
+      btnSelecionar.setSelected(false);
     } else {
       Per = 0;
       ObSel = -1;
@@ -1141,6 +1285,7 @@ public class Principal extends javax.swing.JFrame {
       Per = 2;
       btnMover.setSelected(false);
       btnRotacionar.setSelected(false);
+      btnSelecionar.setSelected(false);
     } else {
       Per = 0;
       ObSel = -1;
@@ -1148,11 +1293,11 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_btnRedimensionarActionPerformed
 
   private void btnDesselecionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDesselecionarActionPerformed
-    Per = 0;
-    btnMover.setSelected(false);
+    //Per = 0;
+    /*btnMover.setSelected(false);
     btnRotacionar.setSelected(false);
     btnRedimensionar.setSelected(false);
-    btnSelecionar.setSelected(false);
+    btnSelecionar.setSelected(false);*/
     ObSel = -1;
     btnCor.setEnabled(false);
   }//GEN-LAST:event_btnDesselecionarActionPerformed
@@ -1163,11 +1308,13 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_itemAjudaActionPerformed
 
   private void pnlLadoIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMouseReleased
-    if (ObSel > -1) { //Se ja tiver algum objeto selecionado
+    if (evt.isPopupTrigger()){
+      btnDesselecionarActionPerformed(null);
+    } else if (ObSel > -1) { //Se ja tiver algum objeto selecionado
       if (Per == 4) { //Selecionar (Troca a selecao)
         SelecionaAlguem(0, evt.getY(), evt.getX(), (byte) 1);
       }
-    } else { //Selecionar
+    } else if (Per != 0) { //Selecionar
       SelecionaAlguem(0, evt.getY(), evt.getX(), (byte) 1);
     }
     PintaTudo();
@@ -1202,14 +1349,17 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_pnlPerspectivaIMouseMoved
 
   private void pnlLadoIMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMousePressed
-    Clique.z = (evt.getX() / EL) - (VL.Umax/2);
-    Clique.y = (evt.getY() / EL) - (VL.Vmax/2);
+    Clique.z = (evt.getX() / EL) - (VL.Umax / 2);
+    Clique.y = (evt.getY() / EL) - (VL.Vmax / 2);
     Clique.x = 0;
   }//GEN-LAST:event_pnlLadoIMousePressed
 
   private void btnSelecionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelecionarActionPerformed
     if (btnSelecionar.isSelected()) {
       Per = 4;
+      btnMover.setSelected(false);
+      btnRedimensionar.setSelected(false);
+      btnRotacionar.setSelected(false);
     } else {
       Per = 0;
     }
@@ -1240,40 +1390,40 @@ public class Principal extends javax.swing.JFrame {
 
   private void btnWireFrameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnWireFrameActionPerformed
     //Wireframe
-    if (btnWireFrame.isSelected()){
+    if (btnWireFrame.isSelected()) {
       btnOcultacaoDeLinhas.setSelected(false);
-      btnConstante.setEnabled(false);
-      btnGouraud.setEnabled(false);
+      btnConstante.setSelected(false);
+      btnGouraud.setSelected(false);
       Visual = 0;
     }
   }//GEN-LAST:event_btnWireFrameActionPerformed
 
   private void btnOcultacaoDeLinhasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOcultacaoDeLinhasActionPerformed
     //Ocultacao de linhas (e faces)
-    if (btnOcultacaoDeLinhas.isSelected()){
+    if (btnOcultacaoDeLinhas.isSelected()) {
       btnWireFrame.setSelected(false);
-      btnConstante.setEnabled(false);
-      btnGouraud.setEnabled(false);
+      btnConstante.setSelected(false);
+      btnGouraud.setSelected(false);
       Visual = 1;
     }
   }//GEN-LAST:event_btnOcultacaoDeLinhasActionPerformed
 
   private void btnConstanteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConstanteActionPerformed
     //Sombreamento constante
-    if (btnConstante.isSelected()){
+    if (btnConstante.isSelected()) {
       btnOcultacaoDeLinhas.setSelected(false);
-      btnWireFrame.setEnabled(false);
-      btnGouraud.setEnabled(false);
+      btnWireFrame.setSelected(false);
+      btnGouraud.setSelected(false);
       Visual = 2;
     }
   }//GEN-LAST:event_btnConstanteActionPerformed
 
   private void btnGouraudActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGouraudActionPerformed
     //Sombreamento Gouraud
-    if (btnGouraud.isSelected()){
+    if (btnGouraud.isSelected()) {
       btnOcultacaoDeLinhas.setSelected(false);
-      btnConstante.setEnabled(false);
-      btnWireFrame.setEnabled(false);
+      btnConstante.setSelected(false);
+      btnWireFrame.setSelected(false);
       Visual = 3;
     }
   }//GEN-LAST:event_btnGouraudActionPerformed
@@ -1290,29 +1440,29 @@ public class Principal extends javax.swing.JFrame {
         escLado.setValue(1);
       }
     }
-    VL.Xmin = -(int) ((PLargura/2) * EL);
-    VL.Xmax = (int) ((PLargura/2) * EL);
-    VL.Ymin = -(int) ((PAltura/2)  * EL);
-    VL.Ymax = (int) ((PAltura/2)  * EL);
-    if(ckbProporcionalidade.isSelected()){
+    VL.Xmin = -(int) ((PLargura / 2) * EL);
+    VL.Xmax = (int) ((PLargura / 2) * EL);
+    VL.Ymin = -(int) ((PAltura / 2) * EL);
+    VL.Ymax = (int) ((PAltura / 2) * EL);
+    if (ckbProporcionalidade.isSelected()) {
       ET = EL;
       EP = EL;
       EF = EL;
       escPerspectiva.setValue(EL);
-      VP.Xmin = -(int) ((PLargura/2) * EL);
-      VP.Xmax = (int) ((PLargura/2) * EL);
-      VP.Ymin = -(int) ((PAltura/2)  * EL);
-      VP.Ymax = (int) ((PAltura/2)  * EL);
+      VP.Xmin = -(int) ((PLargura / 2) * EL);
+      VP.Xmax = (int) ((PLargura / 2) * EL);
+      VP.Ymin = -(int) ((PAltura / 2) * EL);
+      VP.Ymax = (int) ((PAltura / 2) * EL);
       escTopo.setValue(EL);
-      VT.Xmin = -(int) ((PLargura/2) * EL);
-      VT.Xmax = (int) ((PLargura/2) * EL);
-      VT.Ymin = -(int) ((PAltura/2)  * EL);
-      VT.Ymax = (int) ((PAltura/2)  * EL);
+      VT.Xmin = -(int) ((PLargura / 2) * EL);
+      VT.Xmax = (int) ((PLargura / 2) * EL);
+      VT.Ymin = -(int) ((PAltura / 2) * EL);
+      VT.Ymax = (int) ((PAltura / 2) * EL);
       escFrente.setValue(EL);
-      VF.Xmin = -(int) ((PLargura/2) * EL);
-      VF.Xmax = (int) ((PLargura/2) * EL);
-      VF.Ymin = -(int) ((PAltura/2)  * EL);
-      VF.Ymax = (int) ((PAltura/2)  * EL);
+      VF.Xmin = -(int) ((PLargura / 2) * EL);
+      VF.Xmax = (int) ((PLargura / 2) * EL);
+      VF.Ymin = -(int) ((PAltura / 2) * EL);
+      VF.Ymax = (int) ((PAltura / 2) * EL);
       PintaTudo();
     } else {
       PintaLado();
@@ -1331,29 +1481,29 @@ public class Principal extends javax.swing.JFrame {
         escFrente.setValue(1);
       }
     }
-    VF.Xmin = -(int) ((PLargura/2) * EF);
-    VF.Xmax = (int) ((PLargura/2) * EF);
-    VF.Ymin = -(int) ((PAltura/2)  * EF);
-    VF.Ymax = (int) ((PAltura/2)  * EF);
-    if(ckbProporcionalidade.isSelected()){
+    VF.Xmin = -(int) ((PLargura / 2) * EF);
+    VF.Xmax = (int) ((PLargura / 2) * EF);
+    VF.Ymin = -(int) ((PAltura / 2) * EF);
+    VF.Ymax = (int) ((PAltura / 2) * EF);
+    if (ckbProporcionalidade.isSelected()) {
       ET = EF;
       EP = EF;
       EL = EF;
       escPerspectiva.setValue(EL);
-      VP.Xmin = -(int) ((PLargura/2) * EL);
-      VP.Xmax = (int) ((PLargura/2) * EL);
-      VP.Ymin = -(int) ((PAltura/2)  * EL);
-      VP.Ymax = (int) ((PAltura/2)  * EL);
+      VP.Xmin = -(int) ((PLargura / 2) * EL);
+      VP.Xmax = (int) ((PLargura / 2) * EL);
+      VP.Ymin = -(int) ((PAltura / 2) * EL);
+      VP.Ymax = (int) ((PAltura / 2) * EL);
       escTopo.setValue(EL);
-      VT.Xmin = -(int) ((PLargura/2) * EL);
-      VT.Xmax = (int) ((PLargura/2) * EL);
-      VT.Ymin = -(int) ((PAltura/2)  * EL);
-      VT.Ymax = (int) ((PAltura/2)  * EL);
+      VT.Xmin = -(int) ((PLargura / 2) * EL);
+      VT.Xmax = (int) ((PLargura / 2) * EL);
+      VT.Ymin = -(int) ((PAltura / 2) * EL);
+      VT.Ymax = (int) ((PAltura / 2) * EL);
       escLado.setValue(EL);
-      VL.Xmin = -(int) ((PLargura/2) * EL);
-      VL.Xmax = (int) ((PLargura/2) * EL);
-      VL.Ymin = -(int) ((PAltura/2)  * EL);
-      VL.Ymax = (int) ((PAltura/2)  * EL);
+      VL.Xmin = -(int) ((PLargura / 2) * EL);
+      VL.Xmax = (int) ((PLargura / 2) * EL);
+      VL.Ymin = -(int) ((PAltura / 2) * EL);
+      VL.Ymax = (int) ((PAltura / 2) * EL);
       PintaTudo();
     } else {
       PintaFrente();
@@ -1372,29 +1522,29 @@ public class Principal extends javax.swing.JFrame {
         escTopo.setValue(1);
       }
     }
-    VT.Xmin = -(int) ((PLargura/2) * ET);
-    VT.Xmax = (int) ((PLargura/2) * ET);
-    VT.Ymin = -(int) ((PAltura/2)  * ET);
-    VT.Ymax = (int) ((PAltura/2)  * ET);
-    if(ckbProporcionalidade.isSelected()){
+    VT.Xmin = -(int) ((PLargura / 2) * ET);
+    VT.Xmax = (int) ((PLargura / 2) * ET);
+    VT.Ymin = -(int) ((PAltura / 2) * ET);
+    VT.Ymax = (int) ((PAltura / 2) * ET);
+    if (ckbProporcionalidade.isSelected()) {
       EF = ET;
       EP = ET;
       EL = ET;
       escPerspectiva.setValue(EL);
-      VP.Xmin = -(int) ((PLargura/2) * EL);
-      VP.Xmax = (int) ((PLargura/2) * EL);
-      VP.Ymin = -(int) ((PAltura/2)  * EL);
-      VP.Ymax = (int) ((PAltura/2)  * EL);
+      VP.Xmin = -(int) ((PLargura / 2) * EL);
+      VP.Xmax = (int) ((PLargura / 2) * EL);
+      VP.Ymin = -(int) ((PAltura / 2) * EL);
+      VP.Ymax = (int) ((PAltura / 2) * EL);
       escFrente.setValue(EL);
-      VF.Xmin = -(int) ((PLargura/2) * EL);
-      VF.Xmax = (int) ((PLargura/2) * EL);
-      VF.Ymin = -(int) ((PAltura/2)  * EL);
-      VF.Ymax = (int) ((PAltura/2)  * EL);
+      VF.Xmin = -(int) ((PLargura / 2) * EL);
+      VF.Xmax = (int) ((PLargura / 2) * EL);
+      VF.Ymin = -(int) ((PAltura / 2) * EL);
+      VF.Ymax = (int) ((PAltura / 2) * EL);
       escLado.setValue(EL);
-      VL.Xmin = -(int) ((PLargura/2) * EL);
-      VL.Xmax = (int) ((PLargura/2) * EL);
-      VL.Ymin = -(int) ((PAltura/2)  * EL);
-      VL.Ymax = (int) ((PAltura/2)  * EL);
+      VL.Xmin = -(int) ((PLargura / 2) * EL);
+      VL.Xmax = (int) ((PLargura / 2) * EL);
+      VL.Ymin = -(int) ((PAltura / 2) * EL);
+      VL.Ymax = (int) ((PAltura / 2) * EL);
       PintaTudo();
     } else {
       PintaTopo();
@@ -1403,20 +1553,20 @@ public class Principal extends javax.swing.JFrame {
 
   private void pnlLadoIMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlLadoIMouseDragged
     if (ObSel > -1) { //Se ja tiver algum objeto selecionado
-      Ponto ax = new Ponto(0, (evt.getY() / EL) - (VL.Vmax/2), (evt.getX() / EL) - (VL.Umax/2));
+      Ponto ax = new Ponto(0, (evt.getY() / EL) - (VL.Vmax / 2), (evt.getX() / EL) - (VL.Umax / 2));
       Ponto axx = new Ponto(ax);
       if (Per == 1) { //Mover
         ax.Diferenca(Clique);
         Obj.get(ObSel).C.Soma(ax);
-        for (Ponto ink : Obj.get(ObSel).arrPonto){
+        for (Ponto ink : Obj.get(ObSel).arrPonto) {
           ink.Soma(ax);
         }
         AtualizaTudo();
         PintaTudo();
         Clique = axx;
-      } else if (Per == 3){ //Rotacionar
+      } else if (Per == 3) { //Rotacionar
         Obj.get(ObSel).MenosCentro();
-        if (Clique.z < ax.z){
+        if (Clique.z < ax.z) {
           A1 = -0.1;
         } else {
           A1 = 0.1;
@@ -1434,6 +1584,8 @@ public class Principal extends javax.swing.JFrame {
         Clique = axx;
       }
     }
+    AtualizaTudo();
+    PintaTudo();
   }//GEN-LAST:event_pnlLadoIMouseDragged
 
   private void pnlLadoIMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_pnlLadoIMouseWheelMoved
@@ -1453,38 +1605,40 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_pnlLadoIMouseWheelMoved
 
   private void pnlFrenteIMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMousePressed
-    Clique.x = (evt.getX() / EF) - (VF.Umax/2);
-    Clique.y = (evt.getY() / EF) - (VF.Vmax/2);
+    Clique.x = (evt.getX() / EF) - (VF.Umax / 2);
+    Clique.y = (evt.getY() / EF) - (VF.Vmax / 2);
     Clique.z = 0;
   }//GEN-LAST:event_pnlFrenteIMousePressed
 
   private void pnlFrenteIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMouseReleased
-    if (ObSel > -1) { //Se ja tiver algum objeto selecionado
+    if (evt.isPopupTrigger()){
+      btnDesselecionarActionPerformed(null);
+    } else if (ObSel > -1) { //Se ja tiver algum objeto selecionado
       if (Per == 4) { //Selecionar (Troca a selecao)
-        SelecionaAlguem(evt.getX(), evt.getY(), 0, (byte) 1);
+        SelecionaAlguem(evt.getX(), evt.getY(), 0, (byte) 0);
       }
-    } else { //Selecionar
-      SelecionaAlguem(evt.getX(), evt.getY(), 0, (byte) 1);
+    } else if (Per != 0) { //Selecionar
+      SelecionaAlguem(evt.getX(), evt.getY(), 0, (byte) 0);
     }
     PintaTudo();
   }//GEN-LAST:event_pnlFrenteIMouseReleased
 
   private void pnlFrenteIMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlFrenteIMouseDragged
     if (ObSel > -1) { //Se ja tiver algum objeto selecionado
-      Ponto ax = new Ponto(-((evt.getX() / EF) - (VF.Umax/2)), (evt.getY() / EF) - (VF.Vmax/2), 0);
+      Ponto ax = new Ponto((evt.getX() / EF) - (VF.Umax / 2), (evt.getY() / EF) - (VF.Vmax / 2), 0);
       Ponto axx = new Ponto(ax);
       if (Per == 1) { //Mover
         ax.Diferenca(Clique);
         Obj.get(ObSel).C.Soma(ax);
-        for (Ponto ink : Obj.get(ObSel).arrPonto){
+        for (Ponto ink : Obj.get(ObSel).arrPonto) {
           ink.Soma(ax);
         }
         AtualizaTudo();
         PintaTudo();
         Clique = axx;
-      } else if (Per == 3){ //Rotacionar
+      } else if (Per == 3) { //Rotacionar
         Obj.get(ObSel).MenosCentro();
-        if (Clique.x < ax.x){
+        if (Clique.x < ax.x) {
           A1 = -0.1;
         } else {
           A1 = 0.1;
@@ -1519,38 +1673,40 @@ public class Principal extends javax.swing.JFrame {
   }//GEN-LAST:event_pnlFrenteIMouseWheelMoved
 
   private void pnlTopoIMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlTopoIMousePressed
-    Clique.x = (evt.getX() / ET) - (VT.Umax/2);
+    Clique.x = (evt.getX() / ET) - (VT.Umax / 2);
     Clique.y = 0;
-    Clique.z = (evt.getY() / ET) - (VT.Vmax/2);
+    Clique.z = (evt.getY() / ET) - (VT.Vmax / 2);
   }//GEN-LAST:event_pnlTopoIMousePressed
 
   private void pnlTopoIMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlTopoIMouseReleased
-    if (ObSel > -1) { //Se ja tiver algum objeto selecionado
+    if (evt.isPopupTrigger()){
+      btnDesselecionarActionPerformed(null);
+    } else if (ObSel > -1) { //Se ja tiver algum objeto selecionado
       if (Per == 4) { //Selecionar (Troca a selecao)
-        SelecionaAlguem(evt.getX(), 0, evt.getY(), (byte) 1);
+        SelecionaAlguem(evt.getX(), 0, evt.getY(), (byte) 2);
       }
-    } else { //Selecionar
-      SelecionaAlguem(evt.getX(), 0, evt.getY(), (byte) 1);
+    } else if (Per != 0) { //Selecionar
+      SelecionaAlguem(evt.getX(), 0, evt.getY(), (byte) 2);
     }
     PintaTudo();
   }//GEN-LAST:event_pnlTopoIMouseReleased
 
   private void pnlTopoIMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnlTopoIMouseDragged
     if (ObSel > -1) { //Se ja tiver algum objeto selecionado
-      Ponto ax = new Ponto((evt.getX() / ET) - (VT.Umax/2), 0, (evt.getY() / ET) - (VT.Vmax/2));
+      Ponto ax = new Ponto((evt.getX() / ET) - (VT.Umax / 2), 0, (evt.getY() / ET) - (VT.Vmax / 2));
       Ponto axx = new Ponto(ax);
       if (Per == 1) { //Mover
         ax.Diferenca(Clique);
         Obj.get(ObSel).C.Soma(ax);
-        for (Ponto ink : Obj.get(ObSel).arrPonto){
+        for (Ponto ink : Obj.get(ObSel).arrPonto) {
           ink.Soma(ax);
         }
         AtualizaTudo();
         PintaTudo();
         Clique = axx;
-      } else if (Per == 3){ //Rotacionar
+      } else if (Per == 3) { //Rotacionar
         Obj.get(ObSel).MenosCentro();
-        if (Clique.x < ax.x){
+        if (Clique.x < ax.x) {
           A1 = -0.1;
         } else {
           A1 = 0.1;
@@ -1583,6 +1739,20 @@ public class Principal extends javax.swing.JFrame {
     }
     PintaTudo();
   }//GEN-LAST:event_pnlTopoIMouseWheelMoved
+
+  private void btnAplicarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAplicarActionPerformed
+    VP.VRP.x = Double.parseDouble(vrpX.getText()); //FAZER Verificacoes
+    VP.VRP.y = Double.parseDouble(vrpY.getText());
+    VP.VRP.z = Double.parseDouble(vrpZ.getText());
+    VP.P.x = Double.parseDouble(ppX.getText());
+    VP.P.y = Double.parseDouble(ppY.getText());
+    VP.P.z = Double.parseDouble(ppZ.getText());
+    Luz.x = Double.parseDouble(luzX.getText());
+    Luz.y = Double.parseDouble(luzY.getText());
+    Luz.z = Double.parseDouble(luzZ.getText());
+    AtualizaTudo();
+    PintaTudo();
+  }//GEN-LAST:event_btnAplicarActionPerformed
 
   public void ErrosIniciais() {
     if (EI == -1) {
@@ -1647,6 +1817,7 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JButton btnAmpliarPerspectiva;
   private javax.swing.JButton btnAmpliarTopo;
   private javax.swing.JButton btnApagar;
+  private javax.swing.JButton btnAplicar;
   private javax.swing.JToggleButton btnConstante;
   private javax.swing.JButton btnCor;
   private javax.swing.JButton btnDesselecionar;
@@ -1672,14 +1843,29 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JMenuItem itemSalvarComo;
   private javax.swing.JMenuItem itemSobre;
   private javax.swing.JLabel jLabel1;
+  private javax.swing.JLabel jLabel10;
+  private javax.swing.JLabel jLabel11;
+  private javax.swing.JLabel jLabel12;
+  private javax.swing.JLabel jLabel13;
+  private javax.swing.JLabel jLabel14;
+  private javax.swing.JLabel jLabel15;
+  private javax.swing.JLabel jLabel16;
+  private javax.swing.JLabel jLabel17;
+  private javax.swing.JLabel jLabel2;
   private javax.swing.JLabel jLabel3;
   private javax.swing.JLabel jLabel4;
   private javax.swing.JLabel jLabel5;
   private javax.swing.JLabel jLabel6;
+  private javax.swing.JLabel jLabel7;
+  private javax.swing.JLabel jLabel8;
+  private javax.swing.JLabel jLabel9;
   private javax.swing.JMenuItem jMenuItem2;
   private javax.swing.JPopupMenu.Separator jSeparator1;
   private javax.swing.JTextField lX;
   private javax.swing.JTextField lY;
+  private javax.swing.JTextField luzX;
+  private javax.swing.JTextField luzY;
+  private javax.swing.JTextField luzZ;
   private javax.swing.JMenu menuAjuda;
   private javax.swing.JMenu menuArquivo;
   private javax.swing.JMenuBar menuBar;
@@ -1699,7 +1885,13 @@ public class Principal extends javax.swing.JFrame {
   private javax.swing.JPanel pnlPropriedades;
   private javax.swing.JPanel pnlTopo;
   private javax.swing.JPanel pnlTopoI;
+  private javax.swing.JTextField ppX;
+  private javax.swing.JTextField ppY;
+  private javax.swing.JTextField ppZ;
   private javax.swing.JTextField tX;
   private javax.swing.JTextField tY;
+  private javax.swing.JTextField vrpX;
+  private javax.swing.JTextField vrpY;
+  private javax.swing.JTextField vrpZ;
   // End of variables declaration//GEN-END:variables
 }

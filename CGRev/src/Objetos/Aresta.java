@@ -1,11 +1,13 @@
 package Objetos;
 
+import java.io.Serializable;
+
 /**
  * Classe de estrutura e manipulacao de arestas
  * @author Maycon
  */
-public class Aresta {
-  
+public class Aresta implements Serializable{
+
   /**
    * Variaveis publicas
    */
@@ -20,7 +22,7 @@ public class Aresta {
   public Aresta() {
     i = 0;
     f = 0;
-  }  
+  }
 
   /**
    * Construtor com parametros
@@ -31,7 +33,7 @@ public class Aresta {
     i = I;
     f = F;
   }
-  
+
   /**
    * Construtor de aresta com todos os parametros (para leitor)
    * @param I Ponto inicial
@@ -45,16 +47,16 @@ public class Aresta {
     e = E;
     d = D;
   }
-  
+
   /**
    * Construtor de copia (Cria novos pontos)
    * @param old Aresta a ser copiada
    */
-  public Aresta(Aresta old){
+  public Aresta(Aresta old) {
     f = old.f;
     i = old.i;
   }
-  
+
   /**
    * Retorna aresta no formato {indice1; indice}
    * @return String com o conteudo do retorno

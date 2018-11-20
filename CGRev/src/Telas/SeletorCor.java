@@ -45,7 +45,7 @@ public class SeletorCor extends javax.swing.JFrame {
       public void stateChanged(ChangeEvent arg0) {
         Color color = ColorChooser.getColor();
         //System.out.println(color);
-        P.Obj.get(P.ObSel).VaiCor((short)color.getRed(), (short)color.getGreen(), (short)color.getBlue());
+        P.Obj.get(P.ObSel).BG = new Color(color.getRed(), color.getGreen(), color.getBlue());
         //System.out.println(P.Obj.get(P.ObSel).BG.toString());
       }
     });
