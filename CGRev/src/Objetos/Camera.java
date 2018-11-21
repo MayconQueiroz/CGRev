@@ -22,10 +22,11 @@ public class Camera {
   public float ZBuffer[][]; //ZBuffer
   public BufferedImage IBuffer; //Imagem a ir pro painel
   public double TC[][] = new double[4][4]; //Matriz de transformacao para SRC
-  public double TT[][] = new double[4][4]; //Matriz de transformacao para SRT
+  public double TT[][] = new double[3][3]; //Matriz de transformacao para SRT
   public double TP[][] = new double[4][4]; //Matriz de transformacao perspectiva ou paralela
   public boolean plla; //True se for paralela
   public ArrayList<Objeto> obj; //Lista de objetos em coordenadas do sistema de camera
+  public double PontosTemp[][]; //ZBuffer
   public Graphics DP; //Graphics para desenhos
 
   /**
@@ -61,6 +62,7 @@ public class Camera {
     D = d;
     plla = Plla;
     IBuffer = new BufferedImage(Umax, Vmax, BufferedImage.TYPE_INT_ARGB);
+    ZBuffer = new float[Umax][Vmax]; //Zbuffer tem o tamanho da tela
     DP = IBuffer.getGraphics();
   }
 
@@ -88,7 +90,7 @@ public class Camera {
     for (Objeto u : An) { //Copia todos os objetos para a camera
       obj.add(new Objeto(u));
     }
-    
+    MatrizTransformacaoPSRT();
     for (Objeto u : obj) {
       for (Ponto pi : u.arrPonto) {
         COT[0][0] = pi.x;
@@ -139,9 +141,36 @@ public class Camera {
       }
     } else if (Op == 1) {
       if (plla) {
-        
+        CalculaZbuffer(Op, Obsel);
       } else {
-        
+        double COT[][] = new double[4][1]; //Coordenadas do objeto temporarias
+        for (Objeto u : obj) {
+          for (Ponto pi : u.arrPonto) { //SRC-Pers
+            COT[0][0] = pi.x;
+            COT[1][0] = pi.y;
+            COT[2][0] = pi.z;
+            COT[3][0] = pi.w;
+            COT = MultMatrizes(TP, COT);
+            COT = ChecaW(COT);
+            pi.x = COT[0][0];
+            pi.y = COT[1][0];
+            pi.z = COT[2][0];
+            pi.w = COT[3][0];
+          }
+          PontosTemp = new double[3][u.arrPonto.size()];
+          for (int i = 0; i < u.arrPonto.size(); i++){//Pers-SRT-1
+            PontosTemp[0][i] = u.arrPonto.get(i).x;
+            PontosTemp[1][i] = u.arrPonto.get(i).y;
+            PontosTemp[2][i] = u.arrPonto.get(i).z;
+          }
+          MultMatrizes3(TT, PontosTemp);
+          for (int i = 0; i < u.arrPonto.size(); i++){//Pers-SRT-2
+            u.arrPonto.get(i).x = PontosTemp[0][i];
+            u.arrPonto.get(i).y = PontosTemp[1][i];
+            u.arrPonto.get(i).z = PontosTemp[2][i];
+          }
+        }
+        CalculaZbuffer(Op, Obsel);
       }
     } else if (Op == 2) {
       if (plla) {
@@ -181,7 +210,17 @@ public class Camera {
         }
       }
     } else if (Op == 1) {
-      
+      for (int j = 0; j < Umax; j++) {
+        for (int k = 0; k < Vmax; k++) {
+          ZBuffer[j][k] = Float.MAX_VALUE;
+          IBuffer.setRGB(j, k, 15790320);//240, 240, 240
+        }
+      }
+      for (Objeto oh : obj){
+        for (Face h : oh.arrFace){
+          DeterminaIntersecao(h, oh);
+        }
+      }
     } else if (Op == 2) {
       
     } else if (Op == 3) {
@@ -300,6 +339,27 @@ public class Camera {
 
     return R;
   }
+  
+  /**
+   * Multiplica duas matrizes de dimensao 3x3 e 3x?
+   * @param M1 Primeira matriz
+   * @param M2 Segunda matriz
+   * @return Matriz resultado
+   */
+  public double[][] MultMatrizes3(double[][] M1, double[][] M2) {
+    int M2L = M2.length;
+    int M1C = M1[0].length;
+    int M2C = M2[0].length;
+    double R[][] = new double[M2L][M2C];
+
+    for (int i = 0; i < M1C; i++) {
+      for (int j = 0; j < M2C; j++) {
+        R[i][j] = (M1[i][0] * M2[0][j]) + (M1[i][1] * M2[1][j]) + (M1[i][2] * M2[2][j]);
+      }
+    }
+
+    return R;
+  }
 
   /**
    * Verifica se o parametro W dos pontos eh 1, se nao for, divide todos por ele
@@ -316,5 +376,44 @@ public class Camera {
     M[2][0] = M[2][0] / M[3][0];
     M[3][0] = M[3][0] / M[3][0];
     return M;
+  }
+  
+  /**
+   * Determina a intersecao da face e poe direto no Zbuffer
+   * @param h Face a ser calculada
+   * @param O Objeto ao qual a face pertence
+   */
+  public void DeterminaIntersecao(Face h, Objeto O){
+    double ymin = O.arrPonto.get(O.arrAresta.get(h.fAresta.get(0)).i).y; //Inicia ymin com o primeiro ponto da face
+    double ymax = O.arrPonto.get(O.arrAresta.get(h.fAresta.get(0)).i).y;
+    int iymin = O.arrAresta.get(h.fAresta.get(0)).i, 
+        iymax = O.arrAresta.get(h.fAresta.get(0)).i, 
+        aymin = h.fAresta.get(0), aymax = h.fAresta.get(0);
+    for (int to : h.fAresta){ //Encontra o ponto minimo e maximo
+      if (O.arrPonto.get(O.arrAresta.get(to).i).y < ymin){
+        aymin = to;
+        iymin = O.arrAresta.get(to).i;
+        ymin = O.arrPonto.get(O.arrAresta.get(to).i).y;
+      }
+      if (O.arrPonto.get(O.arrAresta.get(to).f).y < ymin){
+        aymin = to;
+        iymin = O.arrAresta.get(to).f;
+        ymax = O.arrPonto.get(O.arrAresta.get(to).f).y;
+      }
+      if (O.arrPonto.get(O.arrAresta.get(to).i).y > ymax){
+        aymax = to;
+        iymax = O.arrAresta.get(to).i;
+        ymax = O.arrPonto.get(O.arrAresta.get(to).i).y;
+      }
+      if (O.arrPonto.get(O.arrAresta.get(to).f).y > ymax){
+        aymax = to;
+        iymax = O.arrAresta.get(to).f;
+        ymax = O.arrPonto.get(O.arrAresta.get(to).f).y;
+      }
+    }
+    
+    for (int i = (int)ymin; i < (int)ymax; i++){
+      //Fazer Scanlines do objeto
+    }
   }
 }

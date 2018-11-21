@@ -97,6 +97,7 @@ public class Principal extends javax.swing.JFrame {
     VP = new Camera(new Ponto(-100, -100, -100), new Ponto(0, 0, 0), new Ponto(0, 1, 0), 340, 255, -170, 170, -127, 128, 0.5, false);
     Clique = new Ponto();
     btnWireFrame.setSelected(true);
+    Visual = 0;
     vrpX.setText("" + VP.VRP.x);
     vrpY.setText("" + VP.VRP.y);
     vrpZ.setText("" + VP.VRP.z);
@@ -157,7 +158,7 @@ public class Principal extends javax.swing.JFrame {
    * Pinta a vista lateral
    */
   public void PintaLado() {
-    VL.AtualizaVisao((byte) 0, ObSel);
+    VL.AtualizaVisao(Visual, ObSel);
     DL.drawImage(VL.IBuffer, 0, 0, null);
   }
 
@@ -165,7 +166,7 @@ public class Principal extends javax.swing.JFrame {
    * Pinta a vista lateral
    */
   public void PintaTopo() {
-    VT.AtualizaVisao((byte) 0, ObSel);
+    VT.AtualizaVisao(Visual, ObSel);
     DT.drawImage(VT.IBuffer, 0, 0, null);
   }
 
@@ -173,7 +174,7 @@ public class Principal extends javax.swing.JFrame {
    * Pinta a vista lateral
    */
   public void PintaFrente() {
-    VF.AtualizaVisao((byte) 0, ObSel);
+    VF.AtualizaVisao(Visual, ObSel);
     DF.drawImage(VF.IBuffer, 0, 0, null);
   }
 
@@ -181,7 +182,7 @@ public class Principal extends javax.swing.JFrame {
    * Pinta o painel de perspectiva
    */
   public void PintaPerspectiva() {
-    VP.AtualizaVisao((byte) 0, ObSel);
+    VP.AtualizaVisao(Visual, ObSel);
     DP.drawImage(VP.IBuffer, 0, 0, null);
   }
 
@@ -1046,6 +1047,11 @@ public class Principal extends javax.swing.JFrame {
     menuArquivo.add(itemSalvar);
 
     itemSalvarComo.setText("Salvar Como");
+    itemSalvarComo.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        itemSalvarComoActionPerformed(evt);
+      }
+    });
     menuArquivo.add(itemSalvarComo);
 
     menuBar.add(menuArquivo);
@@ -1753,6 +1759,34 @@ public class Principal extends javax.swing.JFrame {
     AtualizaTudo();
     PintaTudo();
   }//GEN-LAST:event_btnAplicarActionPerformed
+
+  private void itemSalvarComoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemSalvarComoActionPerformed
+    int returnVal, Amn = 0;
+    fc = new JFileChooser();
+    returnVal = fc.showSaveDialog(this); //VERIFICAR salvar o nome do arquivo se lido ou ja salvo para sobrescrever sem perguntar
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File file = fc.getSelectedFile();
+      fileName = file.toString() + ".acr"; //Arquivo CGRev (Perfil, cena)
+      Amn = 1;
+    }
+    if (Amn == 1) {
+      cabecalho = (byte) VERSAO_CENA;
+      cabecalho += 8; //Marcador de "Cena"
+      try {
+        try (ObjectOutputStream said = new ObjectOutputStream(new FileOutputStream(fileName))) {
+          said.writeByte(cabecalho);
+          for (Objeto ob : Obj) {
+            said.writeObject(ob);
+          }
+        }
+      } catch (FileNotFoundException ex) {
+        JOptionPane.showMessageDialog(this, "Erro de arquivo nao encontrado: " + ex.toString(), "Erro", JOptionPane.ERROR_MESSAGE);
+      } catch (IOException ex) {
+        JOptionPane.showMessageDialog(this, "Erro generico de escrita: " + ex.toString(), "Erro", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+    salvo = true;
+  }//GEN-LAST:event_itemSalvarComoActionPerformed
 
   public void ErrosIniciais() {
     if (EI == -1) {
